@@ -1,0 +1,6 @@
+# Cartelle da ignorare
+instance/
+flaskr/__pycache__/
+
+# File da ignorare (es. configurazioni sensibili o log)
+desktop.ini
