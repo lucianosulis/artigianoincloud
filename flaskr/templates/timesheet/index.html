@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<h4>Gestione consuntivazione ore </h4>
+
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.info }}</td>   
+      <td><a href="{{ url_for('timesheet.create') }}"><img src="static/images/add.jpg" alt="Nuova consuntivazione" style="width:42px;height:42px;"></a></td>
+      <td><a href="{{ url_for('timesheet.create_daysoff') }}"><img src="static/images/add_daysoff.png" alt="Inserimento ferie" style="width:42px;height:42px;"></a></td>            
+    </tr>
+  </table>
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>      
+    </tr>
+  </table>
+</div>
+<div class="table-striped">
+  <table>
+    <th>Data</th><th>Tipo</th><th>Persona</th><th>Ordine</th><th>Ore</th><th></th>
+  {% for ts_record in ts_records %}       
+        <tr>
+          <td>{{ ts_record['date'] }} </td> <td>{{ ts_record['act_type'] }}</td> <td>{{ ts_record['p_name'] }}</td> <td style="text-align: left">{{ ts_record['p_order'] }}</td> <td>{{ ts_record['ore_lav'] }}</td>
+          <td>
+            <a href="{{ url_for('timesheet.detail', id=ts_record['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('timesheet.update', id=ts_record['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('timesheet.duplicate', id=ts_record['id']) }}"><img src="static/images/duplicate.jpg" alt="Duplica" style="width:25px;height:25px;"></a>
+          </td>
+        </tr>        
+  {% endfor %}
+  </table>
+</div>
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>
+    </tr>
+  </table>
+</div>
+<form id="SearchForm" method="post">
+  <div class="table">
+  <table>
+    <tr>
+        <td>
+          <label for="radio1">Escludi ferie</label>
+          <input name="filterA" id="radio1" type="radio" value="wo_holidays">
+        </td> 
+        <td>
+          <label for="radio2">Includi ferie</label>
+          <input name="filterA" id="radio2" type="radio" value="with_holidays">
+        </td>
+      </tr>
+    <tr>
+      <td>Data</td>
+      <td><input name="searchDate" id="searchDate" type="date" value="{{ request.form['searchDate'] }}"></td>
+    </tr>
+    <tr>
+      <td>Cliente</td>
+      <td><input name="searchCustomer" id="searchCustomer" type="text" value="{{ request.form['searchCustomer'] }}"></td>        
+    </tr>
+    <tr>
+      <td>Persona</td>  
+      <td><input name="searchPeople" id="searchPeople" type="text" value="{{ request.form['searchPeople'] }}"></td>
+    </tr>
+    <tr>  
+      <td><input type="submit" value="Cerca"></td>
+      <td><input type="button" onclick="resetSearch()" value="Ripristina">
+        <a href="{{ url_for('timesheet.create') }}"><img src="static/images/add.jpg" alt="Nuova consuntivazione" style="width:42px;height:42px;"></a>
+      </td>
+  </tr>
+  </table>
+  <input id="filterValueA" type="text" value="{{filterA}}" hidden>
+  </form>
+  </div>
+
+  <script>
+    let filterValueA = document.getElementById("filterValueA").value;
+    //alert(filterValue);
+    const radio1 = document.getElementById("radio1");
+    const radio2 = document.getElementById("radio2");
+    
+    if (filterValueA == "wo_holidays") {
+      radio1.setAttribute("checked", "");
+    }
+    else {
+      radio2.setAttribute("checked", "");
+    }
+
+    function resetSearch() {
+      document.getElementById("searchDate").value = ""; 
+      document.getElementById("searchCustomer").value = "";
+      document.getElementById("searchPeople").value = "";
+      document.getElementById("SearchForm").submit();
+  }
+    
+  </script>
+
+{% endblock %}

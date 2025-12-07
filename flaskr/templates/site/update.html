@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Modifica sede cliente{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post" onsubmit="afterSubmit()">
+    <label for="customer_id">Cliente</label>
+    <SELECT id="customer_id">
+      {% for customer in customerList %}
+        {% if customer.id == site['customer_id'] %}
+          <OPTION value={{customer.id}} selected>{{customer.full_name}} - {{customer.city}}</option>
+        {% else %}
+          <OPTION value={{customer.id}}>{{customer.full_name}} - {{customer.city}}</option>
+        {% endif %}
+      {% endfor %}
+    </SELECT>
+    <label for="address">Indirizzo</label>
+    <input name="address" id="address" value="{{ request.form['address'] or site['address'] }}">
+    <label for="city">Città</label>
+    <input name="city" id="city" value="{{ request.form['city'] or site['city'] }}">
+    <label for="contact_people">Persona di contatto</label>
+    <input name="contact_people" id="contact_people" type="text" value="{{ request.form['contact_people'] or site['contact_people']  }}">
+    <label for="telephone">Telefono</label>
+    <input name="telephone" id="telephone" type="text" value="{{ request.form['telephone'] or site['telephone'] }}">
+    <label for="email">Email</label>
+    <input name="email" id="email" type="text" value="{{ request.form['email'] or site['email'] }}">
+    <br>
+    <input name="input_customer_id" id="input_customer_id" hidden>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('site.index') }}" hidden>
+  </form>
+  <form action="{{ url_for('site.delete', id=site['id']) }}" method="post">
+    <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questo sito?');">
+  </form>
+  <hr>
+  <script> 
+    function afterSubmit() {
+          var new_customer_id = document.getElementById("customer_id").value;
+          document.getElementById("input_customer_id").value = new_customer_id;      
+      }
+
+      function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+      }
+  
+  </script>
+{% endblock %}

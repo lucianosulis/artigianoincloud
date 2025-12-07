@@ -1,0 +1,213 @@
+Release 2.10
+Aggiunta integrazione col RENTRI. Per ora è possibile solo generare un FIR con i dati di 
+PRONTOGIARDINI.
+
+Release 2.03
+Aggiunto il campo note nella squadra (team) e impostata la data di default al giorno di domani.
+
+Release 2.02
+Aggiunta logica sulle disponibilità dei collaboratori (Artigiani e a chiamata), 
+con nuova tabella people_available, people_available.py e pagine html.
+Aggiuto anche il campo orario presunto di fine (finish_time) in team.
+
+Release 2.01
+Aggiunto il campo "Orario di inizio" nella squadra (tabella team e team.py).
+
+Release 2.00
+Rifatta completamente la logica della pianificazione di persone e mezzi. 
+Introdotto il concetto di squadra giornaliera.
+Cambiata la struttura del DB.
+Nelle attività non si inseriscono più persone  e mezzi. 
+Le squadre sono visualizzate a calendaio in rosso se non ancora collegata ad attività.
+
+Release 1.89
+Ancora modifiche sulla query della release 1.88 (cal_people_planned.py)
+
+Release 1.88
+Risolto bug su calendario risorse (non venivano visualizzati tutti gli operatori non assegnati).
+
+Release 1.87
+Allargate le colonne del foglio Excel in export_timesheet.py.
+
+Release 1.86
+Completata funzionalità di inserimento persone e mezzi per le funzioni mancanti sulle attività:
+create_from_cal, create_wo_order, create_from_order, duplicate.
+
+Release 1.85
+Aggiunta gestione del campo discontinued in anagrafica mezzi (tool).
+
+Release 1.84
+Inserito controllo backend su congruità date persone e mezzi in activity.py update.
+
+Release 1.83
+Aggiunto il ruolo SEGRETERIA che può gestire le presenze ma non può modificare le attività
+(magari per sbaglio col drag and drop).
+
+Release 1.82
+Completata la sezione "mezzi previsti" in create, update e detail di activity.
+Aggiunti anche i mezzi nel calendario risorse.
+
+Release 1.81
+Modificata query in cal_people_planned.py per escludere dalle persone da allocare quelle 
+che in timesheet hanno attività diverse dal cantiere e ore >= 7 (es. ferie 8 ore)
+Risolto bug in commom.js di activity (non funzionava jsgrid in create).
+
+Release 1.80
+Si ritorna alla pianificazione delle persone nelle attività separata dal timesheet, 
+tramite la tabella rel_activity_people, ma con l'aggiunta della colonna data.
+Creato il calendario della programmazione delle persone, che mostra in colore diverso 
+le persone occupate e quelle (solo tra i dipendenti) non occupate. 
+
+Release 1.71
+Inserita griglia con elenco mezzi nel dettaglio della attività (non modificabile).
+Modificata la pagina accounting_hours (auto-consuntivazione ore per il personale) 
+per consentire l'inserimento di più consuntivazioni per lo stesso giorno e la stessa
+persona (l'utente che esegue la registrazione).  
+
+Release 1.70
+Aggiunto il ruolo TEAM_LEADER che può inserire anche le ore degli altri collaboratori,
+ma per il resto ha i poteri di USER.
+Adesso solo il ruolo ADMIN può marcare/smarcare il completamento di una attività.
+Inoltre solo ADMIN può modificare le consuntivazioni del personale dopo che sono trascorsi 
+due giorni dalla data di consuntivazione; cioè chi non è ADMIN può modificare la consuntivazione
+soltanto il giorno stesso e quello successivo.
+
+Release 1.60
+Aggiunto l'inserimento dell'utilizzo mezzi (tool_usage.py) in modo similare a quello 
+del personale (timesheet.py). Manca ancora la grid nell'attività.
+
+Release 1.53
+Aggiunto il campo Note nella tabella people_payment e relativa form.
+
+Release 1.52
+Corretti bugs nella gestione degli ordini (icona calendario attività di un ordine, 
+link dentro il calendario errati, selezione di tutte le attività invece di quelle dell'ordine 
+specifico, mancato inserimento date di fatturazione). 
+
+Release 1.51
+Modificato il calcolo delle ore di presenza e introdotto lo straordinario notturno.
+Ora è possibile nello stesso giorno avere sia uno straordinario diurno che notturno,
+che vengono separati in voci diverse. Inoltre è stato introdotto il numero di giorni 
+da inserire in busta paga per un collaboratore a chiamata.
+
+Release 1.50
+Eliminata la vecchia funzione di inserimento persone previste in una attività.
+Adesso invece si possono inserire i record di timesheet (con ore a zero), che poi si dovranno
+aggiornare con le ore effettive a consuntivo. 
+E' stata pertanto eliminata la tabella rel_activity_people, ch eperaltro era quasi vuota perché 
+la funzione era inutilizzata. 
+
+Release 1.43
+Risolto bug in export_timesheet.py.
+
+Release 1.42
+Eliminato il flag per il check sulle giornate feriali dei dipendenti nella pagina 
+export_timesheet index.html. Il check viene fatto in ogni caso, ma è stata introdotta
+ la nuova tipologia "dipendenti a chiamata" (Codice P) per indicare un dipendente che 
+ non fa le ore standard.  Su tale tipologia non viene operato il controllo sulle ore standard.
+ In questo modo si evitano le sbrodolate di rosso per i dipendenti a chiamata.
+
+Release 1.41
+Modificata la pagina timesheet con inserimento del filtro "Escludi ferie" (impostato di default) 
+per escludere le ferie dalla lista presenze.
+
+Release 1.40
+Aggiunto scadenziario segreteria (schedule.py e cal_schedule.py e relative pagine html).
+
+Release 1.39
+Aggiunta pagina cal_holidays.html e relative funzioni Python (cal_holidays.py) 
+per avere il calendario delle ferie e delle assenze (read-only) dei collaboratori
+ attivi.
+
+Release 1.38
+Ulteriore modifica a export_timesheet.py per inserire il controllo sulle giornate
+ dei dipendenti (in rosso quelle anomale) anche per il report  RACCOLTA_ORE_COMPLETO
+ ma solo per i dipendenti.
+
+Release 1.37
+Modificato export_timesheet.py per creare da zero il file Excel delle presenze
+con tutte le formattazioni. Viene creato un solo foglio per il mese selezionato.
+Inserito flag nella pagina HTML per il check sulle giornate feriali dei 
+dipendenti nel foglio RACCOLTA_ORE_PAGHE (negli altri casi non fa effetto):
+se la somma delle ore non è uguale alle ore standard (7 o 8), tutte le celle 
+diventano di quel giorno diventano rosse. 
+
+Release 1.36
+Aggiunto il campo ext_channel (Canale esterno) nella tabella po_invoices e nella griglia dell'ordine. 
+Serve per indicare che la fattura in scadenza deve essere emessa da altra azienda partner (es. Sonzogni).
+
+Release 1.35
+Aggiunto il campo note (notes) nell'ordine di Artigianoincloud. 
+Tale campo viene anche riportato nel campo notes di Fattureincloud
+all'atto della creazione di un nuovo ordine e aggiornato in Artigianoincloud in caso di modifica in Fattureincloud.
+Attenzione che in Fattureincloud il campo viene trattato come HTML.
+
+Release 1.34
+Aggiunta funzione di duplicazione nella lista ordini. Duplica anche le scadenze di fatturazione spostandole di un anno in avanti.
+
+Release 1.33
+Correzione bug in export_timesheet.py e nei template Excel a fronte della prima elaborazione mensile (ottobre 2024).
+
+Release 1.32
+Aggiunta la logica di gestione del lavoro notturno in export_timesheet.py.
+
+Release 1.31
+Aggiunta la colonna "night" nella tabella timesheet per la gestione delle ore notturne.
+Modificate la funzione timesheet.py e le relative pagine html e gli script per gestire le ore notture.
+Manca la parte di elaborazione presenze.
+
+Release 1.30
+Aggiunta funzionalità per scadenziario fatturazione legato agli ordini.
+Rivista la nomenclatura del menu generale.
+
+Release 1.21
+Inserite le pagine auth/index e auth/update per la modifica degli utenti.
+Inserite le pagine per gestire i collaboratori (people.py, ecc.)
+Inserita la pagina per l'inserimento massivo dei periodi di ferie (da Gestione presenze).
+
+Release 1.20
+Inserite le festività italiane in export_timesheet.py
+Corretto bug su timesheet.py: quando non c'era neanche un'attività programmata nel giorno corrente, la pagina di creazione dava errore.
+Riorganizzato menu della pagina base.html a due livelli.
+Aggiunte le funzioni e le tabelle per la manutenzione (tool_type, tool, maintenance).
+
+Release 1.10
+Aggiunta informazione nel dettaglio ordine sulle ore lavorate totali.
+Modificata la create di timesheet per selezionare più persone (ovviamente devono fare gli stessi cantieri con le stesse ore)
+Corretto il layout responsive di timesheet.index e timesheet.create
+
+Release 1.09
+Modificato il calcolo delle ore presenza (export_timesheet.py) per tenere conto della CISOA
+Inoltre: ordinamento alfabetico dei collaboratori; esclusione dal report dei collaboratori che non hanno ore lavorate nel mese.
+E soprattutto: rifatta completamente la form di inserimento presenze (perora solo da
+ Gestione  presenze) con la possibilità di inserire tutte le presenze di una 
+ persona in un giorno tramite jsGrid.
+Release 1.08
+Implementata funzione duplicazione timesheet
+Corretto bug in activity.create_wo_order (non impostava il site)
+Aggiunta funzione pianificazione di un ordine dalla lista ordini (plan)
+Aggiunta funzione creazione attività dal calendario(cliccando su una data fuori dagli eventi)
+Impostato il titolo di un'attività quando si seleziona un ordine
+
+Release 1.07
+Implementata nuova funzione di creazione ordine spot con e senza cliente a 
+partire dalla pagina degli ordini.
+Implementata funzione duplicazione attività dalla pagina attività.
+Modificata pagina creazione attività con selezione ordine paginata (eliminata la combo box)
+Eliminata colonna Title dalla activity.index (rovinava la visualizzazione mobile)
+
+Release 1.06
+Corretto bug su fcsync.py: veniva scaricata solo la prima pagina degli ordini.
+
+Relase 1.05
+Riscritto il codice che calcola le presenze in export_timesheet.py.
+Le logiche erano in parte sbagliate.
+
+Release 1.04
+
+Sostituita la selezione ordine tramite combo-box nell'attività, 
+con quella tramite pagina pop-up, con paginazione, ricerca 
+(con distinzione tra ordini continuativi e spot). 
+
+Risolto bug su modifica attività: non caricava le persone previste.
+

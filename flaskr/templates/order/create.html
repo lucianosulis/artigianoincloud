@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuovo ordine{% endblock %}</h4>
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <h6>Verrà creato automaticamente un ordine in Fatture in Cloud</h6>
+    <label for="customer_fullname">Cliente</label>
+    <input name="customer_fullname" id="customer_fullname" type="text" readonly>
+    <input name="customer_id" id="customer_id" type="text" hidden>
+    <input name="url" id="url" value="{{ url_for('customer.select_wo_site') }}" hidden>
+    <input type="button" onclick="open_customer_select()" value="Seleziona il cliente">
+    <h6>Se il cliente non esiste, inserisci qui sotto il nuovo cliente.</h6>
+    <label id=label1 for="customer_name">Nominativo</label>
+    <input name="customer_name" id="customer_name" value="{{ request.form['customer_name'] }}">
+    <label id=label2 for="customer_address">Indirizzo</label>
+    <input name="customer_address" id="customer_address" value="{{ request.form['customer_address'] }}">
+    <label id=label3 for="customer_city">Città</label>
+    <input name="customer_city" id="customer_city" value="{{ request.form['customer_city'] }}">
+    <br>
+    <label for="title">Descrizione</label>
+    <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <label for="notes">Note</label>
+    <input name="notes" id="notes" value="{{ request.form['notes'] }}" >
+    <br>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('order.index') }}" hidden>
+  </form>
+  <hr> 
+  <script>
+  function open_customer_select() { 
+    window.open(document.getElementById("url").value,"Clienti", "toolbar=no,fullscreen=yes");
+  }
+
+  function goBack() {
+    window.location.assign(document.getElementById("goback").value);
+  }
+
+  </script>
+
+{% endblock %}

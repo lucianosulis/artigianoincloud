@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio attività{% endblock %}</h4>
+{% endblock %}
+{% block content %}
+<!--<style>
+  table, th, td {
+    border: 1px solid black; text-align: center;
+  }
+  </style>-->
+  <table>
+  <tr>
+    <td>
+      <label for="done">Stato dell'attività</label>
+    </td>
+    <td>
+      <input type="button" onclick="activity_to_do()" value="Da eseguire">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      {% if act.done == 1 %}
+        <input id="done" type="text"  value="Attività eseguita" readonly>
+      {% else %}
+        <input id="done" type="text"  value="Attività da eseguire" readonly>
+      {% endif %}
+    </td>
+    <td>
+      <input type="button" onclick="activity_done()" value="Eseguita">
+    </td>
+  </tr>
+</table>
+
+  <form>
+    <input id="act_id" value="{{act['id'] }}" hidden>
+    <label for="title">Titolo</label>
+    <input name="title" id="title" value="{{act['title'] }}" readonly>
+    <label for="start">Data inizio attività</label>
+    <input name="start" id="start" type="date" value="{{act['start'] }}" readonly>
+    <label for="end">Data fine attività</label>
+    <input name="end" id="end" type="date" value="{{act['end'] }}" readonly>
+    <label for="order_id">Ordine</label>
+    <input name="order_desc" id="order_desc" value="{{ order['order_desc'] }}" readonly>
+    <label for="site_id">Sede</label>
+    <input name="site" id="site" value="{{ site['site_desc'] }}" readonly>
+    <label for="description">Descrizione lavorazioni</label>
+    <textarea name="description" id="description" readonly>{{ request.form['description'] or act['description'] }}</textarea>
+    <input name="ts_people_dates" id="ts_people_dates" value="{{ request.form['ts_people'] or ts_people['date'] }}" hidden>
+    <input name="ts_people_names" id="ts_people_names" value="{{ request.form['ts_people'] or ts_people['p_name'] }}" hidden>
+    <input name="ts_people_hours" id="ts_people_hours" value="{{ request.form['ts_people'] or ts_people['ore_lav'] }}" hidden>
+    <input name="tu_tool_dates" id="tu_tool_dates" value="{{ request.form['tu_tool'] or tu_tool['date'] }}" hidden>
+    <input name="tu_tool_names" id="tu_tool_names" value="{{ request.form['tu_tool'] or tu_tool['t_name'] }}" hidden>
+    <input name="tu_toole_hours" id="tu_tool_hours" value="{{ request.form['tu_tool'] or tu_tool['ore_lav'] }}" hidden>
+    <br>
+    <h4>Operatori effettivi</h4>
+    <table>
+      <tr>
+        <!-- Grid del personale-->
+        <td style="width: 100%"><div id="jsGrid2"></div></td>
+      </tr>
+      </table>
+      <h4>Mezzi effettivi</h4>
+      <table>
+      <tr>
+        <!-- Grid dei mezzi-->
+        <td style="width: 100%"><div id="jsGrid3"></div></td>
+      </tr>
+      </table>
+      <table>
+      <tr>
+        <td>
+          <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+          {% if show_calendar == "Y" %}
+            <input name="goback" id="goback" value="{{ url_for('calendar.show_cal') }}" hidden>
+          {% else %}
+            <input name="goback" id="goback" value="{{ url_for('activity.index') }}" hidden>
+            {% endif %}
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <input type="button" onclick="activity_to_do()" value="Attività da eseguire">
+          <input type="button" onclick="activity_done()" value="Attività eseguita">
+        </td>
+      </tr>
+    </table>
+    
+  </form>
+  <hr>
+  <form action="{{ url_for('activity.update', id=act['id']) }}" method="get">
+    <input class="action" type="submit" value="Modifica">
+  </form>
+  <script>
+    console.log("Sono nello script principale di detail.html");
+        
+        var ts_people_dates = document.getElementById("ts_people_dates").value;
+        var ts_people_date_arr = ts_people_dates.split(",");
+        console.log(ts_people_date_arr);
+        var ts_people_names = document.getElementById("ts_people_names").value;
+        var ts_people_names_arr = ts_people_names.split(",");
+        console.log(ts_people_names_arr);
+        var ts_people_hours = document.getElementById("ts_people_hours").value;
+        var ts_people_hours_arr = ts_people_hours.split(",");
+        console.log(ts_people_hours_arr);
+        
+        if (ts_people_dates != "" && ts_people_dates != null && ts_people_dates != "None") {
+          var ts_people = [];
+          for (let i = 0; i < ts_people_date_arr.length; i++) {
+            var new_element = '{"date": "' + ts_people_date_arr[i] + '", "name": "' + ts_people_names_arr[i] + '", "ore": "' + ts_people_hours_arr[i] + '"}';
+            console.log("new_element: " + new_element);
+            var new_object = JSON.parse(new_element);
+            ts_people.push(new_object);
+
+          }
+        } 
+          
+          $("#jsGrid2").jsGrid({
+            width: "100%",
+            height: "250px",
+    
+            inserting: false,
+            editing: false,
+            sorting: false,
+            paging: true,
+    
+            data: ts_people,
+    
+            fields: [
+                { name: "date", title: "Data", type: "text", width: 35, align: "left" },
+                { name: "name", title: "Operatore", type: "text", width: 55, align: "left" },
+                { name: "ore", title: "Ore", type: "text", width: 10, align: "left" }
+            ]
+          });
+
+        var tu_tool_dates = document.getElementById("tu_tool_dates").value;
+        var tu_tool_dates_arr = tu_tool_dates.split(",");
+        console.log(tu_tool_dates_arr);
+        var tu_tool_names = document.getElementById("tu_tool_names").value;
+        var tu_tool_names_arr = tu_tool_names.split(",");
+        console.log(tu_tool_names_arr);
+        var tu_tool_hours = document.getElementById("tu_tool_hours").value;
+        var tu_tool_hours_arr = tu_tool_hours.split(",");
+        console.log(tu_tool_hours_arr);
+        
+        if (tu_tool_dates != "" && tu_tool_dates != null && tu_tool_dates != "None") {
+          var tu_tool = [];
+          for (let i = 0; i < tu_tool_dates_arr.length; i++) {
+            var new_element = '{"date": "' + tu_tool_dates_arr[i] + '", "t_name": "' + tu_tool_names_arr[i] + '", "ore": "' + tu_tool_hours_arr[i] + '"}';
+            console.log("new_element: " + new_element);
+            var new_object = JSON.parse(new_element);
+            tu_tool.push(new_object);
+
+          }
+        } 
+
+    function activity_to_do() {
+        var act_id = document.getElementById("act_id").value;
+        console.log(act_id);
+        $.ajax({
+        type: "POST",
+        url: "/activity/" + act_id + "/to_do",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          console.log("Result:");
+          console.log(result);
+          }
+        })
+        document.getElementById("done").value = "Attività da eseguire";
+    }
+    function activity_done() {
+      var act_id = document.getElementById("act_id").value;
+        console.log(act_id);
+        $.ajax({
+        type: "POST",
+        url: "/activity/" + act_id + "/done",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          console.log("Result:");
+          console.log(result);
+          }
+        })
+        document.getElementById("done").value = "Attività eseguita";
+    }
+
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+
+{% endblock %}

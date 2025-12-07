@@ -1,0 +1,72 @@
+Date : 2024-05-07 13:24:43
+Directory : g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static
+Total : 36 files,  18243 codes, 1069 comments, 1115 blanks, all 20427 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JavaScript |         20 |     16,549 |        926 |        893 |     18,368 |
+| CSS        |          7 |      1,631 |        143 |        222 |      1,996 |
+| Ini        |          9 |         63 |          0 |          0 |         63 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                   | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                      |         36 |     18,243 |      1,069 |      1,115 |     20,427 |
+| . (Files)                                                                                                              |          3 |        117 |         11 |         28 |        156 |
+| accounting_hours                                                                                                       |          2 |         77 |          1 |          2 |         80 |
+| activity                                                                                                               |          2 |        170 |         16 |         19 |        205 |
+| fullcalendar                                                                                                           |          3 |     14,850 |      1,003 |        340 |     16,193 |
+| images                                                                                                                 |          1 |          7 |          0 |          0 |          7 |
+| jsgrid-1.5.3                                                                                                           |         21 |      2,834 |         31 |        703 |      3,568 |
+| jsgrid-1.5.3 (Files)                                                                                                   |          7 |      2,278 |         31 |        623 |      2,932 |
+| jsgrid-1.5.3\i18n                                                                                                      |         14 |        556 |          0 |         80 |        636 |
+| maintenance                                                                                                            |          2 |         19 |          2 |          6 |         27 |
+| timesheet                                                                                                              |          2 |        169 |          5 |         17 |        191 |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                                               | language   | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\accounting_hours\common.js        | JavaScript |         70 |          1 |          2 |         73 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\accounting_hours\desktop.ini      | Ini        |          7 |          0 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\activity\common.js                | JavaScript |        163 |         16 |         19 |        198 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\activity\desktop.ini              | Ini        |          7 |          0 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\bootstrap.min.css                 | CSS        |          1 |          6 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\desktop.ini                       | Ini        |          7 |          0 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\fullcalendar\desktop.ini          | Ini        |          7 |          0 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\fullcalendar\main.css             | CSS        |      1,213 |        111 |        123 |      1,447 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\fullcalendar\main.js              | JavaScript |     13,630 |        892 |        217 |     14,739 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\images\desktop.ini                | Ini        |          7 |          0 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\desktop.ini          | Ini        |          7 |          0 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\desktop.ini     | Ini        |          7 |          0 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-de.js    | JavaScript |         41 |          0 |          6 |         47 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-es.js    | JavaScript |         41 |          0 |          6 |         47 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-fr.js    | JavaScript |         41 |          0 |          7 |         48 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-he.js    | JavaScript |         41 |          0 |          6 |         47 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-ja.js    | JavaScript |         41 |          0 |          5 |         46 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-ka.js    | JavaScript |         41 |          0 |          6 |         47 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-pl.js    | JavaScript |         57 |          0 |          6 |         63 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-pt-br.js | JavaScript |         41 |          0 |          6 |         47 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-pt.js    | JavaScript |         41 |          0 |          6 |         47 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-ru.js    | JavaScript |         41 |          0 |          7 |         48 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-tr.js    | JavaScript |         41 |          0 |          7 |         48 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-zh-cn.js | JavaScript |         41 |          0 |          6 |         47 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\i18n\jsgrid-zh-tw.js | JavaScript |         41 |          0 |          6 |         47 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\jsgrid-theme.css     | CSS        |        207 |          6 |         46 |        259 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\jsgrid-theme.min.css | CSS        |          1 |          5 |          1 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\jsgrid.css           | CSS        |         99 |          5 |         23 |        127 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\jsgrid.js            | JavaScript |      1,961 |          5 |        551 |      2,517 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\jsgrid.min.css       | CSS        |          1 |          5 |          1 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\jsgrid-1.5.3\jsgrid.min.js        | JavaScript |          2 |          5 |          1 |          8 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\maintenance\common.js             | JavaScript |         12 |          2 |          6 |         20 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\maintenance\desktop.ini           | Ini        |          7 |          0 |          0 |          7 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\style.css                         | CSS        |        109 |          5 |         28 |        142 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\timesheet\common.js               | JavaScript |        162 |          5 |         17 |        184 |
+| g:\Il mio Drive\sviluppo_sw\Sviluppo_ArtigianoInCloud\ArtigianoInCloud\flaskr\static\timesheet\desktop.ini             | Ini        |          7 |          0 |          0 |          7 |
+| Total                                                                                                                  |            |     18,243 |      1,069 |      1,115 |     20,427 |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

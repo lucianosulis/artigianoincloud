@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Modifica consuntivazione{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+ 
+<form method="post" onsubmit="afterSubmitUpdate()">
+  <label for="date">Data</label>
+  <input name="date" id="date" type="date" value="{{ request.form['date']  or ts_record['date'] }}" required>
+  <label for="act_type_id">Tipo di presenza/assenza</label>
+  <SELECT id="act_type_id" onchange="setComboOrders()" required>
+    {% for act_type in act_type_List %}
+      {% if act_type.id == ts_record['act_type_id'] %}
+        <OPTION value={{act_type.id}} selected>{{act_type.description}}</option>
+      {% else %}
+        <OPTION value={{act_type.id}}>{{act_type.description}}</option>
+      {% endif %}
+    {% endfor %}
+  </SELECT>
+  <label for="order_id">Ordine</label>
+  <SELECT id="order_id">
+    {% if ts_record['act_type_id'] == 1 %}
+      <OPTION value="" disabled="disabled" selected>Selezionare un ordine</option>
+      {% for order in orderList %}
+        {% if order.id == ts_record['order_id'] %}
+        <OPTION value={{order.id}} selected>{{order.full_name}} - {{order.description}}</option>
+        {% else %}
+          <OPTION value={{order.id}}>{{order.full_name}} - {{order.description}}</option>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </SELECT>
+  <table>
+    <tr>
+      <td><label for="ore_lav">Ore</label></td>
+      <td><label for="night">Notturno</label></td>
+    </tr>
+    <tr>
+      <td><input name="ore_lav" id="ore_lav" type="number" step="0.1" value="{{ request.form['ore_lav']  or ts_record['ore_lav'] }}"></td>
+      <td>
+        {% if ts_record['night'] == 1 %} <input name="night" id="night" type="checkbox" checked> {% endif %}
+        {% if ts_record['night'] != 1 %} <input name="night" id="night" type="checkbox"> {% endif %}
+      </td>
+    </tr>  
+  </table> 
+  <input name="input_act_type_id" id="input_act_type_id" hidden>
+  <input name="input_order_id" id="input_order_id" hidden>
+  <input name="input_night" id="input_night" hidden>
+
+  <input type="submit" value="Salva">
+  <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('accounting_hours.index') }}" hidden>
+</form>
+<form action="{{ url_for('accounting_hours.delete', id=ts_record['id']) }}" method="post">
+    <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questa consuntivazione?');">
+  </form>
+<hr>
+<script>
+  function goBack() {
+    window.location.assign(document.getElementById("goback").value);
+  }
+</script>
+<script type="text/javascript" src="/static/accounting_hours/common.js"></script>
+
+{% endblock %}

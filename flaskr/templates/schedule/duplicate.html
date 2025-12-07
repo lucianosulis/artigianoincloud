@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Modifica scadenza{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data" onsubmit="afterSubmit()">
+ <label for="schedule_type_id">Tipo</label>
+  <SELECT id="schedule_type_id">
+    {% for type in anag_type %}
+      {% if type.type_id == schedule['schedule_type_id'] %}
+          <OPTION value={{type.type_id}} selected>{{type.type_name}}</option>
+      {% else %}
+          <OPTION value={{type.type_id}}>{{type.type_name}}</option>
+      {% endif %}
+    {% endfor %}
+  </SELECT>
+  <input name="input_schedule_type_id" id="input_schedule_type_id" hidden>
+  <label for="description">Descrizione</label>
+  <input name="description" id="description" value="{{ request.form['description'] or schedule['description']  }}">
+  <label for="due_date">Data scadenza</label>
+  <input name="due_date" id="due_date" type="date" size="10" value="{{ request.form['due_date'] or schedule['due_date'] }}" required>
+  <label for="notes">Note</label>
+  <textarea name="notes" id="notes" rows="3">{{ request.form['notes'] or schedule['notes']  }}</textarea>
+  <br>
+  
+  <input type="submit" value="Salva">
+  <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('schedule.index') }}" hidden>
+</form>
+  <form action="{{ url_for('schedule.delete', id=schedule['id']) }}" method="post">
+    <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questa scadenza?');">
+  </form>
+  <hr>
+
+  <script>
+    console.log("Sono nello script principale di update.html");
+
+    const extra = document.getElementById("extra").value;
+    if (extra == "0") { radio1.setAttribute("checked", "");  }
+    else { radio2.setAttribute("checked", "");}
+
+    //Sono costretto a copiare la SELECT in un campo INPUT perché altrimenti non viene passata
+    //nella request.form (non capisco perché i campi INPUT sì)
+    function afterSubmit() {
+      var new_schedule_type_id = document.getElementById("schedule_type_id").value;
+      document.getElementById("input_schedule_type_id").value = new_schedule_type_id;
+    }
+
+    function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+    }
+
+  </script>
+{% endblock %}

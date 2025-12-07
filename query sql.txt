@@ -1,0 +1,76 @@
+Switch su database:
+use artincloud_prod;
+
+Per sapere quale cartella può ospitare i file generati da MYSQL:
+SHOW VARIABLES LIKE 'secure_file_priv';
+
+Per esportare il risultato in un file CSV aggiungere alla query:
+INTO OUTFILE '/var/lib/mysql-files/output.csv'
+FIELDS TERMINATED BY ';' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
+
+Per estrarre le ore lavorate per commessa e persona:
+
+(select 'Cliente', 'ID_Ordine', 'Attività', 'Data_ordine', 'Operatore', 'Data_attività', 'Ore_lavorate')
+union all
+(select c.full_name as Cliente, o.id as ID_Ordine, o.description as Attività, o.date as Data_ordine, CONCAT(p.surname, ' ',p.name) as Operatore, t.date as Data_attività, t.ore_lav as Ore_lavorate 
+from p_order o 
+inner join timesheet t on o.id = t.order_id 
+inner join people p on p.id = t.people_id
+inner join customer c on c.id = o.customer_id
+order by o.id, t.date)
+INTO OUTFILE '/var/lib/mysql-files/output.csv'
+FIELDS TERMINATED BY ';' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
+
+Ore lavorate da Farina e suoi collaboratori nel 2025:
+
+(select 'Cliente', 'ID_Ordine', 'Attività', 'Data_ordine', 'Operatore', 'Data_attività', 'Ore_lavorate')
+union all
+(select c.full_name as Cliente, o.id as ID_Ordine, o.description as Attività, o.date as Data_ordine, CONCAT(p.surname, ' ',p.name) as Operatore, t.date as Data_attività, t.ore_lav as Ore_lavorate 
+from p_order o 
+inner join timesheet t on o.id = t.order_id 
+inner join people p on p.id = t.people_id
+inner join customer c on c.id = o.customer_id
+where p.surname like '%Farina%' and t.date >= '2025-01-01'
+order by t.date)
+INTO OUTFILE '/var/lib/mysql-files/output.csv'
+FIELDS TERMINATED BY ';' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
+
+Ore lavorate da Gastoldi e Rota Dylan a partire dal 22/08/2025:
+
+(select 'Cliente', 'ID_Ordine', 'Attività', 'Data_ordine', 'Operatore', 'Data_attività', 'Ore_lavorate')
+union all
+(select c.full_name as Cliente, o.id as ID_Ordine, o.description as Attività, o.date as Data_ordine, CONCAT(p.surname, ' ',p.name) as Operatore, t.date as Data_attività, t.ore_lav as Ore_lavorate 
+from p_order o 
+inner join timesheet t on o.id = t.order_id 
+inner join people p on p.id = t.people_id
+inner join customer c on c.id = o.customer_id
+where (p.surname like '%Gastoldi%' or p.surname like '%Rota%') and t.date >= '2025-08-22'
+order by t.date)
+INTO OUTFILE '/var/lib/mysql-files/output.csv'
+FIELDS TERMINATED BY '|§|' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
+
+Associazione ordini - sedi clienti (per analisi Matteo):
+(select 'ID_Ordine', 'Attività', 'Operatore', 'Indirizzo', 'Città')
+union all
+(select a.p_order_id as ID_Ordine, a.title as Attività, concat(p.surname,' ',p.name) as Operatore, s.address as Indirizzo, s.city as Città 
+from activity a
+inner join site s on s.id = a.site_id 
+inner join timesheet t on t.order_id = a.p_order_id 
+inner join people p on p.id = t.people_id
+where start >= '2024-01-01' and end <= '2024-12-31')
+INTO OUTFILE '/var/lib/mysql-files/output.csv'
+FIELDS TERMINATED BY ';' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Utenti</h4>
+
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.info }}</td>
+    </tr>
+    <tr>
+      <td>{{ pagination.links }}</td>
+      <td>
+        <a href="{{ url_for('auth.register') }}"><img src="static/images/add.jpg" alt="Nuovo utente" style="width:42px;height:42px;"></a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+  <div class="table-striped">
+  <table>
+    <th>Nome utente</th><th>Ruolo</th><th></th>
+    {% for user in users %}
+        <tr class="tr-alternate">
+          <td>{{ user['username'] }}</td><td>{{ user['role'] }}</td>
+          <td>
+            <a href="{{ url_for('auth.update', id=user['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+          </td>
+        </tr>
+    {% endfor %}
+  </table>
+</div>
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>
+    </tr>
+  </table>
+</div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Nome utente</td>
+        <td><input name="searchUsername" id="searchUsername" type="text" value="{{ request.form['searchUsername'] }}"></td>
+      </tr>
+      <tr>
+        <td>Ruolo</td>
+        <td><input name="searchRole" id="searchRole" size="12" type="text" value="{{ request.form['searchRole'] }}"></td>        
+      </tr>
+      <tr>
+        <td>
+        <input type="submit" value="Cerca">
+      </td>
+      
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+        </td>
+      </tr>
+    </table>
+  </div>
+  </form>
+  
+  <script>
+    function resetSearch() {
+      document.getElementById("searchUsername").value = ""; 
+      document.getElementById("searchRole").value = "";
+      document.getElementById("SearchForm").submit();
+    }
+  </script>
+{% endblock %}

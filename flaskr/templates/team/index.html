@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Squadre pianificate</h4>
+
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.info }}</td>
+    </tr>
+    <tr>
+      <td>{{ pagination.links }}</td>
+      <td>
+        <a href="{{ url_for('team.create') }}"><img src="static/images/add.jpg" alt="Nuova squadra" style="width:42px;height:42px;"></a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+  <div class="table-striped">
+  <table>
+    <!--<<th>Titolo</th><th>Inizio-Fine</th><th>Cliente</th><th>Sede</th><th></th>-->
+    <th>Data</th><th>Nome squadra</th><th></th>
+    {% for team in teams %}
+        <tr class="tr-alternate">
+          <td>{{ team['data'] }}</td><td>{{ team['title'] }}</td>
+          <td>
+            <a href="{{ url_for('team.detail', id=team['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('team.update', id=team['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('team.duplicate', id=team['id']) }}"><img src="static/images/duplicate.jpg" alt="Duplica" style="width:25px;height:25px;"></a>
+          </td>
+        </tr>
+    {% endfor %}
+  </table>
+</div>
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>
+    </tr>
+  </table>
+</div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Data</td>
+        <td><input name="searchDate" id="searchDate" type="date" value="{{ request.form['searchDate'] }}"></td>
+      </tr>
+      <tr>
+        <td>Nome squadra</td>
+        <td><input name="searchTitle" id="searchTitle" size="12" type="text" value="{{ request.form['searchTitle'] }}"></td>        
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td>
+          <label for="radio1">Squadre future</label>
+          <input name="filterA" id="radio1" type="radio" value="future_only" {% if filterA == "future_only" %}checked{% endif %} >
+        </td> 
+        <td>
+          <label for="radio2">Tutte</label>
+          <input name="filterA" id="radio2" type="radio" value="all"  {% if filterA == "all" %}checked{% endif %} >
+        </td>
+      </tr>
+      </table>
+      <table>
+      <tr>
+        <td>
+          <!--<input type="button" onclick="search()" value="Cerca">-->
+          <input type="submit" value="Cerca">
+        </td>
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+        
+          <a href="{{ url_for('team.create') }}"><img src="static/images/add.jpg" alt="Nuova squadra" style="width:42px;height:42px;"></a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  </form>
+  
+  <script>
+    function resetSearch() {
+      document.getElementById("searchDate").value = ""; 
+      document.getElementById("searchTitle").value = "";
+      document.getElementById("SearchForm").submit();
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %} 
+{% block header %}
+  <h4>{% block title %}Calendario manutenzioni{% endblock %}</h4>
+{% endblock %}
+{% block head %}
+
+<!-- install full calendar -->
+<!--Libreria Fullcalendar con colori modificati-->
+<script src="{{ url_for('static', filename='fullcalendar/index.global.js') }}"></script>
+<script>
+
+  // python events(json)
+  let events_stored = {{ events | tojson }}; 
+  
+  document.addEventListener('DOMContentLoaded', function() {
+
+    var Calendar = FullCalendar.Calendar;
+    var Draggable = FullCalendar.Draggable;
+
+    var calendarEl = document.getElementById('calendar');
+    var containerEl = document.getElementById('external-events');
+
+    var calendar = new Calendar(calendarEl,  { // make global
+      titleFormat: { year: '2-digit', month: '2-digit', day: 'numeric' },
+      height: 550,
+      initialView: 'dayGridWeek', 
+      headerToolbar: {
+        //center: 'title, today',
+        //right: 'dayGridDay,dayGridWeek,dayGridMonth', // buttons for switching between views
+        //left: 'title',
+        left: 'title',
+        center: 'prev next',
+        right: 'today'
+      },
+      footerToolbar: {
+        right: 'nextYear',
+        center: 'dayGridDay,dayGridWeek,dayGridMonth,multiMonthYear', // buttons for switching between views
+        left: 'prevYear',
+      },
+      buttonText: {
+       // prev:     '<', // <
+       //next:     '>', // >
+       // prevYear: '<<',  // <<
+       // nextYear: '>>',  // >>  
+        today: 'Oggi',
+        day: 'Giorno',
+        week: 'Settimana',
+        month: "Mese",
+        year: "Anno"
+      },
+      eventClick: function(info) {
+        //alert('Event: ' + info.event.title);
+        //alert('Event id: ' + info.event.id);
+        window.location.href = "../maintenance/" + info.event.id + "/detail";
+      },
+      dateClick: function(dateClickInfo) { // Only for a specific date
+        // Here you can use the dateClicInfo with your createEvent function
+        //createEvent(dateClickInfo.dateStr, 'Some event', undefined);
+        //alert(dateClickInfo.dateStr);
+        window.location.href = "../maintenance/" + dateClickInfo.dateStr + "/create_from_cal";
+      },
+      events: events_stored, eventColor: '#378006',
+      editable: true, 
+      droppable: true,
+      locale: 'it',
+      eventDisplay: 'block',
+      defaultAllDay: true
+    });
+
+    calendar.render();
+
+    // update event changes
+    calendar.on('eventChange', function(changeInfo){
+      //console.log('Eccomi!');
+      const month = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+      var dateStart = changeInfo.event.start;
+      var strStart = dateStart.getFullYear() + '-' + month[dateStart.getMonth()] + '-' + ("0" + dateStart.getDate()).slice(-2);
+      console.log(strStart);
+      var dateEnd = changeInfo.event.end;
+      if (dateEnd != null) 
+        {
+          //FullCalendar aggiunge un giorno in più ad un evento multiday: lo rimuovo per avere il dato giusto nel DB.
+          if (dateEnd > dateStart) {dateEnd.setDate(dateEnd.getDate() - 1);}
+          var strEnd = dateEnd.getFullYear() + '-' + month[dateEnd.getMonth()] + '-' + ("0" + dateEnd.getDate()).slice(-2);
+        }
+      else
+        {
+          var strEnd = strStart;
+        }
+      console.log(strEnd);
+
+      $.ajax({
+        data: {
+          event: {
+            start : strStart,
+            end : strEnd,
+            id : changeInfo.event.id,
+          }, 
+          event_old: {
+            start : changeInfo.oldEvent.start.toISOString().substr(0,10), 
+            
+            id : changeInfo.event.id,
+          }
+        }, 
+        type : 'POST', 
+        url : '/cal_maintenance/update' 
+      }); 
+      //console.log('Trap 1'); 
+    });
+  });
+</script>
+
+{% endblock %}
+{% block content %}
+
+    <div id="calendar-container" class="col-md-8 order-md-1">
+      <div id="calendar" class="fc fc-media-screen fc-direction-ltr fc-theme-standard">
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

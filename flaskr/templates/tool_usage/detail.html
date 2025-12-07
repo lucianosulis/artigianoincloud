@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio utilizzo mezzo{% endblock %}</h4>
+{% endblock %}
+
+{% block content %}
+<form>
+  <label for="date">Data</label>
+  <input name="date" id="date" type="date" value="{{ request.form['date']  or tu_record['date'] }}" readonly>
+  <label for="tool_id">Mezzo</label>
+  <SELECT id="tool_id" disabled>
+    {% for tool in anag_tool %}
+      {% if tool.id == tu_record['tool_id'] %}
+      <OPTION value={{tool.id}} selected>{{tool.name}}</option>
+      {% else %}
+        <OPTION value={{tool.id}}>{{tool.name}}</option>
+      {% endif %}
+    {% endfor %}
+  </SELECT>
+  
+  <label for="order_id">Ordine</label>
+  <SELECT id="order_id" disabled>
+    <OPTION value="" disabled="disabled" selected></option>
+    {% for order in orderList %}
+      {% if order.id == tu_record['order_id'] %}
+       <OPTION value={{order.id}} selected>{{order.full_name}} - {{order.description}}</option>
+      {% else %}
+        <OPTION value={{order.id}}>{{order.full_name}} - {{order.description}}</option>
+      {% endif %}
+    {% endfor %}
+  </SELECT> 
+  <table>
+    <tr>
+      <td><label for="ore_lav">Ore</label></td>
+    </tr>
+    <tr>
+      <td><input name="ore_lav" id="ore_lav" type="number" step="0.1" value="{{ request.form['ore_lav']  or tu_record['ore_lav'] }}" readonly></td>
+    </tr>  
+  </table>
+  <input name="input_tool_id" id="input_tool_id" hidden>
+  <input name="input_order_id" id="input_order_id" hidden>
+</form>
+  
+<table>
+  <tr>
+    <td>
+      <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+      <input name="goback" id="goback" value="{{ url_for('tool_usage.index') }}" hidden>
+    </td>
+    <td></td>
+  </tr>
+</table>
+<script>
+  function goBack() {
+    window.location.assign(document.getElementById("goback").value);
+    }
+</script>
+{% endblock %}

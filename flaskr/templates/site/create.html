@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuovo sito cliente{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post" onsubmit="afterSubmit()">
+    <label for="customer_id">Cliente</label>
+    <SELECT id="customer_id">
+      <OPTION value="" disabled="disabled" selected>Selezionare un cliente</option>
+      {% for customer in customerList %}
+         <OPTION value={{customer.id}}>{{customer.full_name}} - {{customer.city}}</option>
+      {% endfor %}
+    </SELECT>
+    <label for="address">Indirizzo</label>
+    <input name="address" id="address">{{ request.form['address'] }}</input>
+    <label for="city">Città</label>
+    <input name="city" id="city" type="text" value="{{ request.form['city'] }}" required>
+    <label for="contact_people">Persona di contatto</label>
+    <input name="contact_people" id="contact_people" type="text" value="{{ request.form['contact_people'] }}">
+    <label for="telephone">Telefono</label>
+    <input name="telephone" id="telephone" type="text" value="{{ request.form['telephone'] }}">
+    <label for="email">Email</label>
+    <input name="email" id="email" type="text" value="{{ request.form['email'] }}">
+    
+    <input name="input_customer_id" id="input_customer_id" hidden>
+    <br>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('site.index') }}" hidden>
+  </form>
+  <hr>
+  <script> 
+    function afterSubmit() {
+          var new_customer_id = document.getElementById("customer_id").value;
+          document.getElementById("input_customer_id").value = new_customer_id;      
+      }
+
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  
+  </script>
+
+{% endblock %}

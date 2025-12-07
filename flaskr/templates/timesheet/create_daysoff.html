@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Inserimento massivo ferie{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post" onsubmit="afterSubmitCreate2()">
+    <table>
+      <tr>
+        <td><label for="date1">Data inizio ferie</label></td>
+        <td><input name="date1" id="date1" type="date" value="{{ request.form['date1'] }}" required></td>
+      </tr>
+      <tr>
+        <td><label for="date2">Data fine ferie</label></td>
+        <td><input name="date2" id="date2" type="date" value="{{ request.form['date2'] }}" required></td>
+      </tr>
+      <tr>
+        <td><label for="people_ids">Persone</label></td>
+        <td><SELECT id="people_ids" multiple size="10" required> 
+              {% for people in anag_people %}
+                <OPTION value={{people.id}}>{{people.name}}</option>
+              {% endfor %}
+            </SELECT>
+        </td>
+      </tr>
+    </table>
+    <input name="input_people_ids" id="input_people_ids" hidden>
+    <br>
+
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('timesheet.index') }}" hidden>
+  </form>
+  <script type="text/javascript" src="/static/timesheet/common.js"></script>
+  <script>
+    document.getElementById("date1").valueAsDate = new Date();
+    document.getElementById("date2").valueAsDate = new Date();
+
+    function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+      }
+   </script>
+
+{% endblock %}

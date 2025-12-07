@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio disponibilità{% endblock %}</h4>
+{% endblock %}
+{% block content %}
+  <form>
+    <label for="people_name">Collaboratore</label>
+    <input name="people_name" id="people_name" value="{{availability['name'] }}" readonly>
+    <br>
+    <label for="start">Data inizio disponibilità</label>
+    <input name="start" id="start" type="date" value="{{ request.form['start'] or availability['start'] }}" readonly>
+    <br>
+    <label for="end">Data fine disponibilità</label>
+    <input name="end" id="end" type="date" value="{{ request.form['end'] or availability['end'] }}" readonly>
+      <table>
+      <tr>
+        <td>
+          <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+          {% if show_calendar == "Y" %}
+            <input name="goback" id="goback" value="{{ url_for('cal_availability.show_cal') }}" hidden>
+          {% else %}
+            <input name="goback" id="goback" value="{{ url_for('people_available.index') }}" hidden>
+            {% endif %}
+        </td>
+        <td></td>
+      </tr>
+    </table>
+    
+  </form>
+  <hr>
+  <form action="{{ url_for('people_available.update', id=availability['id']) }}" method="get">
+    <input class="action" type="submit" value="Modifica">
+  </form>
+  <script>
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+
+{% endblock %}

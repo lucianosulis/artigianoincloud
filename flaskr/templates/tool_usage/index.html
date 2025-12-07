@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<h4>Gestione utilizzo mezzi</h4>
+
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.info }}</td>   
+      <td><a href="{{ url_for('tool_usage.create') }}"><img src="static/images/add.jpg" alt="Nuova consuntivazione" style="width:42px;height:42px;"></a></td>            
+    </tr>
+  </table>
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>      
+    </tr>
+  </table>
+</div>
+<div class="table-striped">
+  <table>
+    <th>Data</th><th>Mezzo</th><th>Ordine</th><th>Ore</th><th></th>
+  {% for tu_record in tu_records %}       
+        <tr>
+          <td>{{ tu_record['date'] }} </td> <td>{{ tu_record['t_name'] }}</td> <td style="text-align: left">{{ tu_record['p_order'] }}</td> <td>{{ tu_record['ore_lav'] }}</td>
+          <td>
+            <a href="{{ url_for('tool_usage.detail', id=tu_record['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('tool_usage.update', id=tu_record['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('tool_usage.duplicate', id=tu_record['id']) }}"><img src="static/images/duplicate.jpg" alt="Duplica" style="width:25px;height:25px;"></a>
+          </td>
+        </tr>        
+  {% endfor %}
+  </table>
+</div>
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>
+    </tr>
+  </table>
+</div>
+<form id="SearchForm" method="post">
+  <div class="table">
+  <table>
+    <tr>
+      <td>Data</td>
+      <td><input name="searchDate" id="searchDate" type="date" value="{{ request.form['searchDate'] }}"></td>
+    </tr>
+    <tr>
+      <td>Cliente</td>
+      <td><input name="searchCustomer" id="searchCustomer" type="text" value="{{ request.form['searchCustomer'] }}"></td>        
+    </tr>
+    <tr>
+      <td>Mezzo</td>  
+      <td><input name="searchTool" id="searchTool" type="text" value="{{ request.form['searchTool'] }}"></td>
+    </tr>
+    <tr>  
+      <td><input type="submit" value="Cerca"></td>
+      <td><input type="button" onclick="resetSearch()" value="Ripristina">
+        <a href="{{ url_for('tool_usage.create') }}"><img src="static/images/add.jpg" alt="Nuova consuntivazione" style="width:42px;height:42px;"></a>
+      </td>
+  </tr>
+  </table>
+  </form>
+  </div>
+
+  <script>
+
+    function resetSearch() {
+      document.getElementById("searchDate").value = ""; 
+      document.getElementById("searchCustomer").value = "";
+      document.getElementById("searchTool").value = "";
+      document.getElementById("SearchForm").submit();
+  }
+    
+  </script>
+
+{% endblock %}

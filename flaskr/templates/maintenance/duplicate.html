@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Modifica attività{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data" onsubmit="afterSubmit()">
+  <label for="tool_id">Mezzo</label>
+  <SELECT id="tool_id">
+    {% for tool in anag_tool %}
+      {% if tool.tool_id == maintenance['tool_id'] %}
+          <OPTION value={{tool.tool_id}} selected>{{tool.tool_name}}</option>
+      {% else %}
+          <OPTION value={{tool.tool_id}}>{{tool.tool_name}}</option>
+      {% endif %}
+    {% endfor %}
+  </SELECT>
+  <input name="input_tool_id" id="input_tool_id" hidden>
+  <label for="description">Descrizione manutenzione</label>
+  <input name="description" id="description" value="{{ request.form['description'] or maintenance['description']  }}">
+  <label for="start">Data inizio manutenzione</label>
+  <input name="start" id="start" type="date" size="10" value="{{ request.form['start'] or maintenance['start'] }}" onchange="setEndDate()" required>
+  <label for="end">Data fine manutenzione</label>
+  <input name="end" id="end" type="date" size="10" value="{{ request.form['end'] or maintenance['end'] }}" required>
+  <input name="extra" id="extra" type="text" value="{{maintenance['extra'] }}" hidden>
+  <table>
+    <tr>
+      <td>
+        <label for="radio1">Manutenzione ordinaria</label>
+        <input name="extra" id="radio1" type="radio" value="0">
+      </td>
+      <td>
+          <label for="radio2">Manutenzione straordinaria</label>
+          <input name="extra" id="radio2" type="radio" value="1">
+      </td>
+    </tr>
+  </table>
+  <label for="notes">Note</label>
+  <textarea name="notes" id="notes" rows="3">{{ request.form['notes'] or maintenance['notes']  }}</textarea>
+  <label for="file">Fattura</label>
+  <input class="ok" type="file" name="file" >
+  <br>
+  <input type="submit" value="Salva">
+  <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('maintenance.index') }}" hidden>
+</form>
+  <form action="{{ url_for('maintenance.delete', id=maintenance['id']) }}" method="post">
+    <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questa manutenzione?');">
+  </form>
+  <hr>
+  
+  <script type="text/javascript" src="/static/maintenance/common.js"></script>
+
+  <script>
+    console.log("Sono nello script principale di update.html");
+
+    const extra = document.getElementById("extra").value;
+    if (extra == "0") { radio1.setAttribute("checked", "");  }
+    else { radio2.setAttribute("checked", "");}
+
+    function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+    }
+
+  </script>
+{% endblock %}

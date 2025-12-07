@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Modifica data ultimo pagamento{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <label for="surname">Cognome</label>
+    <input name="surname" id="surname" type=text value="{{ request.form['surname'] or people_payment['surname'] }}" readonly>
+    <label for="name">Nome</label>
+    <input name="name" id="name" type="text" value="{{ request.form['name'] or people_payment['name'] }}" readonly>
+    <label for="payment_date">Pagato fino alla data</label>
+    <input name="payment_date" id="payment_date" type="date" size="10" value="{{ request.form['payment_date'] or people_payment['payment_date'] }}" required>
+    <label for="notes">Note</label>
+    <textarea name="notes" id="notes" rows="3">{{ request.form['notes'] or people_payment['notes']  }}</textarea>
+    <br>
+  <table>
+    <tr>
+      <td>
+        <input type="submit" value="Salva">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+        <input name="goback" id="goback" value="{{ url_for('people_payment.index') }}" hidden>
+      </td>
+    </tr>
+  </table>
+  </form>
+  <hr>
+  <script> 
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+{% endblock %}

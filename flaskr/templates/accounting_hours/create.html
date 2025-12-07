@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuova consuntivazione giornaliera{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post" onsubmit="afterSubmit()">
+    <label for="date">Data</label>
+    <input name="date" id="date" type="date" value="{{ request.form['date'] }}" onblur="setComboOrders2()" required>
+    <input name="input_people_id" id="input_people_id" value="{{people.id}}" hidden>
+    
+    <!-- Anagrafiche -->
+    <input name="act_type_ids" id="act_type_ids" value="{{ act_types['id'] }}" hidden>
+    <input name="act_type_descs" id="act_type_descs" value="{{ act_types['description'] }}" hidden>
+    <input name="order_ids" id="order_ids" value="{{ orders['order_id'] }}" hidden>
+    <input name="order_descs" id="order_descs" value="{{ orders['order_desc'] }}" hidden>
+    <!-- Voci selezionate da grid -->
+    <input name="act_type_ids_sel" id="act_type_ids_sel"  hidden>
+    <input name="order_ids_sel" id="order_ids_sel" hidden>
+    <input name="ore_lavs_sel" id="ore_lavs_sel"  hidden>
+    <input name="night_sel" id="night_sel" hidden>
+
+    <!-- Grid per l'inserimento delle ore-->
+    <h4>Presenze</h4>
+    <div id="jsGrid"></div>
+    <br>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('accounting_hours.index') }}" hidden>
+  </form>
+  <script type="text/javascript" src="/static/accounting_hours/common.js"></script>
+  <script>
+    document.getElementById("date").valueAsDate = new Date();
+
+    document.getElementById("date").valueAsDate = new Date();
+    load_grid();
+
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+</script>
+  <hr>
+
+{% endblock %}

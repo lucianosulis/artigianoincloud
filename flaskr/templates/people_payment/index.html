@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Pagamenti collaboratori</h4>
+
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.info }}</td>
+      </tr>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="table-striped">
+    <table>
+      <tr>
+        <th>Nominativo</th><th>Tipo</th><th>Data ultimo pagamento</th><th></th>
+      </tr>
+      {% for people_payment in people_payments %}
+      <tr>
+        <td>{{ people_payment['people_name'] }}</td><td>{{ people_payment['type'] }}</td><td>{{ people_payment['payment_date'] }}</td>
+        <td>
+          <a href="{{ url_for('people_payment.update', id=people_payment['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  </form>
+  
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Modifica utilizzo mezzo{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+<form method="post" onsubmit="afterSubmitUpdate()">
+  <label for="date">Data</label>
+  <input name="date" id="date" type="date" value="{{ request.form['date']  or tu_record['date'] }}" onblur="setComboOrders()" required>
+  <label for="tool_id">Mezzo</label>
+  <SELECT id="tool_id" required>
+    {% for tool in anag_tool %}
+      {% if tool.id == tu_record['tool_id'] %}
+      <OPTION value={{tool.id}} selected>{{tool.t_name}}</option>
+      {% else %}
+        <OPTION value={{tool.id}}>{{tool.t_name}}</option>
+      {% endif %}
+    {% endfor %}
+  </SELECT>
+  
+  <label for="order_id">Ordine</label>
+  <SELECT id="order_id">
+      <OPTION value="" disabled="disabled" selected>Selezionare un ordine</option>
+      {% for order in orderList %}
+        {% if order.id == tu_record['order_id'] %}
+        <OPTION value={{order.id}} selected>{{order.full_name}} - {{order.description}}</option>
+        {% else %}
+          <OPTION value={{order.id}}>{{order.full_name}} - {{order.description}}</option>
+        {% endif %}
+      {% endfor %}
+  </SELECT> 
+  <table>
+    <tr>
+      <td><label for="ore_lav">Ore</label></td>
+    </tr>
+    <tr>
+      <td><input name="ore_lav" id="ore_lav" type="number" step="0.1" value="{{ request.form['ore_lav']  or tu_record['ore_lav'] }}"></td>
+    </tr>  
+  </table>
+  <input name="input_tool_id" id="input_tool_id" hidden>
+  <input name="input_order_id" id="input_order_id" hidden>
+  <input type="submit" value="Salva">
+  <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('tool_usage.index') }}" hidden>
+</form>
+<form action="{{ url_for('tool_usage.delete', id=tu_record['id']) }}" method="post">
+    <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questo utilizzo?');">
+  </form>
+<hr>
+<script>
+  function goBack() {
+    window.location.assign(document.getElementById("goback").value);
+  }
+</script>
+<script type="text/javascript" src="/static/tool_usage/common.js"></script>
+{% endblock %}

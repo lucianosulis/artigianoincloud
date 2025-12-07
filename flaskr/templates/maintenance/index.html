@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Manutenzioni pianificate</h4>
+
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.info }}</td>
+    </tr>
+    <tr>
+      <td>{{ pagination.links }}</td>
+      <td>
+        <a href="{{ url_for('maintenance.create') }}"><img src="static/images/add.jpg" alt="Nuova manutenzione" style="width:42px;height:42px;"></a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+  <div class="table-striped">
+  <table>
+    <th>Inizio-Fine</th><th>Mezzo</th><th>Descrizione</th><th>Tipo</th><th>Eseguita</th><th>Extra</th><th></th>
+    {% for maintenance in maintenances %}
+        <tr class="tr-alternate">
+          <td>{{ maintenance['start'] }}<br/>{{ maintenance['end'] }}</td><td>{{ maintenance['tool_name'] }}</td><td>{{ maintenance['description'] }}</td><td>{{ maintenance['type'] }}</td><td>{% if maintenance.done == 1 %} <input type="checkbox" checked disabled> {% endif %}</td><td>{% if maintenance.extra == 1 %} <input type="checkbox" checked disabled> {% endif %}</td><td></td><td></td>
+          <td>
+            <a href="{{ url_for('maintenance.detail', id=maintenance['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('maintenance.update', id=maintenance['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('maintenance.duplicate', id=maintenance['id']) }}"><img src="static/images/duplicate.jpg" alt="Duplica" style="width:25px;height:25px;"></a>
+          </td>
+        </tr>
+    {% endfor %}
+  </table>
+</div>
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>
+    </tr>
+  </table>
+</div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Data inizio</td>
+        <td><input name="searchDate" id="searchDate" type="date" value="{{ request.form['searchDate'] }}"></td>
+      </tr>
+      <tr>
+        <td>Mezzo</td>
+        <td><input name="searchTool" id="searchTool" size="12" type="text" value="{{ request.form['searchTool'] }}"></td>        
+      </tr>
+      <tr>  
+        <td>Tipo</td>
+        <td><input name="searchType" id="searchType" size="12" type="text" value="{{ request.form['searchType'] }}"></td>
+      </tr>
+      <tr>
+        <td>
+          <input type="submit" value="Cerca">
+      </td>
+      
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+        
+          <a href="{{ url_for('maintenance.create') }}"><img src="static/images/add.jpg" alt="Nuova manutenzione" style="width:42px;height:42px;"></a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  </form>
+  
+  <script>
+    function resetSearch() {
+      document.getElementById("searchDate").value = ""; 
+      document.getElementById("searchTool").value = "";
+      document.getElementById("searchType").value = "";
+      document.getElementById("SearchForm").submit();
+  }
+  </script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio ordine cliente{% endblock %}</h4>
+{% endblock %}
+
+{% block content %}
+  <form>
+    <label for="customer_id">Cliente</label>
+    <SELECT id="customer_id" disabled>
+      {% for customer in customerList %}
+        {% if customer.id == order['customer_id'] %}
+          <OPTION value={{customer.id}} selected>{{customer.full_name}}</option>
+        {% else %}
+          <OPTION value={{customer.id}}>{{customer.full_name}}</option>
+        {% endif %}
+      {% endfor %}
+    </SELECT>
+    <label for="description">Descrizione</label>
+    <input name="description" id="description" value="{{order['description'] }}" readonly>
+    <label for="amount">Importo</label>
+    <input name="amount" id="amount" type="text" value="{{order['amount'] }}" readonly>
+    <label for="date">Data</label>
+    <input name="date" id="date" type="text" value="{{order['date'] }}" readonly>
+    <label for="notes">Note</label>
+    <input name="notes" id="notes" value="{{ order['notes'] }}" readonly>
+    <label for="total_hours">Ore lavorate in totale</label>
+    <input name="total_hours" id="total_hours" type="text" value="{{ total_hours }}" readonly>
+    <label for="closed">Stato dell'ordine</label>
+    {% if order.closed == 1 %}
+      <input id="closed" type="text"  value="Ordine chiuso" readonly>
+    {% else %}
+      <input id="closed" type="text"  value="Ordine aperto" readonly>
+    {% endif %}
+  <table>
+    <tr>
+      <td>
+        <input type="button" onclick="back()" value="Indietro">
+      </td>  
+    </tr>
+    <tr>
+      <td>
+        <input type="button" onclick="open_order()" value="Apri ordine">
+        <input type="button" onclick="close_order()" value="Chiudi ordine">
+      </td>
+    </tr>
+  </table>
+  </form>
+  <hr>
+  <form action="{{ url_for('order.delete', id=order['id']) }}" method="post">
+    <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questo ordine?');">
+  </form>
+  <input name="order_id" id="order_id" type="text" value="{{order['id'] }}" hidden>
+  <script>
+    function open_order() {
+        var order_id = document.getElementById("order_id").value;
+        console.log(order_id);
+        $.ajax({
+        type: "POST",
+        url: "/order/" + order_id + "/open",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          console.log("Result:");
+          console.log(result);
+          }
+        })
+        document.getElementById("closed").value = "Ordine aperto";
+    }
+    function close_order() {
+        var order_id = document.getElementById("order_id").value;
+        console.log(order_id);
+        $.ajax({
+        type: "POST",
+        url: "/order/" + order_id + "/close",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          console.log("Result:");
+          console.log(result);
+          }
+        })
+        document.getElementById("closed").value = "Ordine chiuso";
+    }
+    function back() {
+      window.location.href="{{ url_for('order.index') }}";
+    }
+  </script>
+{% endblock %}
+
+

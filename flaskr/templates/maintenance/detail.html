@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio manutenzione{% endblock %}</h4>
+{% endblock %}
+{% block content %}
+  <table>
+  <tr>
+    <td>
+      <label for="done">Stato della manutenzione</label>
+    </td>
+    <td>
+      <input type="button" onclick="maintenance_to_do()" value="Da eseguire">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      {% if maintenance.done == 1 %}
+        <input id="done" type="text"  value="Manutenzione eseguita" readonly>
+      {% else %}
+        <input id="done" type="text"  value="Manutenzione da eseguire" readonly>
+      {% endif %}
+    </td>
+    <td>
+      <input type="button" onclick="maintenance_done()" value="Eseguita">
+    </td>
+  </tr>
+</table>
+
+  <form>
+    <input id="maintenance_id" value="{{maintenance['id'] }}" hidden>
+    <label for="tool_name">Mezzo</label>
+    <input name="tool_name" id="tool_name" value="{{maintenance['tool_name'] }}" readonly>
+    <label for="description">Descrizione</label>
+    <input name="description" id="description" value="{{maintenance['description'] }}" readonly>
+    <label for="start">Data inizio manutenzione</label>
+    <input name="start" id="start" type="date" value="{{maintenance['start'] }}" readonly>
+    <label for="end">Data fine manutenzione</label>
+    <input name="end" id="end" type="date" value="{{maintenance['end'] }}" readonly>
+    <input name="extra" id="extra" type="text" value="{{maintenance['extra'] }}" hidden>
+    
+    <table>
+      <tr>
+        <td>
+          <label for="radio1">Manutenzione ordinaria</label>
+          <input name="extra" id="radio1" type="radio" value="0" disabled>
+        </td>
+        <td>
+            <label for="radio2">Manutenzione straordinaria</label>
+            <input name="extra" id="radio2" type="radio" value="1" disabled>
+        </td>
+      </tr>
+    </table>
+    <label for="notes">Note</label>
+    <textarea name="notes" id="notes" rows="3" readonly>{{ maintenance['notes'] }}</textarea>
+    <br>
+    
+    <table>
+      <tr>
+        <td>
+          <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+          {% if show_calendar == "Y" %}
+            <input name="goback" id="goback" value="{{ url_for('cal_maintenance.show_cal') }}" hidden>
+          {% else %}
+            <input name="goback" id="goback" value="{{ url_for('maintenance.index') }}" hidden>
+            {% endif %}
+        </td>
+      </tr>
+    </table>
+  </form>
+  <form action="{{ url_for('maintenance.update', id=maintenance['id']) }}" method="get">
+    <input class="action" type="submit" value="Modifica">
+  </form>
+  <label for="file_name">Fattura allegata</label>
+    <input name="file_name" id="file_name" value="{{maintenance['file_name'] }}" readonly>
+  <h5> Scarica la fattura </h5>
+    <form method="POST" action="/">
+        <input type="submit" value="Scarica la fattura" formaction="{{ url_for('maintenance.download_file', id=maintenance['id']) }}">
+    </form>
+  <hr>
+  
+  <script>
+    console.log("Sono nello script principale di detail.html");
+
+    const extra = document.getElementById("extra").value;
+    if (extra == "0") { radio1.setAttribute("checked", "");  }
+    else { radio2.setAttribute("checked", "");}
+
+    function maintenance_to_do() {
+        var maintenance_id = document.getElementById("maintenance_id").value;
+        console.log(maintenance_id);
+        $.ajax({
+        type: "POST",
+        url: "/maintenance/" + maintenance_id + "/to_do",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          console.log("Result:");
+          console.log(result);
+          }
+        })
+        document.getElementById("done").value = "Manutenzione da eseguire";
+    }
+    function maintenance_done() {
+      var maintenance_id = document.getElementById("maintenance_id").value;
+        console.log(maintenance_id);
+        $.ajax({
+        type: "POST",
+        url: "/maintenance/" + maintenance_id + "/done",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          console.log("Result:");
+          console.log(result);
+          }
+        })
+        document.getElementById("done").value = "Manutenzione eseguita";
+    }
+
+    function goBack() {
+    window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+
+{% endblock %}

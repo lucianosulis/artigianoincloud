@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuovo mezzo{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post" onsubmit="afterSubmit()">
+    <label for="tool_type_id">Tipo di mezzo</label>
+    <SELECT id="tool_type_id">
+      <OPTION value="" disabled="disabled" selected>Selezionare un tipo di mezzo</option>
+      {% for tool_type in tool_typeList %}
+         <OPTION value={{tool_type.id}}>{{tool_type.type}}</option>
+      {% endfor %}
+    </SELECT>
+    <label for="brand">Marca</label>
+    <input name="brand" id="brand" type=text value="{{ request.form['brand'] }}" required>
+    <label for="model">Modello</label>
+    <input name="model" id="model" type="text" value="{{ request.form['model'] }}" required>
+    <label for="serial_number">Serie o telaio</label>
+    <input name="serial_number" id="serial_number" type="text" value="{{ request.form['serial_number'] }}">
+    <label for="license_plate">Targa</label>
+    <input name="license_plate" id="license_plate" type="text" value="{{ request.form['license_plate'] }}">
+    <label for="notes">Note</label>
+    <textarea name="notes" id="notes" rows="2">{{ request.form['notes'] }}</textarea>
+    <input name="input_tool_type_id" id="input_tool_type_id" hidden>
+    <br>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('tool.index') }}" hidden>
+  </form>
+  <hr>
+  <script> 
+  function afterSubmit() {
+        var new_tool_type_id = document.getElementById("tool_type_id").value;
+        document.getElementById("input_tool_type_id").value = new_tool_type_id;      
+    }
+
+  function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+
+{% endblock %}

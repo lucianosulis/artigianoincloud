@@ -1,0 +1,162 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} Artigiano in Cloud</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!-- JQuery -->
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>-->
+<script type="text/javascript" src="/static/jquery/jquery_3.7.1.js"></script>
+<script type="text/javascript" src="/static/jquery-ui-1.14.0/jquery-ui.min.js"></script>
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='/jquery-ui-1.14.0/jquery-ui.min.css') }}" />
+
+<!-- Bootstrap4: Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+<!--<link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">-->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
+<!--Aggiunta jsGrid da Luciano Sulis -->
+
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='/jsgrid-1.5.3/jsgrid.min.css') }}" />
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='/jsgrid-1.5.3/jsgrid-theme.min.css') }}" />
+<script type="text/javascript" src="/static/jsgrid-1.5.3/jsgrid.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% block head %}{% endblock %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="{{ url_for('home.index') }}">Artigiano in Cloud</a>
+  <h6>Ver. 2.10</h6>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      {% if g.user %}
+      <li class="nav-item active">
+        <a class="nav-link" href="#">{{ g.user }} <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Pianificazione lavori
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <li><a class="action" href="{{ url_for('activity.index') }}">Lista attività</a></li>
+          <li> <a class="action" href="{{ url_for('calendar.show_cal') }}">Calendario attività</a></li>
+          <li> <a class="action" href="{{ url_for('team.index') }}">Squadre</a></li>
+          <li> <a class="action" href="{{ url_for('cal_team_planned.show_cal') }}">Calendario squadre</a></li>
+        </ul>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Rifiuti
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <li><a class="action" href="{{ url_for('rentri.index') }}">Generazione FIR</a></li>
+        </ul>
+      </li>
+      {% if g.role == "USER" %}
+      <li class="nav-item active">
+        <a class="action" href="{{ url_for('accounting_hours.index') }}">Foglio presenze</a>
+      </li>
+      {% endif %}
+      {% if g.role == "ADMIN" or g.role == "SEGRETERIA" %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Presenze
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li> <a class="action" href="{{ url_for('timesheet.index') }}">Gestione presenze</a></li>
+            <li><a class="action" href="{{ url_for('export_timesheet.index') }}">Export presenze</a></li>
+            <li><a class="action" href="{{ url_for('cal_holidays.show_cal') }}">Calendario ferie</a></li>
+            <li><a class="action" href="{{ url_for('people_payment.index') }}">Pagamenti</a></li>
+            <li><a class="action" href="{{ url_for('people_available.index') }}">Lista disponibilità</a></li>
+            <li><a class="action" href="{{ url_for('cal_availability.show_cal') }}">Calendario disponibilità</a></li>
+          </ul>
+        </li>
+        {% endif %}
+        {% if g.role == "TEAM_LEADER" %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Presenze
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <li> <a class="action" href="{{ url_for('timesheet.index') }}">Gestione presenze</a></li>
+          </ul>
+        </li>
+        {% endif %}
+        {% if g.role == "ADMIN" %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Ordini
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{{ url_for('order.index') }}">Lista ordini</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('cal_order_invoice.show_cal') }}">Calendario fatturazione</a></li>
+            </ul>
+          </li>
+          <li class="nav-item active">
+            
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Mezzi
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{{ url_for('tool_usage.index') }}">Utilizzo mezzi</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('maintenance.index') }}">Lista manutenzioni</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('cal_maintenance.show_cal') }}">Calendario manutenzioni</a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Scadenziari
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="{{ url_for('schedule.index') }}">Lista scadenze</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('cal_schedule.show_cal') }}">Scadenziario segreteria</a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Anagrafiche
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li> <a class="action" href="{{ url_for('site.index') }}">Sedi clienti</a></li>
+              <li> <a class="action" href="{{ url_for('tool.index') }}">Mezzi</a></li>
+              <li> <a class="action" href="{{ url_for('people.index') }}">Collaboratori</a></li>
+              <li><a class="action" href="{{ url_for('auth.index') }}">Utenti <span class="sr-only">(current)</span></a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Utilità
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li> <a class="action" href="/fc_sync">Dati da FC</a></li>
+            </ul>
+          </li>
+            
+        {% endif %}
+
+      <li class="nav-item active">
+        <a class="action" href="{{ url_for('auth.logout') }}">Esci</a>
+        
+      </li>
+      {% else %}
+        <li class="nav-item active">
+          <a class="action" href="{{ url_for('auth.login') }}">Accedi</a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
+<section class="content">
+  <header>
+    
+    {% block header %}{% endblock %}
+        
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  
+  {% block content %}
+  {% endblock %}
+
+</section>

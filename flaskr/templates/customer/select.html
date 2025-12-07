@@ -1,0 +1,77 @@
+{% extends 'base_wo_navigationbar.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Seleziona un cliente</h4>
+
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.info }}</td>
+      </tr>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="table-striped">
+    <table>
+      <tr>
+        <th></th><th>Cliente</th><th>Città</th><th>Indirizzo</th>
+      </tr>
+      {% for customer in customers %}
+      <tr>
+        <td>
+          <a href="javascript:select_customer({{ customer['id'] }}, &quot;{{ customer['customer_name'] }}&quot;, &quot;{{ customer['city'] }}&quot;, &quot;{{ customer['address'] }}&quot;);"><img src="/static/images/select_customer.jpg" alt="Seleziona" style="width:25px;height:25px;"></a>
+        </td>
+        <td>{{ customer['customer_name'] }}</td><td>{{ customer['city'] }}</td><td>{{ customer['address'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Cliente</td>
+        <td>
+          <br>
+          <input name="customer" id="customer" size="12" type="text" value="{{ request.form['customer'] }}">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input type="submit" value="Cerca">
+        </td>
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+        </td>
+      </tr>
+    </table>
+  </div>
+  </form>
+  
+  <script>
+    function resetSearch() {
+      document.getElementById("customer").value = "";
+      document.getElementById("SearchForm").submit();
+    }
+    
+    function select_customer(customer_id,customer_name, customer_city, customer_address) {
+      opener.document.getElementById("customer_id").value = customer_id;
+      opener.document.getElementById("customer_fullname").value = customer_name;
+      window.opener.getComboSite2(customer_id); 
+      self.close();
+    }
+  </script>
+{% endblock %}

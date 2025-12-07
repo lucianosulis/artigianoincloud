@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block header %}
+<form id="IndexForm" method="post" onsubmit="afterSubmit()">
+  <h4>{% block title %}Aggiornamento report presenze{% endblock %}</h4>
+  <div class="table">
+    <table>
+      <tr>
+        <th>Mese/Anno</th>
+        <th>Tipo di report</th>
+        <th></th>
+      </tr>
+      <tr>
+        <td><input name="month" id="month" type="month" value="{{ request.form['month'] }}">
+          <br>
+          <input type="submit" value="Blocca il mese" formaction="{{ url_for('export_timesheet.lock_month') }}">
+          <br>
+          <input type="submit" value="Sblocca il mese" formaction="{{ url_for('export_timesheet.unlock_month') }}">
+        </td>
+        <td>
+          <select name="report_type" id="report_type">
+            {% if report_type == "1" %}
+              <option value=1 selected>Report completo</option>
+              <option value=2>Report ufficio paghe</option>
+            {% else %}
+              <option value=1>Report completo</option>
+              <option value=2 selected>Report ufficio paghe</option>
+            {% endif %}
+          </select>
+        <br>
+        <br>
+        <input type="submit" value="Aggiorna report">
+        <br>
+          <input type="submit" value="Scarica report" formaction="{{ url_for('export_timesheet.download') }}">
+        </td>
+    </tr>
+    </table>
+  </div>  
+    <input name="input_report_type" id="input_report_type" type="text" hidden>
+</form>
+{% endblock %}
+{% block content %}
+  <script>
+    function afterSubmit() {
+        var tipo_report = document.getElementById("report_type").value;
+        document.getElementById("input_report_type").value = tipo_report;
+    }
+
+  </script>
+{% endblock %}

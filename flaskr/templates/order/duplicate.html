@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuovo ordine{% endblock %}</h4>
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <h6>Verrà creato automaticamente un ordine in Fatture in Cloud</h6>
+    <label for="customer_fullname">Cliente</label>
+    <input name="customer_fullname" id="customer_fullname" type="text" value="{{ order['customer_fullname'] }}" readonly>
+    <input name="customer_id" id="customer_id" type="text" value="{{order['customer_id'] }}" hidden>
+    
+    <br>
+    <label for="title">Descrizione</label>
+    <input name="title" id="title" value="{{order['description'] }}" required>
+    <label for="date">Data</label>
+    <input name="date" id="date" type="date" size="10" value="{{ order['date'] }}" required>
+    <label for="amount">Importo</label>
+    <input name="amount" id="amount" value="{{order['amount'] }}" >
+    <label for="notes">Note</label>
+    <input name="notes" id="notes" value="{{order['notes'] }}" >
+    <br>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('order.index') }}" hidden>
+  </form>
+  <hr> 
+  <script>
+    document.getElementById("date").valueAsDate = new Date();
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+
+{% endblock %}

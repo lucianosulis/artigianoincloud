@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio collaboratore{% endblock %}</h4>
+{% endblock %}
+
+{% block content %}
+  <form>
+    <label for="surname">Cognome</label>
+    <input name="surname" id="surname" type=text value="{{ request.form['surname'] or people['surname'] }}" readonly>
+    <label for="name">Nome</label>
+    <input name="name" id="name" type="text" value="{{ request.form['name'] or people['name'] }}" readonly>
+    <label for="type">Tipo di collaborazione</label>
+    <SELECT id="user_id" disabled>
+      <OPTION value="" disabled="disabled" selected>Selezionare il tipo di collaborazione</option>
+      {% for people_type in people_types %}
+        {% if people_type.short_name == people['type'] %}
+          <OPTION value={{people.type}} selected>{{people_type.name}}</option>
+        {% else %}
+          <OPTION value={{people.type}}>{{people_type.name}}</option>
+        {% endif %}
+      {% endfor %}
+    </SELECT>
+    <br>
+    <label for="gg_paga">Numero giorni paga</label>
+    <input name="gg_paga" id="gg_paga" type="number" min="1" max="31"value="{{ request.form['gg_paga'] or people['gg_paga'] }}" readonly>
+    <br>
+    <label for="user_id">Utente</label>
+    <SELECT id="user_id" disabled>
+      <OPTION value="" disabled="disabled" selected></option>
+      {% for user in userList %}
+        {% if user.id == people['user_id'] %}
+          <OPTION value={{user.id}} selected>{{user.username}}</option>
+        {% else %}
+          <OPTION value={{user.id}}>{{user.username}}</option>
+        {% endif %}
+      {% endfor %}
+    </SELECT>
+    <input name="input_user_id" id="input_user_id" hidden>
+    <br>
+    <input name="cessato" id="cessato" type="text" value="{{people['cessato'] }}" hidden>
+    <table>
+      <tr>
+        <td>
+          <label for="radio1">Collaborazione attiva</label>
+          <input name="cessato" id="radio1" type="radio" value="0" disabled>
+        </td>
+        <td>
+            <label for="radio2">Collaborazione cessata</label>
+            <input name="cessato" id="radio2" type="radio" value="1" disabled>
+        </td>
+      </tr>
+    </table>
+  <table>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+          <input name="goback" id="goback" value="{{ url_for('people.index') }}" hidden>
+      </td>
+      <td></td>
+    </tr>
+  </table>
+  </form>
+  <hr>
+  <script>
+     const cessato = document.getElementById("cessato").value;
+    if (cessato == "0") { radio1.setAttribute("checked", "");  }
+    else { radio2.setAttribute("checked", "");}
+
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base_wo_navigationbar.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Seleziona un ordine cliente</h4>
+
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.info }}</td>
+      </tr>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="table-striped">
+    <table>
+      <tr>
+        <th></th><th>Cliente</th><th>Descrizione</th><th>Data</th><th>Tipo</th>
+      </tr>
+      {% for order in orders %}
+      <tr>
+        <td>
+          <a href="javascript:select_order({{ order['id'] }}, &quot;{{ order['customer_name'] }}&quot;, &quot;{{ order['description'] }}&quot;, &quot;{{ order['date'] }}&quot;);"><img src="/static/images/select_order.jpg" alt="Seleziona" style="width:25px;height:25px;"></a>
+        </td>
+        <td>{{ order['customer_name'] }}</td><td>{{ order['description'] }}</td><td>{{ order['date'] }}</td><td>{{ order['order_type'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Cliente</td>
+        <td>
+          <br>
+          <input name="customer" id="customer" size="12" type="text" value="{{ request.form['customer'] }}">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="radio1">Solo aperti</label>
+          <input name="filterA" id="radio1" type="radio" value="open_only">
+        </td> 
+        <td>
+          <label for="radio2">Tutti</label>
+          <input name="filterA" id="radio2" type="radio" value="all">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="radio3">Spot</label>
+          <input name="filterB" id="radio3" type="radio" value="spot">
+        </td> 
+        <td>
+          <label for="radio4">Continuativi</label>
+          <input name="filterB" id="radio4" type="radio" value="cont">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input type="submit" value="Cerca">
+        </td>
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+        </td>
+      </tr>
+    </table>
+    <input id="filterValueA" type="text" value="{{filterA}}" hidden>
+    <input id="filterValueB" type="text" value="{{filterB}}" hidden>
+  </div>
+  </form>
+  
+  <script>
+    let filterValueA = document.getElementById("filterValueA").value;
+    let filterValueB = document.getElementById("filterValueB").value;
+    //alert(filterValue);
+    const radio1 = document.getElementById("radio1");
+    const radio2 = document.getElementById("radio2");
+    const radio3 = document.getElementById("radio3");
+    const radio4 = document.getElementById("radio4");
+    if (filterValueA == "open_only") {
+      radio1.setAttribute("checked", "");
+    }
+    else {
+      radio2.setAttribute("checked", ""); 
+    }
+    if (filterValueB == "spot") {
+      radio3.setAttribute("checked", "");
+    }
+    else {
+      radio4.setAttribute("checked", "");
+    }
+    function resetSearch() {
+      document.getElementById("customer").value = "";
+      document.getElementById("SearchForm").submit();
+    }
+   
+    function select_order(order_id,order_customer, order_desc, order_date) {
+      opener.document.getElementById("order_id").value = order_id;
+      opener.document.getElementById("order_desc").value = order_customer + " - " + order_desc + " - " + order_date;
+      opener.document.getElementById("title").value = order_desc;
+      //alert(order_customer)
+      window.opener.getComboSite(order_id); 
+      self.close();
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Aggiorna le date di fatturazione dell'ordine{% endblock %}</h4>
+{% endblock %}
+
+{% block content %}
+  <form method="post" onsubmit="afterSubmit()">
+    <label for="customer_id">Cliente</label>
+    <SELECT id="customer_id" disabled>
+      {% for customer in customerList %}
+        {% if customer.id == order['customer_id'] %}
+          <OPTION value={{customer.id}} selected>{{customer.full_name}}</option>
+        {% else %}
+          <OPTION value={{customer.id}}>{{customer.full_name}}</option>
+        {% endif %}
+      {% endfor %}
+    </SELECT>
+    <label for="description">Descrizione</label>
+    <input name="description" id="description" value="{{order['description'] }}" readonly>
+    <label for="amount">Importo</label>
+    <input name="amount" id="amount" type="text" value="{{order['amount'] }}" readonly>
+    <label for="date">Data</label>
+    <input name="date" id="date" type="text" value="{{order['date'] }}" readonly>
+    <label for="notes">Note</label>
+    <input name="notes" id="notes" value="{{ order['notes'] }}" >
+    <label for="total_hours">Ore lavorate in totale</label>
+    <input name="total_hours" id="total_hours" type="text" value="{{ total_hours }}" readonly>
+    <label for="closed">Stato dell'ordine</label>
+    {% if order.closed == 1 %}
+      <input id="closed" type="text"  value="Ordine chiuso" readonly>
+    {% else %}
+      <input id="closed" type="text"  value="Ordine aperto" readonly>
+    {% endif %}
+  <table>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+      </td>  
+    </tr>
+  </table>
+  
+  <input name="po_invoices_dates" id="po_invoices_dates" value="{{ request.form['po_invoices'] or po_invoices['date'] }}"  hidden>
+  <input name="po_invoices_amounts" id="po_invoices_amounts" value="{{ request.form['po_invoices'] or po_invoices['amount'] }}"  hidden>
+  <input name="po_invoices_invoiceds" id="po_invoices_invoiceds" value="{{ request.form['po_invoices'] or po_invoices['invoiced'] }}"  hidden >
+  <input name="po_invoices_proformas" id="po_invoices_proformas" value="{{ request.form['po_invoices'] or po_invoices['proforma'] }}"  hidden >
+  <input name="po_invoices_ext_channels" id="po_invoices_ext_channels" value="{{ request.form['po_invoices'] or po_invoices['ext_channel'] }}" hidden >
+
+  {% if show_calendar == "Y" %}
+      <input name="goback" id="goback" value="{{ url_for('cal_order_invoice.show_cal') }}" hidden>
+  {% else %}
+      <input name="goback" id="goback" value="{{ url_for('order.index') }}" hidden> 
+  {% endif %}  
+  <!-- Grid per l'inserimento delle date di fatturazione-->
+  <h4>Date di fatturazione previste</h4>
+  <div id="jsGrid"></div> 
+
+  <input type="submit" value="Salva">
+  <hr>
+  <input name="order_id" id="order_id" type="text" value="{{order['id'] }}" hidden>
+</form>
+
+  <script>
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+    function FloatNumberField(config) {
+          jsGrid.NumberField.call(this, config);
+      }
+    FloatNumberField.prototype = new jsGrid.NumberField({
+        insertValue: function() {
+          if (this.insertControl.val() == null || this.insertControl.val() == "") {
+          return 0;
+          }
+          else { return parseFloat(this.insertControl.val());}
+      },
+      editValue: function() {
+          return parseFloat(this.editControl.val());
+      }
+      });
+      jsGrid.fields.decimalnumber = FloatNumberField;
+
+      /* Italian initialisation for the jQuery UI date picker plugin. */
+/* Written by Antonello Pasella (antonello.pasella@gmail.com). */
+( function( factory ) {
+	"use strict";
+
+	if ( typeof define === "function" && define.amd ) {
+
+		// AMD. Register as an anonymous module.
+		define( [ "../widgets/datepicker" ], factory );
+	} else {
+
+		// Browser globals
+		factory( jQuery.datepicker );
+	}
+} )( function( datepicker ) {
+"use strict";
+
+datepicker.regional.it = {
+	closeText: "Chiudi",
+	prevText: "Prec",
+	nextText: "Succ",
+	currentText: "Oggi",
+	monthNames: [ "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+		"Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre" ],
+	monthNamesShort: [ "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
+		"Lug", "Ago", "Set", "Ott", "Nov", "Dic" ],
+	dayNames: [ "Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato" ],
+	dayNamesShort: [ "Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab" ],
+	dayNamesMin: [ "Do", "Lu", "Ma", "Me", "Gi", "Ve", "Sa" ],
+	weekHeader: "Sm",
+	dateFormat: "dd/mm/yy",
+	firstDay: 1,
+	isRTL: false,
+	showMonthAfterYear: false,
+	yearSuffix: "" };
+datepicker.setDefaults( datepicker.regional.it );
+
+return datepicker.regional.it;
+
+} );
+
+      var MyDateField = function(config) {
+        jsGrid.Field.call(this, config);
+      };
+
+    MyDateField.prototype = new jsGrid.Field({
+ 
+    css: "date-field",            // redefine general property 'css'
+    align: "center",              // redefine general property 'align'
+    
+    itemTemplate: function(value) {
+        return new Date(value).toLocaleDateString();
+        //return new Date(value).toDateString();
+    },
+    insertTemplate: function(value) {
+        return this._insertPicker = $("<input>").datepicker({ defaultDate: new Date() });
+    },
+    editTemplate: function(value) {
+        return this._editPicker = $("<input>").datepicker().datepicker("setDate", new Date(value));
+    },
+    insertValue: function() {
+      return this._insertPicker.datepicker("getDate").toDateString();
+    },
+    editValue: function() {
+      return this._editPicker.datepicker("getDate").toDateString();
+    }
+});
+ 
+jsGrid.fields.date = MyDateField;
+
+      //console.log("Inizio nuovo script");
+      
+      var po_invoices_dates = document.getElementById("po_invoices_dates").value;
+      console.log(po_invoices_dates);
+      var po_invoices_dates_arr = po_invoices_dates.split(";");
+      console.log(po_invoices_dates_arr);
+      var po_invoices_amounts = document.getElementById("po_invoices_amounts").value;
+      var po_invoices_amounts_arr = po_invoices_amounts.split(";");
+      console.log(po_invoices_amounts_arr);
+      var po_invoices_invoiceds = document.getElementById("po_invoices_invoiceds").value;
+      var po_invoices_invoiceds_arr = po_invoices_invoiceds.split(";");
+      console.log(po_invoices_invoiceds_arr);
+      var po_invoices_proformas = document.getElementById("po_invoices_proformas").value;
+      var po_invoices_proformas_arr = po_invoices_proformas.split(";");
+      console.log(po_invoices_proformas_arr);
+      var po_invoices_ext_channels = document.getElementById("po_invoices_ext_channels").value;
+      var po_invoices_ext_channels_arr = po_invoices_ext_channels.split(";");
+      console.log(po_invoices_ext_channels_arr);
+        
+      if (po_invoices_dates != "" && po_invoices_dates != null && po_invoices_dates != "None") {
+      //if (!po_invoices_dates) {
+        var po_invoices = [];
+        for (let i = 0; i < po_invoices_dates_arr.length; i++) {
+          var new_element = '{"date": "' + po_invoices_dates_arr[i] + '", "amount": "' + po_invoices_amounts_arr[i] + '", "invoiced": ';
+          var invoiced = 'false';
+          if (po_invoices_invoiceds_arr[i] == "1") {
+              invoiced = 'true';}
+          new_element = new_element + invoiced;
+
+          var proforma = 'false';
+          if (po_invoices_proformas_arr[i] == "1") {
+            proforma = 'true';}
+          new_element = new_element + ', "proforma": ' + proforma;
+
+          var ext_channel = 'false';
+          if (po_invoices_ext_channels_arr[i] == "1") {
+            ext_channel = 'true';}
+          new_element = new_element + ', "ext_channel": ' + ext_channel + '}';
+
+          console.log("new_element: " + new_element);
+          var new_object = JSON.parse(new_element);
+          po_invoices.push(new_object);
+
+          }
+        } 
+      
+      //jsGrid.fields.decimalnumber = FloatNumberField;
+      
+        $("#jsGrid").jsGrid({
+            width: "40%",
+            height: "400px",
+            inserting: true,
+            editing: true,
+            sorting: false,
+            paging: true,
+            data: po_invoices,
+                
+            fields: [
+                { name: "date", title: "Data", type: "date" },
+                { name: "amount", title: "Importo", type: "decimalnumber", readOnly: false},
+                { name: "proforma", title: "Proforma", type: "checkbox" },
+                { name: "ext_channel", title: "Canale esterno", type: "checkbox" },
+                { name: "invoiced", title: "Documento emesso", type: "checkbox" },
+                { type: "control" }
+            ]
+          });
+
+      function afterSubmit() {
+        console.log("afterSubmit");
+        var data = $("#jsGrid").jsGrid("option", "data");
+        /*console.log("Numero elementi nella griglia: ");
+        console.log(data.length);
+        console.log("Ecco i dati letti dalla griglia:");
+        console.log(data);*/
+        var po_invoices_dates = "";
+        var po_invoices_amounts = "";
+        var po_invoices_invoiceds = "";
+        var po_invoices_proformas = "";
+        var po_invoices_ext_channels = "";
+        
+        if (data.length > 0) {
+          for (let i = 0; i < data.length; i++) {
+            console.log(i);
+            po_invoices = data[i];
+            
+            if (po_invoices_dates != "") {
+              po_invoices_dates = po_invoices_dates + ";";
+            }
+            po_invoices_dates = po_invoices_dates + po_invoices["date"]
+            
+            console.log(po_invoices_dates);
+
+            if (po_invoices_amounts != "") {
+              po_invoices_amounts = po_invoices_amounts + ";";
+            }
+            po_invoices_amounts = po_invoices_amounts + po_invoices["amount"];
+
+            if (po_invoices_invoiceds != "") {
+              po_invoices_invoiceds = po_invoices_invoiceds + ";";
+            }
+            if (po_invoices["invoiced"] == false) {
+                invoiced = "0";
+            }
+            else {
+              invoiced = "1";
+            }
+            po_invoices_invoiceds = po_invoices_invoiceds + invoiced;
+
+            if (po_invoices_proformas != "") {
+              po_invoices_proformas = po_invoices_proformas + ";";
+            }
+            if (po_invoices["proforma"] == false) {
+              proforma = "0";
+            }
+            else {
+              proforma = "1";
+            }
+            po_invoices_proformas = po_invoices_proformas + proforma;
+
+            if (po_invoices_ext_channels != "") {
+              po_invoices_ext_channels = po_invoices_ext_channels + ";";
+            }
+            if (po_invoices["ext_channel"] == false) {
+              ext_channel = "0";
+            }
+            else {
+              ext_channel = "1";
+            }
+            po_invoices_ext_channels = po_invoices_ext_channels + ext_channel;
+          }
+          document.getElementById("po_invoices_dates").value = po_invoices_dates;
+          document.getElementById("po_invoices_amounts").value = po_invoices_amounts;
+          document.getElementById("po_invoices_ext_channels").value = po_invoices_ext_channels;
+          document.getElementById("po_invoices_invoiceds").value = po_invoices_invoiceds;
+          document.getElementById("po_invoices_proformas").value = po_invoices_proformas;
+        }
+        else {
+          document.getElementById("po_invoices_dates").value = "";
+          document.getElementById("po_invoices_amounts").value = "";
+          document.getElementById("po_invoices_invoiceds").value = "";
+          document.getElementById("po_invoices_proformas").value = "";
+          document.getElementById("po_invoices_ext_channels").value = "";
+        }
+        //alert(document.getElementById("po_invoices_dates").value)
+      }
+
+  </script>
+{% endblock %}
+
+

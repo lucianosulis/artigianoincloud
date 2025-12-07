@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuovo collaboratore{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post" onsubmit="afterSubmit()">
+    <label for="surname">Cognome</label>
+    <input name="surname" id="surname" type=text value="{{ request.form['surname'] }}">
+    <label for="name">Nome</label>
+    <input name="name" id="name" type="text" value="{{ request.form['name'] }}">
+    <label for="type">Tipo di collaborazione</label>
+    <SELECT id="type">
+      <OPTION value="" selected>Selezionare il tipo di collaborazione</option>
+      {% for people_type in people_types %}
+          <OPTION value={{people_type.short_name}}>{{people_type.name}}</option>
+      {% endfor %}
+    </SELECT>
+    <input name="input_type" id="input_type" hidden>
+    <label for="user_id">Utente</label>
+    <SELECT id="user_id">
+      <OPTION value="" selected></option>
+      {% for user in userList %}
+          <OPTION value={{user.id}}>{{user.username}}</option>
+      {% endfor %}
+    </SELECT>
+    <input name="input_user_id" id="input_user_id" hidden>
+    <br>
+    <table>
+      <tr>
+        <td>
+          <label for="radio1">Collaborazione attiva</label>
+          <input name="cessato" id="radio1" type="radio" value="0" checked>
+        </td>
+        <td>
+            <label for="radio2">Collaborazione cessata</label>
+            <input name="cessato" id="radio2" type="radio" value="1">
+        </td>
+      </tr>
+    </table>
+    
+  <table>
+    <tr>
+      <td>
+        <input type="submit" value="Salva">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+        <input name="goback" id="goback" value="{{ url_for('people.index') }}" hidden>
+      </td>
+    </tr>
+  </table>
+  </form>
+  <hr>
+  <script> 
+  function afterSubmit() {
+          var new_user_id = document.getElementById("user_id").value;
+          document.getElementById("input_user_id").value = new_user_id; 
+          var new_type = document.getElementById("type").value;
+          document.getElementById("input_type").value = new_type;      
+    }
+
+  function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+
+{% endblock %}

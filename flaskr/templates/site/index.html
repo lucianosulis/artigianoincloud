@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Sedi clienti</h4>
+
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.info }}</td>
+      </tr>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="table-striped">
+    <table>
+      <tr>
+        <th>Cliente</th><th>Città</th><th>Indirizzo</th><th></th>
+      </tr>
+      {% for site in sites %}
+      <tr>
+        <td>{{ site['customer_name'] }}</td><td>{{ site['city'] }}</td><td>{{ site['address'] }}</td>
+        <td>
+          <a href="{{ url_for('site.detail', id=site['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
+          <br/>
+          <a href="{{ url_for('site.update', id=site['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Cliente</td>
+        <td><input name="search" id="search" size="12" type="text" value="{{ request.form['search'] }}"></td>        
+      </tr>
+      <tr>
+        <td>
+          <input type="submit" value="Cerca">
+        </td>
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+          <a href="{{ url_for('site.create') }}"><img src="static/images/add.jpg" alt="Nuova sede" style="width:42px;height:42px;"></a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  </form>
+  
+  <script>
+    function resetSearch() {
+      document.getElementById("search").value = "";
+      document.getElementById("SearchForm").submit();
+    }
+    
+  </script>
+{% endblock %}

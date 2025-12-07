@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Duplica disponibilità{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <table>
+      <tr>
+        <td><label for="people_id">Collaboratore</label></td>
+        <td>
+          <SELECT id="people_id" name="people_id" size="10" required>
+            {% for people in anag_people %}
+              {% if availability['people_id'] == people['id'] %}
+                <OPTION value={{people.id}} selected>{{people.name}}</option>
+              {% else %}
+                <OPTION value={{people.id}}>{{people.name}}</option>
+              {% endif %}
+            {% endfor %}
+          </SELECT>
+        </td>
+      </tr>
+    </table>
+    <br>
+    <label for="start">Data inizio disponibilità</label>
+    <input name="start" id="start" type="date" value="{{ request.form['start'] }}" onchange="setEndDate()" required>
+    <br>
+    <label for="end">Data fine disponibilità</label>
+    <input name="end" id="end" type="date" value="{{ request.form['end'] }}" required>
+    <br>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    {% if show_calendar == "Y" %}
+      <input name="goback" id="goback" value="{{ url_for('cal_available.show_cal') }}" hidden>
+    {% else %}
+      <input name="goback" id="goback" value="{{ url_for('people_available.index') }}" hidden>
+    {% endif %}
+  </form>
+  <script>
+      function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+      }
+
+      function setEndDate() {
+      let endDate = document.getElementById("end").value; 
+      if (endDate == null || endDate == "") {
+        endDate = document.getElementById("start").value;
+        document.getElementById("end").value = endDate;
+      }
+    }
+  </script>
+
+{% endblock %}

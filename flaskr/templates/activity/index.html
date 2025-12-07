@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Attività pianificate</h4>
+
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.info }}</td>
+    </tr>
+    <tr>
+      <td>{{ pagination.links }}</td>
+      <td>
+        <a href="{{ url_for('activity.create') }}"><img src="static/images/add.jpg" alt="Nuova attività con ordine" style="width:42px;height:42px;"></a>
+        <a href="{{ url_for('activity.create_wo_order') }}"><img src="static/images/add_FC.jpg" alt="Nuova attività senza ordine" style="width:42px;height:42px;"></a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+  <div class="table-striped">
+  <table>
+    <!--<<th>Titolo</th><th>Inizio-Fine</th><th>Cliente</th><th>Sede</th><th></th>-->
+    <th>Inizio-Fine</th><th>Cliente</th><th>Sede</th><th></th>
+    {% for act in acts %}
+        <tr class="tr-alternate">
+          <!--<td style="word-break:break-all; width: 30%;">{{ act['title'] }}</td><td>{{ act['start'] }}<br/>{{ act['end'] }}</td><td>{{ act['customer'] }}</td><td>{{ act['site'] }}</td>-->
+          <td>{{ act['start'] }}<br/>{{ act['end'] }}</td><td>{{ act['customer'] }}</td><td>{{ act['site'] }}</td>
+          <td>
+            <a href="{{ url_for('activity.detail', id=act['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('activity.update', id=act['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('activity.duplicate', id=act['id']) }}"><img src="static/images/duplicate.jpg" alt="Duplica" style="width:25px;height:25px;"></a>
+          </td>
+        </tr>
+    {% endfor %}
+  </table>
+</div>
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>
+    </tr>
+  </table>
+</div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Data inizio</td>
+        <td><input name="searchDate" id="searchDate" type="date" value="{{ request.form['searchDate'] }}"></td>
+      </tr>
+      <tr>
+        <td>Cliente</td>
+        <td><input name="searchCustomer" id="searchCustomer" size="12" type="text" value="{{ request.form['searchCustomer'] }}"></td>        
+      </tr>
+      <tr>  
+        <td>Sede</td>
+        <td><input name="searchSite" id="searchSite" size="12" type="text" value="{{ request.form['searchSite'] }}"></td>
+      </tr>
+      <tr>
+        <td>
+        <!--<input type="button" onclick="search()" value="Cerca">-->
+        <input type="submit" value="Cerca">
+      </td>
+      
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+        
+          <a href="{{ url_for('activity.create') }}"><img src="static/images/add.jpg" alt="Nuova attività con ordine" style="width:42px;height:42px;"></a>
+          <a href="{{ url_for('activity.create_wo_order') }}"><img src="static/images/add_FC.jpg" alt="Nuova attività senza ordine" style="width:42px;height:42px;"></a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  </form>
+  
+  <script>
+    function resetSearch() {
+      document.getElementById("searchDate").value = ""; 
+      document.getElementById("searchCustomer").value = "";
+      document.getElementById("searchSite").value = "";
+      document.getElementById("SearchForm").submit();
+  }
+  /*function search() {
+      document.getElementById("SearchForm").submit();
+  }*/
+  </script>
+{% endblock %}

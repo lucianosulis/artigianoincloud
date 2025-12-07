@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Ordini clienti</h4>
+
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.info }}</td>
+      </tr>
+      <tr>
+        <td>{{ pagination.links }}</td>
+        <td>
+          <a href="{{ url_for('order.create') }}"><img src="static/images/add.jpg" alt="Nuovo ordine" style="width:42px;height:42px;"></a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="table-striped">
+    <table>
+      <tr>
+        <th>Cliente</th><th>Descrizione</th><th>Data</th><th>Tipo</th><th></th>
+      </tr>
+      {% for order in orders %}
+      <tr>
+        <td>{{ order['customer_name'] }}</td><td>{{ order['description'] }}</td><td>{{ order['date'] }}</td><td>{{ order['order_type'] }}</td>
+        <td>
+          <a href="{{ url_for('order.detail', id=order['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
+          <br>
+          <a href="{{ url_for('activity.create_from_order', id=order['id']) }}"><img src="static/images/plan.jpg" alt="Pianifica" style="width:25px;height:25px;"></a>
+          <br>
+          <a href="{{ url_for('order.update_invoice_dates', id=order['id']) }}"><img src="static/images/po_fatture.png" alt="Fatturazione" style="width:25px;height:25px;"></a>
+          <br/>
+            <a href="{{ url_for('order.duplicate', id=order['id']) }}"><img src="static/images/duplicate.jpg" alt="Duplica" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('cal_order.cal', id=order['id']) }}"><img src="static/images/calendar.png" alt="Calendario" style="width:25px;height:25px;"></a>  
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Cliente</td>
+        <td>
+          <br>
+          <input name="customer" id="customer" size="12" type="text" value="{{ request.form['customer'] }}">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="radio1">Solo aperti</label>
+          <input name="filterA" id="radio1" type="radio" value="open_only">
+        </td> 
+        <td>
+          <label for="radio2">Tutti</label>
+          <input name="filterA" id="radio2" type="radio" value="all">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="radio3">Spot</label>
+          <input name="filterB" id="radio3" type="radio" value="spot">
+        </td> 
+        <td>
+          <label for="radio4">Continuativi</label>
+          <input name="filterB" id="radio4" type="radio" value="cont">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input type="submit" value="Cerca">
+        </td>
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+        </td>
+      </tr>
+    </table>
+    <input id="filterValueA" type="text" value="{{filterA}}" hidden>
+    <input id="filterValueB" type="text" value="{{filterB}}" hidden>
+  </div>
+  </form>
+  
+  <script>
+    let filterValueA = document.getElementById("filterValueA").value;
+    let filterValueB = document.getElementById("filterValueB").value;
+    //alert(filterValue);
+    const radio1 = document.getElementById("radio1");
+    const radio2 = document.getElementById("radio2");
+    const radio3 = document.getElementById("radio3");
+    const radio4 = document.getElementById("radio4");
+    if (filterValueA == "open_only") {
+      radio1.setAttribute("checked", "");
+    }
+    else {
+      radio2.setAttribute("checked", "");
+    }
+    if (filterValueB == "spot") {
+      radio3.setAttribute("checked", "");
+    }
+    else {
+      radio4.setAttribute("checked", "");
+    }
+    function resetSearch() {
+      document.getElementById("customer").value = "";
+      document.getElementById("SearchForm").submit();
+    }
+    
+  </script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuova squadra{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post" onsubmit="afterSubmit()">
+    <label for="title">Nome squadra</label>
+    <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <label for="date">Data</label>
+    <input name="date" id="date" type="date" size="10" value="{{ sel_date }}"  onblur="setTeamAct()" required>
+    <label for="start_time">Orario d inizio</label>
+    <input name="start_time" id="start_time" type="time" size="10" value="{{ request.form['start_time'] }}"  required>
+    <label for="finish_time">Orario presunto di fine</label>
+    <input name="finish_time" id="finish_time" type="time" size="10" value="{{ request.form['finish_time'] }}" >
+    <label for="notes">Note</label>
+    <textarea name="notes" id="notes" rows="1">{{ request.form['notes'] }}</textarea>
+    <input name="anag_people_ids" id="anag_people_ids" value="{{anag_people['id'] }}" hidden>
+    <input name="anag_people_names" id="anag_people_names" value="{{anag_people['name'] }}" hidden>
+    <input name="people_ids" id="people_ids" hidden>
+    <input name="anag_tool_ids" id="anag_tool_ids" value="{{anag_tool['id'] }}" hidden>
+    <input name="anag_tool_names" id="anag_tool_names" value="{{anag_tool['name'] }}" hidden>
+    <input name="tool_ids" id="tool_ids" hidden>
+    <input name="act_ids" id="act_ids" value="{{act_ids }}" hidden >
+    <input name="act_descs" id="act_descs" value="{{act_descs}}"  hidden>
+    <input name="anag_act_ids" id="anag_act_ids" value="{{anag_act_ids }}" hidden >
+    <input name="anag_act_descs" id="anag_act_descs" value="{{anag_act_descs}}"  hidden>
+    
+    <br>
+    <!-- Grid per la selezione del personale-->
+    <h4>Operatori previsti</h4>
+    <div id="jsGridPeople"></div>
+    <br>
+    <!-- Grid per la selezione dei mezzi-->
+    <h4>Mezzi previsti</h4>
+    <div id="jsGridTool"></div>
+    <br>
+    <!-- Grid per l'inserimento delle attività -->
+    <h4>Attività</h4>
+    <div id="jsGridAct"></div>
+    <br>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('team.index') }}" hidden>
+  </form>
+  <hr>
+  <script>
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+  <script type="text/javascript" src="/static/team/common.js"></script>
+
+{% endblock %}

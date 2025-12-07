@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio sede cliente{% endblock %}</h4>
+{% endblock %}
+
+{% block content %}
+  <form>
+    <label for="customer_id">Cliente</label>
+    <SELECT id="customer_id" disabled>
+      {% for customer in customerList %}
+        {% if customer.id == site['customer_id'] %}
+          <OPTION value={{customer.id}} selected>{{customer.full_name}} - {{customer.city}}</option>
+        {% else %}
+          <OPTION value={{customer.id}}>{{customer.full_name}} - {{customer.city}}</option>
+        {% endif %}
+      {% endfor %}
+    </SELECT>
+    <label for="address">Indirizzo</label>
+    <input name="address" id="address" value="{{ request.form['address'] or site['address'] }}" readonly>
+    <label for="city">Città</label>
+    <input name="city" id="city" value="{{ request.form['city'] or site['city'] }}" readonly>
+    <label for="contact_people">Persona di contatto</label>
+    <input name="contact_people" id="contact_people" type="text" value="{{ request.form['contact_people'] or site['contact_people'] }}" readonly>
+    <label for="telephone">Telefono</label>
+    <input name="telephone" id="telephone" type="text" value="{{ request.form['telephone'] or site['telephone'] }}" readonly>
+    <label for="email">Email</label>
+    <input name="email" id="email" type="text" value="{{ request.form['email'] or site['email'] }}" readonly>
+  <table>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+        <input name="goback" id="goback" value="{{ url_for('site.index') }}" hidden>
+      </td>
+      <td></td>
+    </tr>
+  </table>
+  </form>
+  <hr>
+  <script>
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+      }
+  </script>
+{% endblock %}

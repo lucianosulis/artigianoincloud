@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Scadenze</h4>
+
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.info }}</td>
+    </tr>
+    <tr>
+      <td>{{ pagination.links }}</td>
+      <td>
+        <a href="{{ url_for('schedule.create') }}"><img src="static/images/add.jpg" alt="Nuova manutenzione" style="width:42px;height:42px;"></a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+  <div class="table-striped">
+  <table>
+    <th>Data</th><th>Descrizione</th><th>Tipo</th><th>Eseguita</th><th></th>
+    {% for schedule in schedules %}
+        <tr class="tr-alternate">
+          <td>{{ schedule['due_date'] }}</td><td>{{ schedule['type'] }}</td><td>{{ schedule['description'] }}</td><td>{% if schedule.done == 1 %} <input type="checkbox" checked disabled> {% endif %}</td><td></td><td></td>
+          <td>
+            <a href="{{ url_for('schedule.detail', id=schedule['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('schedule.update', id=schedule['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('schedule.duplicate', id=schedule['id']) }}"><img src="static/images/duplicate.jpg" alt="Duplica" style="width:25px;height:25px;"></a>
+          </td>
+        </tr>
+    {% endfor %}
+  </table>
+</div>
+<div class="table">
+  <table>
+    <tr>
+      <td>{{ pagination.links }}</td>
+    </tr>
+  </table>
+</div>
+  <form id="SearchForm" method="post">
+    <div class="table">
+    <table>
+      <tr>
+        <td>Data</td>
+        <td><input name="searchDate" id="searchDate" type="date" value="{{ request.form['searchDate'] }}"></td>
+      </tr>
+      <tr>
+        <td>Tipo</td>
+        <td><input name="searchType" id="searchType" size="12" type="text" value="{{ request.form['searchType'] }}"></td>        
+      </tr>
+      <tr>  
+        <td>Descrizione</td>
+        <td><input name="searchDescription" id="searchDescription" size="12" type="text" value="{{ request.form['searchDescription'] }}"></td>
+      </tr>
+      <tr>
+        <td>
+          <input type="submit" value="Cerca">
+      </td>
+      
+        <td>
+          <input type="button" onclick="resetSearch()" value="Ripristina">
+        
+          <a href="{{ url_for('schedule.create') }}"><img src="static/images/add.jpg" alt="Nuova scadenza" style="width:42px;height:42px;"></a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  </form>
+  
+  <script>
+    function resetSearch() {
+      document.getElementById("searchDate").value = ""; 
+      document.getElementById("searchDescription").value = "";
+      document.getElementById("searchType").value = "";
+      document.getElementById("SearchForm").submit();
+  }
+  </script>
+{% endblock %}

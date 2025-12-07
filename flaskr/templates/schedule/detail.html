@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio scadenza{% endblock %}</h4>
+{% endblock %}
+{% block content %}
+  <table>
+  <tr>
+    <td>
+      <label for="done">Stato</label>
+    </td>
+    <td>
+      <input type="button" onclick="schedule_to_do()" value="Da eseguire">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      {% if schedule.done == 1 %}
+        <input id="done" type="text"  value="Eseguita" readonly>
+      {% else %}
+        <input id="done" type="text"  value="Da eseguire" readonly>
+      {% endif %}
+    </td>
+    <td>
+      <input type="button" onclick="schedule_done()" value="Eseguita">
+    </td>
+  </tr>
+</table>
+
+  <form>
+    <input id="schedule_id" value="{{schedule['id'] }}" hidden>
+    <label for="description">Descrizione</label>
+    <input name="description" id="description" value="{{schedule['description'] }}" readonly>
+    <label for="due_date">Data scadenza</label>
+    <input name="due_date" id="due_date" type="date" value="{{schedule['due_date'] }}" readonly>
+    
+    <label for="notes">Note</label>
+    <textarea name="notes" id="notes" rows="3" readonly>{{ schedule['notes'] }}</textarea>
+    <br>
+    
+    <table>
+      <tr>
+        <td>
+          <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+          {% if show_calendar == "Y" %}
+            <input name="goback" id="goback" value="{{ url_for('cal_schedule.show_cal') }}" hidden>
+          {% else %}
+            <input name="goback" id="goback" value="{{ url_for('schedule.index') }}" hidden>
+            {% endif %}
+        </td>
+      </tr>
+    </table>
+  </form>
+  <form action="{{ url_for('schedule.update', id=schedule['id']) }}" method="get">
+    <input class="action" type="submit" value="Modifica">
+  </form>
+  
+  <script>
+    console.log("Sono nello script principale di detail.html");
+
+    function schedule_to_do() {
+        var schedule_id = document.getElementById("schedule_id").value;
+        console.log(schedule_id);
+        $.ajax({
+        type: "POST",
+        url: "/schedule/" + schedule_id + "/to_do",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          console.log("Result:");
+          console.log(result);
+          }
+        })
+        document.getElementById("done").value = "Da eseguire";
+    }
+    function schedule_done() {
+      var schedule_id = document.getElementById("schedule_id").value;
+        console.log(schedule_id);
+        $.ajax({
+        type: "POST",
+        url: "/schedule/" + schedule_id + "/done",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+          console.log("Result:");
+          console.log(result);
+          }
+        })
+        document.getElementById("done").value = "Eseguita";
+    }
+
+    function goBack() {
+    window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+
+{% endblock %}

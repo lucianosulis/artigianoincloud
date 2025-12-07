@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuova attività{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post" onsubmit="afterSubmit()">
+    <label for="order_desc">Ordine</label>
+    <input name="order_desc" id="order_desc" type="text" readonly>
+    <input name="order_id" id="order_id" type="text" hidden>
+    <input name="url" id="url" value="{{ url_for('order.select') }}" hidden>
+    <input type="button" onclick="open_order_select()" value="Seleziona ordine">
+    
+    <label for="site_id">Sede</label>
+    <SELECT id="site_id">
+      {% for site in siteList %}
+          <OPTION value={{site.id}}>NEW - {{site.id}} - {{site.city}} - {{site.address}}</option>
+      {% endfor %}
+    </SELECT>
+    <label for="title">Titolo</label>
+    <input name="title" id="title" value="{{ request.form['title'] }}">
+    <label for="start">Data inizio attività</label>
+    <input name="start" id="start" type="date" size="10" value="{{ request.form['start'] }}" onchange="setEndDate()" required>
+    <label for="end">Data fine attività</label>
+    <input name="end" id="end" type="date" size="10" value="{{ request.form['end'] }}" required>
+    <label for="description">Descrizione lavorazioni</label>
+    <textarea name="description" id="description" rows="2">{{ request.form['description'] }}</textarea>
+    <input name="input_site_id" id="input_site_id" hidden>
+    <br>
+    
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('activity.index') }}" hidden>
+  </form>
+  <hr>
+  <script>
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+  <script type="text/javascript" src="/static/activity/common.js"></script>
+
+{% endblock %}
