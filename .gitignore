@@ -1,6 +1,9 @@
 # Cartelle da ignorare
-instance/
-flaskr/__pycache__/
+/instance/
+
+# File e cartelle generate da Python
+__pycache__/
+*.pyc
 
 # File da ignorare (es. configurazioni sensibili o log)
-desktop.ini
+**/desktop.ini

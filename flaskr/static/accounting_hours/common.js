@@ -1,42 +1,10 @@
-    function afterSubmit() {
+  function afterSubmit() {
     try{ 
-    var data = $("#jsGrid").jsGrid("option", "data");
-    //console.log(data);
-    var act_type_ids_sel = "";
-    var order_ids_sel = "";
-    var ore_lavs_sel = "";
-    var night_sel = "";
-
-    for (let i = 0; i < data.length; i++) {
-      ts_record = data[i];
-  
-      if (act_type_ids_sel != "") {
-        act_type_ids_sel = act_type_ids_sel + ",";
-      }
-      act_type_ids_sel = act_type_ids_sel + ts_record["act_type_id"];
-      document.getElementById("act_type_ids_sel").value = act_type_ids_sel;
-
-      if (order_ids_sel != "") {
-        order_ids_sel = order_ids_sel + ",";
-      }
-      order_ids_sel = order_ids_sel + ts_record["order_id"];
-      document.getElementById("order_ids_sel").value = order_ids_sel;
-
-      if (ore_lavs_sel != "") {
-        ore_lavs_sel = ore_lavs_sel + ",";
-      }
-      ore_lavs_sel = ore_lavs_sel + ts_record["ore_lav"];
-      document.getElementById("ore_lavs_sel").value = ore_lavs_sel;
-
-      if (night_sel != "") {
-        night_sel = night_sel + ",";
-      }
-      night_sel = night_sel + ts_record["night"];
-      document.getElementById("night_sel").value = night_sel;
-
+    const data = $("#jsGrid").jsGrid("option", "data");
+    const dataJSONStringa = JSON.stringify(data);
+    document.getElementById('dati_griglia_json').value = dataJSONStringa;
     }
-  }
-  catch(err) {alert(err.message)}
+    catch(err) {alert(err.message)}
   }
 function afterSubmitUpdate() { 
     var new_order_id = document.getElementById("order_id").value;

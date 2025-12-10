@@ -139,54 +139,44 @@ def create():
     orders = {"order_id" : order_ids, "order_desc" : order_descs}
 
     if request.method == 'POST':
-        date = request.form['date']
-        people_ids = request.form['input_people_ids']
-        #print("people_ids: " + people_ids)
-        
         error = None
-
-        if (not date) or (not people_ids):
+        date = request.form['date']
+        people_ids_arr = request.form.getlist('people_ids')
+        dati_json_stringa = request.form.get('dati_griglia_json')
+        dati_griglia = []
+        if dati_json_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_griglia = json.loads(dati_json_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+        if (not date) or (not people_ids_arr):
             error = 'Compila tutti i campi obbligatori.'
-        act_type_ids_sel = request.form['act_type_ids_sel']
-        if act_type_ids_sel == "":
+        if (not dati_griglia):
             error = 'Devi inserire almeno una presenza.'
         if error is not None:
             flash(error)
         else:
-            order_ids_sel = request.form['order_ids_sel']
-            ore_lavs_sel = request.form['ore_lavs_sel']
-            night_sel = request.form['night_sel']
-            act_type_ids_sel_arr = act_type_ids_sel.split(",")
-            order_ids_sel_arr = order_ids_sel.split(",")
-            ore_lavs_sel_arr = ore_lavs_sel.split(",")
-            night_sel_arr = night_sel.split(",")
-
             db = get_db()
-            people_ids_arr = people_ids.split(",") 
-            for people_id in people_ids_arr:
-                k=0
-                while k < len(act_type_ids_sel_arr):
-                    act_type_id = int(act_type_ids_sel_arr[k])
-                    
-                    if order_ids_sel_arr[k] != "":
-                        order_id = int(order_ids_sel_arr[k])
-                    else:
-                        order_id = None
-                    if ore_lavs_sel_arr[k] != "":
-                        ore_lav = float(ore_lavs_sel_arr[k])
-                    else:
-                        ore_lav = 0
-                    if night_sel_arr[k] == "true":
-                        night = 1
-                    else:
-                        night = 0
-                    cursor = db.cursor(dictionary=True)
+            cursor = db.cursor(dictionary=True)
+            for record in dati_griglia:
+                # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
+                # Estraggo i singoli campi da questo dizionario
+                act_type_id = record['act_type_id']
+                order_id = record['order_id']
+                if not order_id:
+                    order_id = None
+                ore_lav = record['ore_lav']
+                night = record['night']
+
+                for people_id in people_ids_arr:
                     cursor.execute(
                         'INSERT INTO timesheet (date, act_type_id, people_id, order_id, ore_lav, night)'
                         ' VALUES (%s, %s, %s, %s, %s, %s)',
                         (date, act_type_id, people_id, order_id, ore_lav, night)
                     )
-                    k = k + 1
             db.commit()
             return redirect(url_for('timesheet.index'))
 

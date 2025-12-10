@@ -1,3 +1,8 @@
+Release 2.11
+Corretto un bug che mandava in errore le funzioni create di timesheet e accounting hours.
+E' la prima elaborazione dei dati in JSON che potrà in futuro essere oggetto di refactoring
+nelle altre pagine. 
+
 Release 2.10
 Aggiunta integrazione col RENTRI. Per ora è possibile solo generare un FIR con i dati di 
 PRONTOGIARDINI.
