@@ -94,6 +94,11 @@ def create_app(test_config=None):
     app.register_blueprint(timesheet.bp)
     app.add_url_rule('/timesheet', endpoint='index')
 
+# register blueprint "view_people_timesheet"
+    from . import view_people_timesheet
+    app.register_blueprint(view_people_timesheet.bp)
+    app.add_url_rule('/view_people_timesheet', endpoint='index')
+
 # register blueprint "tool_usage"
     from . import tool_usage
     app.register_blueprint(tool_usage.bp)

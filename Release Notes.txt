@@ -1,3 +1,9 @@
+Release 2.12
+Aggiunta la funzione view_people_timesheet.py e relativa pagina HTML per la visualizzazione delle 
+ore consuntivate in un certo mese da un collaboratore. 
+Riorganizzata la pagina base.html per mettere questa anche funzione e quella del foglio presenze 
+sotto il menu Presenze (con differenziazione dei ruoli).
+
 Release 2.11
 Corretto un bug che mandava in errore le funzioni create di timesheet e accounting hours.
 E' la prima elaborazione dei dati in JSON che potrà in futuro essere oggetto di refactoring

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<form id="IndexForm" method="post">
+  <h4>Visualizzazione consuntivazioni mensili di {{ g.user }}</h4>
+  <div class="table">
+    <table>
+      <tr>
+        <th>Mese/Anno</th>
+      </tr>
+      <tr>
+        <td><input name="month" id="month" type="month" value="{{ request.form['month'] }}" required>
+        </td>
+    </tr>
+    </table>
+    <table>
+      <tr>
+        <td><strong>Ore totali</strong></td>
+        <td><strong>{{hours_dict.OreTotali}}</strong></td>
+      </tr>
+      <tr>
+        <td>Ore diurne</td>
+        <td>{{hours_dict.OreLavDiurne}}</td>
+      </tr>
+      <tr>
+        <td>Ore notturne</td>
+        <td>{{hours_dict.OreLavNotturne}}</td>
+      </tr>
+      <tr>
+        <td>Ore ferie</td>
+        <td>{{hours_dict.OreFerie}}</td>
+      </tr>
+      <tr>
+        <td>Ore malattia</td>
+        <td>{{hours_dict.OreMalattia}}</td>
+      </tr>
+      <tr>
+        <td>Ore permesso non retribuito</td>
+        <td>{{hours_dict.OrePNR}}</td>
+      </tr>
+      <tr>
+        <td>Ore permesso retribuito</td>
+        <td>{{hours_dict.OrePR}}</td>
+      </tr>
+      <tr>
+        <td>Ore maltempo</td>
+        <td>{{hours_dict.OreMaltempo}}</td>
+      </tr>
+    </table>
+    <br>
+        <input type="submit" value="Visualizza dati">
+  </div>  
+</form>
+{% endblock %}

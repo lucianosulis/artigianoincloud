@@ -21,7 +21,7 @@ def index():
     rowCount = cursor.fetchone()
     total = rowCount['count']
     if total == 0:
-        flash("Non sei una persona che può consuntivare.")
+        flash("Questo utente non è in anagrafica del personale.")
         return redirect(url_for('home.index'))
     cursor.execute('SELECT COUNT(*) AS count FROM timesheet ts'
                    ' INNER JOIN people p ON ts.people_id = p.id' 

@@ -66,6 +66,17 @@ INTO OUTFILE '/var/lib/mysql-files/output.csv'
 FIELDS TERMINATED BY ';' ENCLOSED BY ''
 LINES TERMINATED BY '\n';
 
+Estrazione manutenzioni:
+select tt.type as Tipo, t.brand as Marca, t.model as Modello, t.license_plate as Targa, 
+t.serial_number as NumeroSerie, description as Descrizione, m.start as DataInizio, m.end as DataFine 
+from maintenance m 
+inner join tool t on m.tool_id = t.id
+inner join tool_type tt on t.tool_type_id = tt.id
+where t.discontinued = 0
+INTO OUTFILE '/var/lib/mysql-files/output.csv'
+FIELDS TERMINATED BY ';' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
+
 
 
 
