@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Modifica deposito rifiuti{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <label for="company_name">Ragione sociale</label>
+    <input name="company_name" id="company_name" type=text value="{{ request.form['company_name'] or waste_storage['company_name']}}">
+    <label for="address">Indirizzo</label>
+    <input name="address" id="address" type="text" value="{{ request.form['address'] or waste_storage['address'] }}">
+    <label for="zip_code">CAP</label>
+    <input name="zip_code" id="zip_code" type="text" value="{{ request.form['zip_code'] or waste_storage['zip_code'] }}">
+    <label for="city">Città</label>
+    <input name="city" id="city" value="{{ request.form['city'] or waste_storage['city'] }}">
+    <label for="codice_fiscale">Codice fiscale</label>
+    <input name="codice_fiscale" id="codice_fiscale" value="{{ request.form['codice_fiscale'] or waste_storage['codice_fiscale'] }}">
+    <label for="partita_iva">Partita IVA</label>
+    <input name="partita_iva" id="partita_iva" value="{{ request.form['partita_iva'] or waste_storage['partita_iva'] }}">
+    <label for="codice_attivita">Codice attivita</label>
+    <input name="codice_attivita" id="codice_attivita" value="{{ request.form['codice_attivita'] or waste_storage['codice_attivita'] }}">
+    <label for="n_autorizzazione">Numero autorizzazione</label>
+    <input name="n_autorizzazione" id="n_autorizzazione" value="{{ request.form['n_autorizzazione'] or waste_storage['n_autorizzazione'] }}">
+    <label for="tipo_autorizzazione">Tipo di autorizzazione</label>
+    <input name="tipo_autorizzazione" id="tipo_autorizzazione" value="{{ request.form['tipo_autorizzazione'] or waste_storage['tipo_autorizzazione'] }}">
+  <table>
+    <tr>
+      <td>
+        <input type="submit" value="Salva">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+        <input name="goback" id="goback" value="{{ url_for('waste_storage.index') }}" hidden>
+      </td>
+    </tr>
+  </table>
+  </form>
+  <form action="{{ url_for('waste_storage.delete', id=waste_storage['id']) }}" method="post">
+    <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questo deposito?');">
+  </form>
+  <hr>
+  <script> 
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+{% endblock %}

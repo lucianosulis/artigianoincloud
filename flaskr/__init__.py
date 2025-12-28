@@ -89,6 +89,12 @@ def create_app(test_config=None):
     app.register_blueprint(customer.bp)
     app.add_url_rule('/customer', endpoint='index')
 
+# register blueprint "waste_storage"
+    from . import waste_storage
+    app.register_blueprint(waste_storage.bp)
+    app.add_url_rule('/waste_storage', endpoint='index')
+
+
 # register blueprint "timesheet"
     from . import timesheet
     app.register_blueprint(timesheet.bp)

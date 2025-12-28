@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Dettaglio deposito rifiuti{% endblock %}</h4>
+{% endblock %}
+
+{% block content %}
+  <form>
+    <label for="company_name">Ragione sociale</label>
+    <input name="company_name" id="company_name" type=text value="{{ waste_storage['company_name'] }}" readonly>
+    <label for="address">Indirizzo</label>
+    <input name="address" id="address" type="text" value="{{ waste_storage['address'] }}" readonly>
+    <label for="zip_code">CAP</label>
+    <input name="zip_code" id="zip_code" type="text" value="{{ waste_storage['zip_code'] }}" readonly>
+    <label for="city">Città</label>
+    <input name="city" id="city" value="{{ waste_storage['city'] }}" readonly>
+    <label for="codice_fiscale">Codice fiscale</label>
+    <input name="codice_fiscale" id="codice_fiscale" value="{{ waste_storage['codice_fiscale'] }}" readonly>
+    <label for="partita_iva">Partita IVA</label>
+    <input name="partita_iva" id="partita_iva" value="{{ waste_storage['partita_iva'] }}" readonly>
+    <label for="codice_attivita">Codice attivita</label>
+    <input name="codice_attivita" id="codice_attivita" value="{{ waste_storage['codice_attivita'] }}" readonly>
+    <label for="n_autorizzazione">Numero autorizzazione</label>
+    <input name="n_autorizzazione" id="n_autorizzazione" value="{{ waste_storage['n_autorizzazione'] }}" readonly>
+    <label for="tipo_autorizzazione">Tipo di autorizzazione</label>
+    <input name="tipo_autorizzazione" id="tipo_autorizzazione" value="{{ waste_storage['tipo_autorizzazione'] }}" readonly>
+  <table>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+          <input name="goback" id="goback" value="{{ url_for('waste_storage.index') }}" hidden>
+      </td>
+      <td></td>
+    </tr>
+  </table>
+  </form>
+  <hr>
+  <script>
+     const cessato = document.getElementById("cessato").value;
+    if (cessato == "0") { radio1.setAttribute("checked", "");  }
+    else { radio2.setAttribute("checked", "");}
+
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+{% endblock %}

@@ -1,3 +1,8 @@
+Release 2.13
+Aggiunta la funzione per generare un FIR RENTRI per un acerta attività dalla pagina 
+delle attività (nuovo pulsante su ogni riga). Vengono chiesti tutti i dati necessari per il FIR,
+mentre i dati già disponibili vengono letti dal database.
+
 Release 2.12
 Aggiunta la funzione view_people_timesheet.py e relativa pagina HTML per la visualizzazione delle 
 ore consuntivate in un certo mese da un collaboratore. 

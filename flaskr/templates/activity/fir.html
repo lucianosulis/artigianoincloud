@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuovo Formulario Rifiuti{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %} 
+
+  <form method="post">
+    <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
+      <colgroup>
+        <col style="width: 20%;"> <col style="width: 80%;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>  
+      <tbody>
+        <tr>
+            <td><label for="fir_date">Data</label></td>
+            <td><input style="width: 100%;" name="fir_date" id="fir_date" type="date" value="{{ request.form['fir_date'] or fir_date }}" required></td>
+        </tr>
+        <tr>
+          <td><label for="waste_storage_id">Deposito rifiuti</label></td>
+          <td><SELECT style="width: 100%;" id="waste_storage_id" name="waste_storage_id" required> 
+                <option value="" disabled selected>Seleziona...</option>
+                {% for waste_storage in anag_waste_storages %}
+                  <OPTION value={{waste_storage.id}}>{{waste_storage.company_name}}</option>
+                {% endfor %}
+              </SELECT> 
+          </td>
+        </tr>
+        <tr>
+          <td><label for="site_desc">Luogo di produzione</label></td>
+          <td><input style="width: 100%;" name="site_desc" id="site_desc" type="text" value="{{ request.form['site_desc'] or site_desc }}" required></td>
+        </tr>
+        <tr>
+          <td>
+            <label for="weight">Peso stimato in Kg</label>
+          </td>
+          <td>
+            <input style="width: 100%;" name="weight" id="weight" type="number" value="{{ request.form['weight'] }}" required>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="tractor_id">Automezzo</label>
+          </td>
+          <td>
+            <SELECT style="width: 100%;" id="tractor_id" name="tractor_id" required>
+              <option value="" disabled selected>Seleziona...</option>
+              {% for tractor in anag_tractors %} 
+                  <OPTION value={{tractor.tool_id}}>{{tractor.tool_name}}</option>
+              {% endfor %}
+            </SELECT>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="trailer_id">Rimorchio</label>
+          </td>
+          <td>
+            <SELECT style="width: 100%;" id="trailer_id" name="trailer_id" required>
+              <option value="" disabled selected>Seleziona...</option>
+              {% for trailer in anag_trailers %} 
+                  <OPTION value={{trailer.tool_id}}>{{trailer.tool_name}}</option>
+              {% endfor %}
+            </SELECT>
+          </td>
+        </tr>
+        <tr>
+          <td><label for="driver_name">Cognome e nome conducente</label></td>
+          <td><input style="width: 100%;" name="driver_name" id="driver_name" type="text" value="{{ request.form['driver_name'] }}" required></td>
+        </tr>
+        <tr>
+          <td><label for="transp_date">Data inizio trasporto</label></td>
+          <td><input style="width: 100%;" name="transp_date" id="transp_date" type="date" value="{{ request.form['transp_date'] or fir_date }}" required></td>
+        </tr>
+        <tr>
+          <td><label for="transp_time">Ora inizio trasporto</label></td>
+          <td><input style="width: 100%;" name="transp_time" id="transp_time" type="time" value="{{ request.form['transp_time'] }}" required></td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    <input type="submit" value="Genera FIR">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+    <input name="goback" id="goback" value="{{ url_for('activity.index') }}" hidden>
+  </form>
+  <script>
+    function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+      }
+   </script>
+
+{% endblock %}

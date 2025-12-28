@@ -35,6 +35,8 @@
             <a href="{{ url_for('activity.update', id=act['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
             <br/>
             <a href="{{ url_for('activity.duplicate', id=act['id']) }}"><img src="static/images/duplicate.jpg" alt="Duplica" style="width:25px;height:25px;"></a>
+            <br/>
+            <a href="{{ url_for('activity.fir', id=act['id']) }}"><img src="static/images/waste.png" alt="FIR" style="width:25px;height:25px;"></a>
           </td>
         </tr>
     {% endfor %}

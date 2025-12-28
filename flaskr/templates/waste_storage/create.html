@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Nuovo collaboratore{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <label for="company_name">Ragione sociale</label>
+    <input name="company_name" id="company_name" type=text value="{{ request.form['company_name'] }}">
+    <label for="address">Indirizzo</label>
+    <input name="address" id="address" type="text" value="{{ request.form['address'] }}">
+    <label for="zip_code">CAP</label>
+    <input name="zip_code" id="zip_code" type="text" value="{{ request.form['zip_code'] }}">
+    <label for="city">Città</label>
+    <input name="city" id="city">
+    <label for="codice_fiscale">Codice fiscale</label>
+    <input name="codice_fiscale" id="codice_fiscale">
+    <label for="partita_iva">Partita IVA</label>
+    <input name="partita_iva" id="partita_iva">
+    <label for="codice_attivita">Codice attivita</label>
+    <input name="codice_attivita" id="codice_attivita">
+    <label for="n_autorizzazione">Numero autorizzazione</label>
+    <input name="n_autorizzazione" id="n_autorizzazione">
+    <label for="tipo_autorizzazione">Tipo di autorizzazione</label>
+    <input name="tipo_autorizzazione" id="tipo_autorizzazione">
+    <br>
+  <table>
+    <tr>
+      <td>
+        <input type="submit" value="Salva">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+        <input name="goback" id="goback" value="{{ url_for('waste_storage.index') }}" hidden>
+      </td>
+    </tr>
+  </table>
+  </form>
+  <hr>
+  <script> 
+  
+  function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+
+{% endblock %}

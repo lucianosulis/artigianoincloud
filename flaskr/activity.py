@@ -1,6 +1,7 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, current_app, jsonify, json, session
-)
+    Blueprint, flash, g, redirect, render_template, request, 
+    url_for, current_app, jsonify, json, session, 
+    send_from_directory)
 from flask_paginate import Pagination, get_page_args, get_page_parameter
 from werkzeug.exceptions import abort
 
@@ -8,7 +9,10 @@ from flaskr.auth import login_required
 from flaskr.db import get_db
 from datetime import date
 from datetime import datetime
-#import requests
+#import sys
+#import os
+#sys.path.append('./flaskr')
+from flaskr.fir import create_analog_fir
 
 bp = Blueprint('activity', __name__)
 
@@ -391,6 +395,69 @@ def duplicate(id):
             return redirect(url_for('activity.index'))
     return render_template('activity/duplicate.html', act=act, order_id=order_id, order_desc=order_desc, siteList=siteList)
 
+@bp.route('/activity/<int:id>/fir', methods=('GET', 'POST'))
+@login_required
+def fir(id):
+    act = get_act(id)
+    site = get_site(id)
+    site_desc = site['site_desc']
+    anag_waste_storages = get_anag_waste_storages()
+    fir_date = act['end']
+    anag_tractors = get_anag_tractors()
+    anag_trailers = get_anag_trailers()
+
+    if request.method == 'POST':
+        fir_date_object = datetime.strptime(request.form['fir_date'], "%Y-%m-%d")
+        fir_date = fir_date_object.strftime("%d/%m/%Y")
+        waste_storage_id = request.form.get('waste_storage_id')
+        waste_storage = get_waste_storage(waste_storage_id)
+        tractor_id = request.form.get('tractor_id')
+        trailer_id = request.form.get('trailer_id')
+        tractor = get_tool(tractor_id)
+        trailer = get_tool(trailer_id)
+        site_desc = request.form['site_desc']
+        weight = request.form['weight']
+        prod_denom = "PRONTOGIARDINI S.R.L."
+        prod_address = "Via San Cassiano 1 - 24030 Mapello (BG)"
+        prod_cf = "04721650168"
+        prod_iscr_n = "MI85294"
+        prod_iscr_type = "Aut. integrata ambientale"
+        dest_denom = waste_storage['company_name']
+        dest_address = waste_storage['dest_address']
+        dest_cf = waste_storage['codice_fiscale']
+        dest_act = waste_storage['codice_attivita']
+        dest_auth_n = waste_storage['n_autorizzazione']
+        dest_auth_type = waste_storage['tipo_autorizzazione']
+        trasp_denom = "PRONTOGIARDINI S.R.L."
+        trasp_cf = "04721650168"
+        trasp_iscr_n = "MI85294"
+        license_plate_tractor = tractor['license_plate']
+        license_plate_trailer = trailer['license_plate']
+        driver_name = request.form['driver_name']
+        transp_date_object = datetime.strptime(request.form['transp_date'], "%Y-%m-%d")
+        transp_date = transp_date_object.strftime("%d/%m/%Y")
+        transp_time = request.form['transp_time']
+        
+        error = None
+
+        if (not fir_date) or (not waste_storage_id) or (not site_desc) or (not weight) or (not tractor_id) or (not trailer_id):
+            error = 'Compila tutti i campi obbligatori.'
+
+        if error is not None:
+            flash(error)
+        else:
+            path,nome_file = create_analog_fir(
+                fir_date,prod_denom,prod_address,prod_cf, 
+                prod_iscr_n,prod_iscr_type,site_desc,dest_denom,dest_address,dest_cf,dest_act,dest_auth_n, 
+                dest_auth_type,trasp_denom,trasp_cf,trasp_iscr_n,weight, 
+                license_plate_tractor,license_plate_trailer,driver_name,transp_date,transp_time)
+
+            return send_from_directory(path, nome_file, as_attachment=True)
+            #return redirect(url_for('activity.index'))
+
+    return render_template('activity/fir.html', fir_date=fir_date, site_desc=site_desc, 
+                           anag_waste_storages=anag_waste_storages, anag_tractors=anag_tractors, anag_trailers=anag_trailers)
+
 
 @bp.route('/activity/<int:id>/delete', methods=('POST',))
 @login_required
@@ -654,3 +721,60 @@ def get_tu_tool(id):
     tu_tool = cursor.fetchone()
     return tu_tool
 
+def get_anag_waste_storages():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT * FROM waste_storage '
+             '  order by company_name ASC '
+       )
+    anag_waste_storages = cursor.fetchall()
+    return anag_waste_storages
+
+def get_waste_storage(id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT id,company_name,CONCAT(address," - ",zip_code," - ",city) AS dest_address,' 
+        'codice_fiscale,codice_attivita,n_autorizzazione,tipo_autorizzazione '
+        ' FROM waste_storage WHERE id=%s',
+        (id,)
+       )
+    waste_storage = cursor.fetchone()
+    return waste_storage
+
+def get_anag_tractors():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT id AS tool_id, CONCAT(brand," ",model," ",license_plate," ",serial_number) AS tool_name '
+        ' FROM tool  WHERE (tool_type_id=10 OR tool_type_id=12 OR tool_type_id=15) '
+        ' AND discontinued=0 ' 
+        ' ORDER BY tool_name'
+    )
+    anag_tractors=cursor.fetchall()
+    return anag_tractors
+
+def get_anag_trailers():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT id AS tool_id, CONCAT(brand," ",model," ",license_plate," ",serial_number) AS tool_name '
+        ' FROM tool  WHERE (tool_type_id=13 OR tool_type_id=14) ' 
+        ' AND discontinued=0 '
+        ' ORDER BY tool_name'
+    )
+    anag_trailers=cursor.fetchall()
+    return anag_trailers
+
+def get_tool(id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT id, tool_type_id, brand, model, serial_number, license_plate, notes, discontinued' 
+        ' FROM tool'
+        ' WHERE id = %s AND discontinued=0',
+        (id,)
+    )
+    tool = cursor.fetchone()
+    return tool
