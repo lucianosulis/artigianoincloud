@@ -18,18 +18,12 @@
     <input name="finish_time" id="finish_time" type="time" size="10" value="{{ request.form['finish_time'] }}" >
     <label for="notes">Note</label>
     <textarea name="notes" id="notes" rows="1">{{ request.form['notes'] }}</textarea>
-    <input name="anag_people_ids" id="anag_people_ids" value="{{anag_people['id'] }}" hidden>
-    <input name="anag_people_names" id="anag_people_names" value="{{anag_people['name'] }}" hidden>
-    <input name="people_ids" id="people_ids" hidden>
-    <input name="anag_tool_ids" id="anag_tool_ids" value="{{anag_tool['id'] }}" hidden>
-    <input name="anag_tool_names" id="anag_tool_names" value="{{anag_tool['name'] }}" hidden>
-    <input name="tool_ids" id="tool_ids" hidden>
-    <input name="act_ids" id="act_ids" value="{{act_ids }}" hidden >
-    <input name="act_descs" id="act_descs" value="{{act_descs}}"  hidden>
-    <input name="anag_act_ids" id="anag_act_ids" value="{{anag_act_ids }}" hidden >
-    <input name="anag_act_descs" id="anag_act_descs" value="{{anag_act_descs}}"  hidden>
     
-    <br>
+    <!-- Campi di appoggio per le griglie in JSON -->
+    <input type="hidden" name="dati_jsGridPeople_json" id="dati_jsGridPeople_json">
+    <input type="hidden" name="dati_jsGridTool_json" id="dati_jsGridTool_json">
+    <input type="hidden" name="dati_jsGridAct_json" id="dati_jsGridAct_json">
+    <br> 
     <!-- Grid per la selezione del personale-->
     <h4>Operatori previsti</h4>
     <div id="jsGridPeople"></div>
@@ -53,10 +47,140 @@
     tomorrow.setDate(today.getDate() + 1);
     document.getElementById("date").valueAsDate = tomorrow;
     
+    var anag_people = JSON.parse('{{ anag_people | default("[]") | safe }}');
+    var people = JSON.parse('{{ people | default("[]") | safe }}');
+    //var team_people = [];
+    var team_people = people;
+    $("#jsGridPeople").jsGrid({
+            width: "40%",
+            height: "400px",
+            inserting: true, 
+            editing: true,
+            sorting: true,
+            paging: true,
+            data: team_people,
+                
+            fields: [
+                { name: "id", title: "Operatore", type: "select", items: anag_people, valueField: "id", textField: "name", width: "50%", align: "left" }, 
+                { type: "control" }
+            ]
+          });
+        var anag_tool_type = JSON.parse('{{ anag_tool_type | default("[]") | safe }}');
+        var anag_tools = JSON.parse('{{ anag_tools | default("[]") | safe }}');
+        var tools = JSON.parse('{{ tools | default("[]") | safe }}');
+          
+// Variabili per memorizzare i riferimenti ai controlli correnti
+var $insertMezzoSelect;
+var $editMezzoSelect;
+
+$("#jsGridTool").jsGrid({
+    width: "40%",
+    inserting: true,
+    editing: true,
+    data: tools,
+    fields: [
+        {
+            name: "type_id",
+            title: "Categoria",
+            type: "select",
+            items: anag_tool_type,
+            valueField: "type_id",
+            textField: "type",
+            width: "50%", align: "left",
+            insertTemplate: function() {
+                // 1. Creiamo la select della categoria usando il metodo standard
+                var $select = jsGrid.fields.select.prototype.insertTemplate.call(this);
+                
+                // 2. Al cambio categoria, popoliamo la select dei mezzi
+                $select.on("change", function() {
+                    var catId = parseInt($(this).val());
+                    updateDropdown($insertMezzoSelect, catId);
+                });
+
+                // Inizializzazione: aspetta che la riga sia pronta e popola
+                setTimeout(function() { $select.trigger("change"); }, 10);
+                return $select;
+            },
+            editTemplate: function(value) {
+                var $select = jsGrid.fields.select.prototype.editTemplate.call(this, value);
+                $select.on("change", function() {
+                    var catId = parseInt($(this).val());
+                    updateDropdown($editMezzoSelect, catId);
+                });
+                return $select;
+            }
+        },
+        {
+            name: "tool_id", // ID del Mezzo
+            title: "Mezzo",
+            type: "select", // Manteniamo select per la visualizzazione in tabella
+            items: anag_tools,
+            valueField: "tool_id",
+            textField: "name",
+            width: "50%", align: "left",
+            insertTemplate: function() {
+                // Creiamo manualmente la select per avere il controllo totale
+                $insertMezzoSelect = $("<select>").addClass("jsgrid-insert-control");
+                return $insertMezzoSelect;
+            },
+            editTemplate: function(value, item) {
+                // Creiamo manualmente la select per la modifica
+                $editMezzoSelect = $("<select>").addClass("jsgrid-edit-control");
+                updateDropdown($editMezzoSelect, item.type_id);
+                $editMezzoSelect.val(value);
+                return $editMezzoSelect;
+            },
+            insertValue: function() {
+                return parseInt($insertMezzoSelect.val());
+            },
+            editValue: function() {
+                return parseInt($editMezzoSelect.val());
+            }
+        },
+        { type: "control" }
+    ]
+});
+
+// Funzione centralizzata per popolare qualsiasi select (insert o edit)
+function updateDropdown($selectControl, categoryId) {
+    if (!$selectControl) return;
+
+    $selectControl.empty();
+    
+    var filtered = anag_tools.filter(function(item) {
+        return item.type_id === categoryId;
+    });
+
+    if (filtered.length === 0) {
+        $selectControl.append($("<option>").val("").text("Nessun mezzo"));
+    } else {
+        $.each(filtered, function(index, item) {
+            $selectControl.append($("<option>").val(item.tool_id).text(item.name));
+        });
+    }
+}
+
+        var anag_acts = JSON.parse('{{ anag_acts | default("[]") | safe }}');
+        var acts = JSON.parse('{{ acts | default("[]") | safe }}');
+        $("#jsGridAct").jsGrid({
+                    width: "40%",
+                    height: "400px",
+                    inserting: true, 
+                    editing: true,
+                    sorting: true,
+                    paging: true,
+                    data: acts,
+                        
+                    fields: [
+                        { name: "act_id", title: "Attività", type: "select", items: anag_acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left" }, 
+                        { type: "control" }
+                    ]
+                  });
+
     function goBack() {
       window.location.assign(document.getElementById("goback").value);
     }
   </script>
   <script type="text/javascript" src="/static/team/common.js"></script>
 
-{% endblock %}
+{% endblock %} 

@@ -77,6 +77,10 @@ INTO OUTFILE '/var/lib/mysql-files/output.csv'
 FIELDS TERMINATED BY ';' ENCLOSED BY ''
 LINES TERMINATED BY '\n';
 
+(select type from tool_type)
+INTO OUTFILE '/var/lib/mysql-files/output.csv'
+FIELDS TERMINATED BY ';' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
 
 
 

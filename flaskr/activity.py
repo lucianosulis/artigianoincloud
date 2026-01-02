@@ -9,9 +9,6 @@ from flaskr.auth import login_required
 from flaskr.db import get_db
 from datetime import date
 from datetime import datetime
-#import sys
-#import os
-#sys.path.append('./flaskr')
 from flaskr.fir import create_analog_fir
 
 bp = Blueprint('activity', __name__)

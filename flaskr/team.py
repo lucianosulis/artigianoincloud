@@ -96,17 +96,15 @@ def create():
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
          return redirect(url_for("team.index"))
-    
-    anag_people = get_anag_people()
-    anag_tool = get_anag_tool()
-    #date = datetime.today().strftime('%Y-%m-%d')
     date = (datetime.today() + timedelta(days=1)).strftime('%Y-%m-%d')
-    anag_acts = get_actListFiltered(date)
-    anag_act_ids = anag_acts["act_id"]
-    anag_act_descs = anag_acts["act_desc"]
-    if anag_act_ids == None:
-        anag_act_ids = ""
-        anag_act_descs = ""
+    anag_people_ld = get_anag_people() #lista dizionari
+    anag_people = json.dumps(anag_people_ld) #json
+    anag_tool_ld = get_anag_tool() #lista dizionari
+    anag_tools = json.dumps(anag_tool_ld) #json
+    anag_tool_type_ld = get_anag_tool_type() #lista dizionari
+    anag_tool_type = json.dumps(anag_tool_type_ld) #json
+    anag_acts_ld = get_actListFiltered(date) #lista dizionari
+    anag_acts = json.dumps(anag_acts_ld) #json
 
     if request.method == 'POST':
         title = request.form['title']
@@ -114,9 +112,39 @@ def create():
         start_time = request.form['start_time']
         finish_time = request.form['finish_time']
         notes = request.form['notes']
-        people_ids = request.form['people_ids']
-        tool_ids = request.form['tool_ids']
-        act_ids = request.form['act_ids']
+
+        dati_jsGridPeople_stringa = request.form.get('dati_jsGridPeople_json')
+        dati_jsGridPeople = []
+        if dati_jsGridPeople_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridPeople = json.loads(dati_jsGridPeople_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
+        dati_jsGridTool_stringa = request.form.get('dati_jsGridTool_json')
+        dati_jsGridTool = []
+        if dati_jsGridTool_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridTool = json.loads(dati_jsGridTool_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
+        dati_jsGridAct_stringa = request.form.get('dati_jsGridAct_json')
+        dati_jsGridAct = []
+        if dati_jsGridAct_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridAct = json.loads(dati_jsGridAct_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
 
         error = None
 
@@ -139,41 +167,33 @@ def create():
             cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
             row = cursor.fetchone()
             id = row['last_insert']
-            people_ids_arr = people_ids.split(",")
-            i=0
-            if (len(people_ids_arr) > 0 and people_ids_arr[0] != ""):
-                for people_id in people_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_people (team_id, people_id)'
-                        ' VALUES (%s, %s)',
-                        (id, people_id))
-                    i = i+1
-                db.commit()
 
-            tool_ids_arr = tool_ids.split(",")
-            i=0
-            if (len(tool_ids_arr) > 0 and tool_ids_arr[0] != ""):
-                print("i="+str(i))
-                for tool_id in tool_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
-                        ' VALUES (%s, %s)',
-                        (id, tool_id))
-                    i = i+1
+            for record in dati_jsGridPeople:
+                # 'record' è ora un singolo dizionario 
+                # Estraggo i singoli campi da questo dizionario
+                people_id = record['id']
+                cursor.execute('INSERT INTO rel_team_people (team_id, people_id)'
+                    ' VALUES (%s, %s)',
+                    (id, people_id))
                 db.commit()
-
-            act_ids_arr = act_ids.split(",")
-            i=0
-            if (len(act_ids_arr) > 0 and act_ids_arr[0] != ""):
-                print("i="+str(i))
-                for act_id in act_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_activity (team_id, activity_id)'
-                        ' VALUES (%s, %s)',
-                        (id, act_id))
-                    i = i+1
+            
+            for record in dati_jsGridTool:
+                tool_id = record['tool_id']
+                cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
+                    ' VALUES (%s, %s)',
+                    (id, tool_id))
+                db.commit()
+            
+            for record in dati_jsGridAct:
+                act_id = record['act_id']
+                cursor.execute('INSERT INTO rel_team_activity (team_id, activity_id)'
+                    ' VALUES (%s, %s)',
+                    (id, act_id))
                 db.commit()
 
             return redirect(url_for('team.index'))
 
-    return render_template('team/create.html', anag_people=anag_people, anag_tool=anag_tool, anag_act_ids=anag_act_ids, anag_act_descs=anag_act_descs)
+    return render_template('team/create.html', anag_people=anag_people, anag_tools=anag_tools, anag_tool_type=anag_tool_type, anag_acts=anag_acts)
 
 @bp.route('/team/<sel_date>/create_from_cal', methods=('GET', 'POST'))
 @login_required
@@ -182,17 +202,15 @@ def create_from_cal(sel_date):
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
          return redirect(url_for("team.index"))
-    
-    anag_people = get_anag_people()
-    anag_tool = get_anag_tool()
-    #date = datetime.today().strftime('%Y-%m-%d')
     date = sel_date
-    anag_acts = get_actListFiltered(date)
-    anag_act_ids = anag_acts["act_id"]
-    anag_act_descs = anag_acts["act_desc"]
-    if anag_act_ids == None:
-        anag_act_ids = ""
-        anag_act_descs = ""
+    anag_people_ld = get_anag_people() #lista dizionari
+    anag_people = json.dumps(anag_people_ld) #json
+    anag_tool_ld = get_anag_tool() #lista dizionari
+    anag_tools = json.dumps(anag_tool_ld) #json
+    anag_tool_type_ld = get_anag_tool_type() #lista dizionari
+    anag_tool_type = json.dumps(anag_tool_type_ld) #json
+    anag_acts_ld = get_actListFiltered(date) #lista dizionari
+    anag_acts = json.dumps(anag_acts_ld) #json
 
     if request.method == 'POST':
         title = request.form['title']
@@ -200,9 +218,38 @@ def create_from_cal(sel_date):
         start_time = request.form['start_time']
         finish_time = request.form['finish_time']
         notes = request.form['notes']
-        people_ids = request.form['people_ids']
-        tool_ids = request.form['tool_ids']
-        act_ids = request.form['act_ids']
+        dati_jsGridPeople_stringa = request.form.get('dati_jsGridPeople_json')
+        dati_jsGridPeople = []
+        if dati_jsGridPeople_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridPeople = json.loads(dati_jsGridPeople_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
+        dati_jsGridTool_stringa = request.form.get('dati_jsGridTool_json')
+        dati_jsGridTool = []
+        if dati_jsGridTool_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridTool = json.loads(dati_jsGridTool_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
+        dati_jsGridAct_stringa = request.form.get('dati_jsGridAct_json')
+        dati_jsGridAct = []
+        if dati_jsGridAct_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridAct = json.loads(dati_jsGridAct_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
 
         error = None
 
@@ -225,41 +272,33 @@ def create_from_cal(sel_date):
             cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
             row = cursor.fetchone()
             id = row['last_insert']
-            people_ids_arr = people_ids.split(",")
-            i=0
-            if (len(people_ids_arr) > 0 and people_ids_arr[0] != ""):
-                for people_id in people_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_people (team_id, people_id)'
-                        ' VALUES (%s, %s)',
-                        (id, people_id))
-                    i = i+1
-                db.commit()
 
-            tool_ids_arr = tool_ids.split(",")
-            i=0
-            if (len(tool_ids_arr) > 0 and tool_ids_arr[0] != ""):
-                print("i="+str(i))
-                for tool_id in tool_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
-                        ' VALUES (%s, %s)',
-                        (id, tool_id))
-                    i = i+1
+            for record in dati_jsGridPeople:
+                # 'record' è ora un singolo dizionario 
+                # Estraggo i singoli campi da questo dizionario
+                people_id = record['id']
+                cursor.execute('INSERT INTO rel_team_people (team_id, people_id)'
+                    ' VALUES (%s, %s)',
+                    (id, people_id))
                 db.commit()
-
-            act_ids_arr = act_ids.split(",")
-            i=0
-            if (len(act_ids_arr) > 0 and act_ids_arr[0] != ""):
-                print("i="+str(i))
-                for act_id in act_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_activity (team_id, activity_id)'
-                        ' VALUES (%s, %s)',
-                        (id, act_id))
-                    i = i+1
+            
+            for record in dati_jsGridTool:
+                tool_id = record['tool_id']
+                cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
+                    ' VALUES (%s, %s)',
+                    (id, tool_id))
+                db.commit()
+            
+            for record in dati_jsGridAct:
+                act_id = record['act_id']
+                cursor.execute('INSERT INTO rel_team_activity (team_id, activity_id)'
+                    ' VALUES (%s, %s)',
+                    (id, act_id))
                 db.commit()
 
             return redirect(url_for('cal_team_planned.show_cal'))
 
-    return render_template('team/create_from_cal.html',anag_people=anag_people, anag_tool=anag_tool, anag_act_ids=anag_act_ids, anag_act_descs=anag_act_descs,sel_date=sel_date)
+    return render_template('team/create_from_cal.html',anag_people=anag_people, anag_tools=anag_tools, anag_tool_type=anag_tool_type, anag_acts=anag_acts,sel_date=sel_date)
 
 @bp.route('/team/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -270,27 +309,20 @@ def update(id):
          return redirect(url_for("team.index"))
     team = get_team(id)
     date = team['date']
-    #start_time = team['start_time']
-    ret_peoples = get_teamPeople_ids(id)
-    people = ret_peoples[0]
-    people_ids = people['id']
-    people_names = people['name']
-    ret_tools = get_teamTool_ids(id)
-    tool = ret_tools[0]
-    tool_ids = tool['id']
-    tool_names = tool['name']
-    ret_acts = get_teamAct_ids(id)
-    act = ret_acts[0]
-    act_ids = act['act_id']
-    act_descs = act['act_desc']
-    anag_people = get_anag_people()
-    anag_tool = get_anag_tool()
-    anag_acts = get_actListFiltered(date)
-    anag_act_ids = anag_acts["act_id"]
-    anag_act_descs = anag_acts["act_desc"]
-    if anag_act_ids == None:
-        anag_act_ids = ""
-        anag_act_descs = ""
+    people_ld = get_teamPeople(id)
+    people = json.dumps(people_ld) #json
+    tools_ld = get_teamTool(id)
+    tools = json.dumps(tools_ld) #json
+    acts_ld = get_teamAct(id)
+    acts = json.dumps(acts_ld) #json
+    anag_people_ld = get_anag_people() #lista dizionari
+    anag_people = json.dumps(anag_people_ld) #json
+    anag_tool_ld = get_anag_tool() #lista dizionari
+    anag_tools = json.dumps(anag_tool_ld) #json
+    anag_tool_type_ld = get_anag_tool_type() #lista dizionari
+    anag_tool_type = json.dumps(anag_tool_type_ld) #json
+    anag_acts_ld = get_actListFiltered(date) #lista dizionari
+    anag_acts = json.dumps(anag_acts_ld) #json
     
     if request.method == 'POST': 
         title = request.form['title']
@@ -298,12 +330,40 @@ def update(id):
         start_time = request.form['start_time']
         finish_time = request.form['finish_time']
         notes = request.form['notes']
-        people_ids = request.form['people_ids']
-        tool_ids = request.form['tool_ids']
-        act_ids = request.form['act_ids']
-        people_ids_arr = people_ids.split(",")
-        tool_ids_arr = tool_ids.split(",")
-        act_ids_arr = act_ids.split(",")
+        
+        dati_jsGridPeople_stringa = request.form.get('dati_jsGridPeople_json')
+        dati_jsGridPeople = []
+        if dati_jsGridPeople_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridPeople = json.loads(dati_jsGridPeople_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
+        dati_jsGridTool_stringa = request.form.get('dati_jsGridTool_json')
+        dati_jsGridTool = []
+        if dati_jsGridTool_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridTool = json.loads(dati_jsGridTool_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
+        dati_jsGridAct_stringa = request.form.get('dati_jsGridAct_json')
+        dati_jsGridAct = []
+        if dati_jsGridAct_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridAct = json.loads(dati_jsGridAct_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
         error = None
 
         if (not title) or (not date):
@@ -322,39 +382,34 @@ def update(id):
             db.commit()
             cursor.execute('DELETE FROM rel_team_people WHERE team_id = %s', (id,))
             db.commit()
-            i=0
-            if (len(people_ids_arr) > 0 and people_ids_arr[0] != ""):
-                for people_id in people_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_people (team_id, people_id)'
-                        ' VALUES (%s, %s)',
-                        (id, people_id))
-                    i = i+1
+            for record in dati_jsGridPeople:
+                print(record)
+                people_id = record['id']
+                cursor.execute('INSERT INTO rel_team_people (team_id, people_id)'
+                    ' VALUES (%s, %s)',
+                    (id, people_id))
                 db.commit()
             cursor.execute('DELETE FROM rel_team_tool WHERE team_id = %s', (id,))
             db.commit()
-            i=0
-            if (len(tool_ids_arr) > 0 and tool_ids_arr[0] != ""):
-                for tool_id in tool_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
-                        ' VALUES (%s, %s)',
-                        (id, tool_id))
-                    i = i+1
-                db.commit()
+            for record in dati_jsGridTool:
+                tool_id = record['tool_id']
+                cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
+                    ' VALUES (%s, %s)',
+                    (id, tool_id))
+            db.commit()
             
             cursor.execute('DELETE FROM rel_team_activity WHERE team_id = %s', (id,))
             db.commit()
-            i=0
-            if (len(act_ids_arr) > 0 and act_ids_arr[0] != ""):
-                for act_id in act_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_activity (team_id, activity_id)'
-                        ' VALUES (%s, %s)',
-                        (id, act_id))
-                    i = i+1
-                db.commit()
+            for record in dati_jsGridAct:
+                act_id = record['act_id']
+                cursor.execute('INSERT INTO rel_team_activity (team_id, activity_id)'
+                    ' VALUES (%s, %s)',
+                    (id, act_id))
+            db.commit()
 
             return redirect(url_for('team.index'))
     show_calendar =  session["show_calendar"]
-    return render_template('team/update.html', team=team, people_ids=people_ids, people_names=people_names, anag_people=anag_people, tool_ids=tool_ids, tool_names=tool_names, anag_tool=anag_tool, anag_act_ids=anag_act_ids, anag_act_descs=anag_act_descs, act_ids=act_ids, act_descs=act_descs,show_calendar=show_calendar)
+    return render_template('team/update.html', team=team, people=people, anag_people=anag_people, tools=tools, anag_tools=anag_tools, anag_tool_type=anag_tool_type, acts=acts, anag_acts=anag_acts, show_calendar=show_calendar)
 
 @bp.route('/team/<int:id>/duplicate', methods=('GET', 'POST'))
 @login_required
@@ -364,14 +419,20 @@ def duplicate(id):
          flash(error)
          return redirect(url_for("team.index"))
     team = get_team(id)
-    ret_peoples = get_teamPeople_ids(id)
-    people = ret_peoples[0]
-    people_ids = people['id']
-    ret_tools = get_teamTool_ids(id)
-    tool = ret_tools[0]
-    tool_ids = tool['id']
-    anag_people = get_anag_people()
-    anag_tool = get_anag_tool()
+    people_ld = get_teamPeople(id)
+    people = json.dumps(people_ld) #json
+    tools_ld = get_teamTool(id)
+    tools = json.dumps(tools_ld) #json
+    #acts_ld = get_teamAct(id)
+    #acts = json.dumps(acts_ld) #json
+    anag_people_ld = get_anag_people() #lista dizionari
+    anag_people = json.dumps(anag_people_ld) #json
+    anag_tool_ld = get_anag_tool() #lista dizionari
+    anag_tools = json.dumps(anag_tool_ld) #json
+    anag_tool_type_ld = get_anag_tool_type() #lista dizionari
+    anag_tool_type = json.dumps(anag_tool_type_ld) #json
+    #anag_acts_ld = get_actListFiltered(date) #lista dizionari
+    #anag_acts = json.dumps(anag_acts_ld) #json
     
     if request.method == 'POST':
         title = request.form['title']
@@ -379,10 +440,39 @@ def duplicate(id):
         start_time = request.form['start_time']
         finish_time = request.form['finish_time']
         notes = request.form['notes']
-        people_ids = request.form['people_ids']
-        tool_ids = request.form['tool_ids']
-        act_ids = request.form['act_ids']
-        act_ids_arr = act_ids.split(",")
+        dati_jsGridPeople_stringa = request.form.get('dati_jsGridPeople_json')
+        dati_jsGridPeople = []
+        if dati_jsGridPeople_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridPeople = json.loads(dati_jsGridPeople_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
+        dati_jsGridTool_stringa = request.form.get('dati_jsGridTool_json')
+        dati_jsGridTool = []
+        if dati_jsGridTool_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridTool = json.loads(dati_jsGridTool_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
+        dati_jsGridAct_stringa = request.form.get('dati_jsGridAct_json')
+        dati_jsGridAct = []
+        if dati_jsGridAct_stringa:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_jsGridAct = json.loads(dati_jsGridAct_stringa)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia")
+                error = 'Errore nella decodifica dei dati JSON della griglia.'
+
         error = None
 
         if (not title) or (not date):
@@ -402,40 +492,35 @@ def duplicate(id):
             cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
             row = cursor.fetchone()
             id = row['last_insert']
-            people_ids_arr = people_ids.split(",")
-            i=0
-            if (len(people_ids_arr) > 0 and people_ids_arr[0] != ""):
-                for people_id in people_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_people (team_id, people_id)'
-                        ' VALUES (%s, %s)',
-                        (id, people_id))
-                    i = i+1
+
+            for record in dati_jsGridPeople:
+                # 'record' è ora un singolo dizionario 
+                # Estraggo i singoli campi da questo dizionario
+                people_id = record['id']
+                cursor.execute('INSERT INTO rel_team_people (team_id, people_id)'
+                    ' VALUES (%s, %s)',
+                    (id, people_id))
+                db.commit()
+            
+            for record in dati_jsGridTool:
+                tool_id = record['tool_id']
+                cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
+                    ' VALUES (%s, %s)',
+                    (id, tool_id))
+                db.commit()
+            
+            for record in dati_jsGridAct:
+                print("record:")
+                print(record)
+                act_id = record['act_id']
+                cursor.execute('INSERT INTO rel_team_activity (team_id, activity_id)'
+                    ' VALUES (%s, %s)',
+                    (id, act_id))
                 db.commit()
 
-            tool_ids_arr = tool_ids.split(",")
-            i=0
-            if (len(tool_ids_arr) > 0 and tool_ids_arr[0] != ""):
-                print("i="+str(i))
-                for tool_id in tool_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
-                        ' VALUES (%s, %s)',
-                        (id, tool_id))
-                    i = i+1
-                db.commit()
-
-            cursor.execute('DELETE FROM rel_team_activity WHERE team_id = %s', (id,))
-            db.commit()
-            i=0
-            if (len(act_ids_arr) > 0 and act_ids_arr[0] != ""):
-                for act_id in act_ids_arr:
-                    cursor.execute('INSERT INTO rel_team_activity (team_id, activity_id)'
-                        ' VALUES (%s, %s)',
-                        (id, act_id))
-                    i = i+1
-                db.commit()
 
             return redirect(url_for('team.index'))
-    return render_template('team/duplicate.html', team=team, people_ids=people_ids, tool_ids=tool_ids, anag_people=anag_people, anag_tool=anag_tool)
+    return render_template('team/duplicate.html', team=team, people=people, anag_people=anag_people, tools=tools, anag_tools=anag_tools, anag_tool_type=anag_tool_type)
 
 
 @bp.route('/team/<int:id>/delete', methods=('POST',))
@@ -459,25 +544,37 @@ def delete(id):
 @login_required
 def detail(id):
     team = get_team(id)
-    ret_peoples = get_teamPeople_ids(id)
-    people = ret_peoples[0]
-    people_names = people['name']
-    ret_tools = get_teamTool_ids(id)
-    tool = ret_tools[0]
-    tool_names = tool['name']
-    ret_acts = get_teamAct_ids(id)
-    act = ret_acts[0]
-    act_descs = act['act_desc']
+    date = team['date']
+    people_ld = get_teamPeople(id)
+    people = json.dumps(people_ld) #json
+    #print("people:")
+    #print(people)
+    tools_ld = get_teamTool(id)
+    tools = json.dumps(tools_ld) #json
+    print("tools:")
+    print(tools)
+    acts_ld = get_teamAct(id)
+    acts = json.dumps(acts_ld) #json
+    print("acts:")
+    print(acts)
+    anag_people_ld = get_anag_people() #lista dizionari
+    anag_people = json.dumps(anag_people_ld) #json
+    anag_tool_ld = get_anag_tool() #lista dizionari
+    anag_tools = json.dumps(anag_tool_ld) #json
+    print("anag_tools")
+    print(anag_tools)
+    anag_tool_type_ld = get_anag_tool_type() #lista dizionari
+    anag_tool_type = json.dumps(anag_tool_type_ld) #json
+    anag_acts_ld = get_actListFiltered(date) #lista dizionari
+    anag_acts = json.dumps(anag_acts_ld) #json
     show_calendar =  session["show_calendar"]
-    return render_template('team/detail.html', team=team, people_names=people_names, tool_names=tool_names, act_descs=act_descs, show_calendar=show_calendar)
+    return render_template('team/detail.html', team=team, people=people, anag_people=anag_people, tools=tools, anag_tools=anag_tools, anag_tool_type=anag_tool_type, acts=acts, anag_acts=anag_acts, show_calendar=show_calendar)
 
 @bp.route("/team_sel_acts/<date>", methods=('POST',))
 @login_required
 def team_sel_acts(date):
-    anag_acts = get_actListFiltered(date)
-    #act_ids = anag_acts["act_id"]
-    #act_descs = anag_acts["act_desc"]
-    return (anag_acts)
+    anag_act = get_actListFiltered(date)
+    return (anag_act)
 
 def get_team(id):
     db = get_db()
@@ -500,71 +597,79 @@ def get_anag_people():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT GROUP_CONCAT(id order by surname,name) AS id, GROUP_CONCAT(CONCAT(surname," ",name) order by surname,name) AS name FROM people WHERE cessato=0'
+        'SELECT id, CONCAT(surname," ",name) AS name FROM people WHERE cessato=0'
     )
-    anag_people=cursor.fetchone()
-    #current_app.logger.debug("get_anag_people")
-    #current_app.logger.debug(anag_people)
+    anag_people=cursor.fetchall()
     return anag_people
 
 def get_anag_tool():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT GROUP_CONCAT(t.id order by t.brand,t.model) AS id, GROUP_CONCAT(CONCAT(tt.type," ",t.brand," ",t.model," ",t.license_plate) order by t.brand,t.model) AS name ' 
+        'SELECT t.id AS tool_id, CONCAT(t.brand," ",t.model," ",t.license_plate) AS name, tt.id AS type_id, tt.type AS type ' 
         ' FROM tool t'
         ' INNER JOIN tool_type tt on  t.tool_type_id = tt.id'
-        ' WHERE discontinued=0 and tt.type IN ("Autocarro","Trattore","Rimorchio","Rimorchio con gru","Furgone","PLE","Rasaerba semovente","Escavatore")'
-        #' WHERE discontinued=0 and tool_type_id IN (10,12,13,14,15,16,17,19)'
+        ' WHERE discontinued=0 and tt.code IN ("AUTOC","TRATT","RIMOR","RIGRU","FURGO","PLE","RASAS","ESCAV")'
     )
-    anag_tool=cursor.fetchone()
-    print("anag_tool:")
-    print(anag_tool)
+    anag_tool=cursor.fetchall()
     return anag_tool
 
-def get_teamPeople_ids(id):
+def get_anag_tool_type():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-       'SELECT GROUP_CONCAT(p.id) AS id, GROUP_CONCAT(CONCAT(p.surname," ",p.name)) AS name FROM rel_team_people r' 
+        'SELECT tt.id AS type_id, tt.type ' 
+        ' FROM tool_type tt'
+        ' WHERE tt.code IN ("AUTOC","TRATT","RIMOR","RIGRU","FURGO","PLE","RASAS","ESCAV")'
+    )
+    anag_tool_type=cursor.fetchall()
+    return anag_tool_type
+
+def get_teamPeople(id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+       'SELECT p.id AS id, CONCAT(p.surname," ",p.name) AS name ' 
+       ' FROM rel_team_people r' 
         ' INNER JOIN people p ON r.people_id = p.id'
         ' WHERE r.team_id = %s', (id,)
     )
-    people=cursor.fetchone()
-    return [people]
+    people=cursor.fetchall()
+    return people
 
-def get_teamTool_ids(id):
+def get_teamTool(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-       'SELECT GROUP_CONCAT(t.id) AS id, GROUP_CONCAT(CONCAT(t.brand," ",t.model, " ",t.license_plate)) AS name FROM rel_team_tool r' 
-        ' INNER JOIN tool t ON r.tool_id = t.id'
-        ' WHERE r.team_id = %s', (id,)
+       'SELECT t.id AS tool_id, CONCAT(t.brand," ",t.model, " ",t.license_plate) AS name, tt.id AS type_id, tt.type AS type '
+       ' FROM rel_team_tool r' 
+       ' INNER JOIN tool t ON r.tool_id = t.id'
+       ' INNER JOIN tool_type tt on t.tool_type_id = tt.id '
+       ' WHERE r.team_id = %s', (id,)
     )
-    tool=cursor.fetchone()
-    return [tool]
+    tool=cursor.fetchall()
+    return tool
 
-def get_teamAct_ids(id):
+def get_teamAct(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-       'select GROUP_CONCAT(a.id) AS act_id, GROUP_CONCAT(CONCAT(c.full_name, " - ", c.city, " - ", a.title) SEPARATOR "|§|") AS act_desc  ' 
+       'select a.id AS act_id, CONCAT(c.full_name, " - ", c.city, " - ", a.title) AS act_desc  ' 
        ' FROM rel_team_activity r' 
        ' INNER JOIN activity a ON r.activity_id = a.id'
        ' inner join p_order o on o.id = a.p_order_id '
        ' inner join customer c on c.id = o.customer_id ' 
        ' WHERE r.team_id = %s', (id,)
     )
-    act=cursor.fetchone()
-    return [act]
+    act=cursor.fetchall()
+    return act
 
 def get_actListFiltered(date):
     #Con questa query si ottengono solo le attività che comprendono la data della squadra
-    #ma resi come unico record
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'select GROUP_CONCAT(a.id) AS act_id, GROUP_CONCAT(CONCAT(c.full_name, " - ", c.city, " - ", a.title) SEPARATOR "|§|") AS act_desc '
+        'select a.id AS act_id, CONCAT(c.full_name, " - ", c.city, " - ", a.title) AS act_desc '
         ' from activity a '
         ' inner join p_order o on o.id = a.p_order_id '
         ' inner join customer c on c.id = o.customer_id ' 
@@ -572,7 +677,7 @@ def get_actListFiltered(date):
         ' ORDER BY c.full_name ASC',
         (date,date)
     )
-    anag_acts = cursor.fetchone()
-    if anag_acts is None:
+    anag_act = cursor.fetchall()
+    if anag_act is None:
         abort(404, f"anag_acts è vuota.")
-    return anag_acts
+    return anag_act

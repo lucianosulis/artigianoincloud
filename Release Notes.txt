@@ -1,7 +1,15 @@
+Release 2.14
+Refactoring completo della funzione team (squadre) per il passaggio dei dati sempre in JSON.
+Aggiunto il campo categoria mezzi nella griglia mezzi. Prima occorre selezionare la categoria, 
+poi si popola la combo dei mezzi di quella categoria. In futuro il campo categoria verrà 
+popolato dai tag e l'utente dovrà scegliere solo il mezzo. 
+Aggiunto anche il campo CODE nella tabella tool_type per non usare più l'ID nelle query.
+
 Release 2.13
-Aggiunta la funzione per generare un FIR RENTRI per un acerta attività dalla pagina 
+Aggiunta la funzione per generare un FIR RENTRI per una certa attività dalla pagina 
 delle attività (nuovo pulsante su ogni riga). Vengono chiesti tutti i dati necessari per il FIR,
-mentre i dati già disponibili vengono letti dal database.
+mentre i dati già disponibili vengono letti dal database. E' stata anche aggiunta l'anagrafica
+dei depositi rifiuti, con la tabella waste_storage, il programma waste_storage.py e le relative pagine HTML.
 
 Release 2.12
 Aggiunta la funzione view_people_timesheet.py e relativa pagina HTML per la visualizzazione delle 
