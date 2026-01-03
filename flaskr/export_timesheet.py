@@ -130,13 +130,14 @@ def index():
                 ts_records = cursor.fetchall()
                 #print("len(ts_records): " + str(len(ts_records)))
                 print("people type: " + people['type'])
+                print("people type: " + people['p_name'])
                 if len(ts_records) >  0:
                     cell = ws['A' + str(i)]
                     cell.value = people['p_name']
                     #print("p_type: " + people['p_type'])
                     cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
                     cell.font = font3
-                    ws.merge_cells('A' + str(i) + ':A' + str(i+5))
+                    ws.merge_cells('A' + str(i) + ':A' + str(i+8))
                     
                     gg_paga = people['gg_paga']
                     if not gg_paga:
@@ -146,6 +147,7 @@ def index():
 
                     for ts_record in ts_records:
                         dayNum = int(ts_record['dayStr'])
+                        print("dayNum: " +  ts_record['dayStr'])
                         gg_ced_tot = gg_ced_tot + 1
                         row = i
                         col = 2 + dayNum
@@ -194,6 +196,8 @@ def index():
                             k = k + 1
                         
                         ore_NOLAV = ore_FE + ore_PR + ore_PNR + ore_M + ore_CISOA
+                        print("ore_NOLAV:")
+                        print(ore_NOLAV)
                         ore_STD_NETTE = ore_STD - ore_NOLAV
                         #ore_STR = ore_LAV - ore_STD_NETTE 
                         ore_DIFF1 = ore_NOTT_TOT - ore_STD_NETTE
@@ -260,22 +264,22 @@ def index():
                             c = ws.cell(row=row + 5, column=34, value="=SUM(C"+str(row+5)+":AG"+str(row+5)+")")
                             c.font = font6
                         if ore_PR > 0:
-                            c = ws.cell(row=row + 5, column=col, value=ore_PR)
-                            c = ws.cell(row=row + 5, column=2, value="PR")
+                            c = ws.cell(row=row + 6, column=col, value=ore_PR)
+                            c = ws.cell(row=row + 6, column=2, value="PR")
                             c.font = font6
-                            c = ws.cell(row=row + 5, column=34, value="=SUM(C"+str(row+5)+":AG"+str(row+5)+")")
+                            c = ws.cell(row=row + 6, column=34, value="=SUM(C"+str(row+6)+":AG"+str(row+6)+")")
                             c.font = font6
                         if ore_PNR > 0:
-                            c = ws.cell(row=row + 5, column=col, value=ore_PNR) 
-                            c = ws.cell(row=row + 5, column=2, value="PNR")
+                            c = ws.cell(row=row + 7, column=col, value=ore_PNR) 
+                            c = ws.cell(row=row + 7, column=2, value="PNR")
                             c.font = font6
-                            c = ws.cell(row=row + 5, column=34, value="=SUM(C"+str(row+5)+":AG"+str(row+5)+")")
+                            c = ws.cell(row=row + 7, column=34, value="=SUM(C"+str(row+7)+":AG"+str(row+7)+")")
                             c.font = font6
                         if ore_M > 0:
-                            c = ws.cell(row=row + 5, column=col, value=ore_M) 
-                            c = ws.cell(row=row + 5, column=2, value="M") 
+                            c = ws.cell(row=row + 8, column=col, value=ore_M) 
+                            c = ws.cell(row=row + 8, column=2, value="M") 
                             c.font = font6
-                            c = ws.cell(row=row + 5, column=34, value="=SUM(C"+str(row+5)+":AG"+str(row+5)+")")
+                            c = ws.cell(row=row + 8, column=34, value="=SUM(C"+str(row+8)+":AG"+str(row+8)+")")
                             c.font = font6
                         
                         col_letter = get_column_letter(col)
@@ -284,13 +288,13 @@ def index():
                         if people['type'] == "D" and week_day <= 4 and not isHoliday(year,month,dayNum):  #Controllo ore sui dipendenti
                             ore_check =  ore_ORD + ore_NOTT + ore_NOLAV
                             if ore_check != ore_STD:
-                                for row_index in range(row, row + 6):
+                                for row_index in range(row, row + 9):
                                     c = ws.cell(row=row_index, column=col) 
                                     c.fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid") #rosso
 
                     for day in range(1, last_month_day + 1): 
                         flag = True
-                        for row_index in range(row, row + 6):
+                        for row_index in range(row, row + 9):
                             c =  ws.cell(row=row_index, column=day + 2)
                             if c.value != None:
                                 flag = False
@@ -299,11 +303,11 @@ def index():
                         week_day = calendar.weekday(year,month,day)
                         if flag: #Tutte le celle di un giorno vuote (per una persona)
                            if people['type'] == "D" and week_day <= 4 and not isHoliday(year,month,day):  #Controllo ore dipendenti
-                                for row_index in range(row, row + 6):
+                                for row_index in range(row, row + 9):
                                     c = ws.cell(row=row_index, column=day + 2)
                                     c.fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid") #rosso    
                     
-                    i = i + 6
+                    i = i + 9
             n = 3
             while n <= last_month_day + 2:
                 dayNum = n - 2 

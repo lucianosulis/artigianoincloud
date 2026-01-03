@@ -1,3 +1,7 @@
+Release 2.15
+Corretto bug su export_timesheet.py. Adesso per ogni collaboratore vengono create 9 righe Excel 
+non più 6, in modo che tutte le voci (comeprese CISOA, Ferie, ecc.) stiano ognuna su un riga diversa.
+
 Release 2.14
 Refactoring completo della funzione team (squadre) per il passaggio dei dati sempre in JSON.
 Aggiunto il campo categoria mezzi nella griglia mezzi. Prima occorre selezionare la categoria, 
