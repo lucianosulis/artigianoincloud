@@ -9,34 +9,34 @@
  
 <form method="post" onsubmit="afterSubmitUpdate()">
   <label for="date">Data</label>
-  <input name="date" id="date" type="date" value="{{ request.form['date']  or ts_record['date'] }}" required>
+  <input name="date" id="date" type="date" value="{{ request.form['date']  or ts_record['date'] }}" onblur="setComboActs()" required>
   <label for="act_type_id">Tipo di presenza/assenza</label>
-  <SELECT id="act_type_id" onchange="setComboOrders()" required>
-    {% for act_type in act_type_List %}
-      {% if act_type.id == ts_record['act_type_id'] %}
-        <OPTION value={{act_type.id}} selected>{{act_type.description}}</option>
+  <SELECT id="act_type_id" name="act_type_id" onchange="setComboActs()" required> 
+    {% for act_type in act_types %}
+      {% if act_type.act_type_id == ts_record.act_type_id %}
+        <OPTION value={{act_type.act_type_id}} selected>{{act_type.act_type_desc}}</option>
       {% else %}
-        <OPTION value={{act_type.id}}>{{act_type.description}}</option>
+        <OPTION value={{act_type.act_type_id}}>{{act_type.act_type_desc}}</option>
       {% endif %}
     {% endfor %}
   </SELECT>
-  <label for="order_id">Ordine</label>
-  <SELECT id="order_id">
-    {% if ts_record['act_type_id'] == 1 %}
-      <OPTION value="" disabled="disabled" selected>Selezionare un ordine</option>
-      {% for order in orderList %}
-        {% if order.id == ts_record['order_id'] %}
-        <OPTION value={{order.id}} selected>{{order.full_name}} - {{order.description}}</option>
+  
+  <label for="act_id">Attività</label>
+  <SELECT id="act_id" name="act_id">
+    {% if ts_record.act_type_id == 1 %}
+      {% for act in acts %}
+        {% if act.act_id == ts_record.act_id %}
+          <OPTION value={{act.act_id}} selected>{{act.act_desc}}</option>
         {% else %}
-          <OPTION value={{order.id}}>{{order.full_name}} - {{order.description}}</option>
+          <OPTION value={{act.act_id}}>{{act.act_desc}}</option>
         {% endif %}
       {% endfor %}
     {% endif %}
-  </SELECT>
+  </SELECT> 
   <table>
     <tr>
       <td><label for="ore_lav">Ore</label></td>
-      <td><label for="night">Notturno</label></td>
+      <td><label for="night">Notturno</label></td> 
     </tr>
     <tr>
       <td><input name="ore_lav" id="ore_lav" type="number" step="0.1" value="{{ request.form['ore_lav']  or ts_record['ore_lav'] }}"></td>
@@ -45,10 +45,7 @@
         {% if ts_record['night'] != 1 %} <input name="night" id="night" type="checkbox"> {% endif %}
       </td>
     </tr>  
-  </table> 
-  <input name="input_act_type_id" id="input_act_type_id" hidden>
-  <input name="input_order_id" id="input_order_id" hidden>
-  <input name="input_night" id="input_night" hidden>
+  </table>
 
   <input type="submit" value="Salva">
   <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">

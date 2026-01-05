@@ -2,7 +2,7 @@
     const data = $("#jsGrid").jsGrid("option", "data");
     const dataJSONStringa = JSON.stringify(data);
     document.getElementById('dati_griglia_json').value = dataJSONStringa;
-  }
+  } 
 
   function afterSubmitCreate2() {
     var people_ids = $("#people_ids").val() || []
@@ -10,23 +10,19 @@
   }
   
   function afterSubmitUpdate() {
-    var new_order_id = document.getElementById("order_id").value;
-    var new_people_id = document.getElementById("people_id").value;
-    var new_act_type_id = document.getElementById("act_type_id").value;
-    document.getElementById("input_people_id").value = new_people_id;
-    document.getElementById("input_act_type_id").value = new_act_type_id;
-    document.getElementById("input_order_id").value = new_order_id;
     if (document.getElementById("night").checked == true) {
-      document.getElementById("input_night").value = 1;
+      document.getElementById("night").value = 1;
     }
     else {
-      document.getElementById("input_night").value = 0;
+      document.getElementById("night").value = 0;
     }
   }
-  function setComboOrders() {
+  
+  function setComboActs() {
+      console.log(setComboActs);
       var act_type_id = document.getElementById("act_type_id").value
       var date = document.getElementById("date").value
-      let selectBox = document.getElementById("order_id");
+      let selectBox = document.getElementById("act_id");
       function removeAll(select) {
                 while (select.options.length > 0) {
                   select.remove(0);
@@ -37,23 +33,37 @@
       if (act_type_id == 1) { 
             $.ajax({
             type: "POST",
-            url: "/ts_sel_order" + "/" + date,
+            url: "/ts_sel_act" + "/" + date,
             contentType: "application/json",
             dataType: 'json',
             success: function(result) {
               selectBox.required = true;
-              const option0 = new Option("Selezionare un ordine","");
+              const option0 = new Option("Selezionare un'attività","");
               option0.setAttribute("disabled","disabled");
               option0.setAttribute("selected",true);
               selectBox.add(option0, undefined);
               for (let i = 0; i < result.length; i++) {
-                const option = new Option(result[i]['full_name'] + ' - ' + result[i]['description'],result[i]['id']);
+                const option = new Option(result[i]['act_desc'],result[i]['act_id']);
                 selectBox.add(option, undefined);
               }
             } 
           }); 
       }
   }
+
+  function setComboActs2() {
+            var date = document.getElementById("date").value
+            $.ajax({
+            type: "POST",
+            url: "/ts_sel_act2" + "/" + date,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result) {
+              acts = result
+              load_grid(act_types,acts);
+            }  
+          }); 
+      }
 
     function setComboOrders2() {
             var date = document.getElementById("date").value
@@ -66,7 +76,7 @@
               document.getElementById("order_ids").value = result['order_id'];
               document.getElementById("order_descs").value = result['order_desc'];
               load_grid();
-            } 
+            }  
           }); 
       }
      
@@ -117,35 +127,9 @@
   });
   jsGrid.fields.decimalnumber = FloatNumberField;
 
-  function load_grid() {
+  function load_grid(act_types,acts) {
     var ts_records = [];
-
-    var act_type_ids = document.getElementById("act_type_ids").value;
-    //console.log("act_type_ids: " + act_type_ids);
-    var act_type_ids_arr = act_type_ids.split(",");
-    var act_type_descs = document.getElementById("act_type_descs").value;
-    //console.log(act_type_descs);
-    var act_type_descs_arr = act_type_descs.split(",");
-    //console.log(act_type_ids_arr);
-
-    var act_type_list = [];
-    for (let i = 0; i < act_type_ids_arr.length; i++) {
-      var new_element = '{"act_type_id": ' + act_type_ids_arr[i] + ', "act_type_desc": "' + act_type_descs_arr[i] + '"}';
-      //console.log(new_element);
-      var new_object = JSON.parse(new_element);
-      act_type_list.push(new_object);
-    }
-    var orderList = [];
-    var order_ids = document.getElementById("order_ids").value;
-    var order_ids_arr = order_ids.split(",");
-    var order_descs = document.getElementById("order_descs").value;
-    var order_descs_arr = order_descs.split("|§|");
-    for (let i = 0; i < order_ids_arr.length; i++) {
-      var new_element = '{"order_id": "' + order_ids_arr[i] + '", "order_desc": "' + order_descs_arr[i] + '"}';
-      var new_object = JSON.parse(new_element);
-      orderList.push(new_object);
-    }
-    
+        
     $("#jsGrid").jsGrid({
         width: "100%",
         height: "400px",
@@ -156,8 +140,8 @@
         data: ts_records,
             
         fields: [
-            { name: "act_type_id", title: "Tipo attività", type: "select", items: act_type_list, valueField: "act_type_id", textField: "act_type_desc", width: "30%", align: "left" },
-            { name: "order_id", title: "Ordine", type: "select", items: orderList, valueField: "order_id", textField: "order_desc", width: "50%", align: "left", validate: { message: "Se è un cantiere è obbligatorio specificare l'ordine; negli altri casi l'ordine dev'essere vuoto.", validator: function(value, item) {if ((item.act_type_id == 1 && value != "") || (item.act_type_id != 1 && value == "")) {return true} else {return false}}}},
+            { name: "act_type_id", title: "Tipo attività", type: "select", items: act_types, valueField: "act_type_id", textField: "act_type_desc", width: "30%", align: "left" },
+            { name: "act_id", title: "Attività", type: "select", items: acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left", validate: { message: "Se è un cantiere è obbligatorio specificare l'attività; negli altri casi l'attività dev'essere vuota.", validator: function(value, item) {if ((item.act_type_id == 1 && value != "") || (item.act_type_id != 1 && value == "")) {return true} else {return false}}}},
             { name: "ore_lav", title: "Ore", type: "decimalnumber", readOnly: false,  width: "20%", align: "right"},
             { name: "night", title: "Notturno", type: "checkbox"},
             { type: "control" }

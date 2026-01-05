@@ -18,8 +18,8 @@
         <td><input name="date2" id="date2" type="date" value="{{ request.form['date2'] }}" required></td>
       </tr>
       <tr>
-        <td><label for="people_ids">Persone</label></td>
-        <td><SELECT id="people_ids" multiple size="10" required> 
+        <td><label for="people">Persone</label></td>
+        <td><SELECT id="people" name="people" multiple size="10" required> 
               {% for people in anag_people %}
                 <OPTION value={{people.id}}>{{people.name}}</option>
               {% endfor %}
@@ -27,9 +27,7 @@
         </td>
       </tr>
     </table>
-    <input name="input_people_ids" id="input_people_ids" hidden>
     <br>
-
     <input type="submit" value="Salva">
     <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
     <input name="goback" id="goback" value="{{ url_for('timesheet.index') }}" hidden>

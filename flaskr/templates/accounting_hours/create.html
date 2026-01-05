@@ -9,14 +9,9 @@
 
   <form method="post" onsubmit="afterSubmit()">
     <label for="date">Data</label>
-    <input name="date" id="date" type="date" value="{{ request.form['date'] }}" onblur="setComboOrders2()" required>
+    <input name="date" id="date" type="date" value="{{ request.form['date'] }}" onblur="setComboActs2()" required>
     <input name="input_people_id" id="input_people_id" value="{{people.id}}" hidden>
     
-    <!-- Anagrafiche -->
-    <input name="act_type_ids" id="act_type_ids" value="{{ act_types['id'] }}" hidden>
-    <input name="act_type_descs" id="act_type_descs" value="{{ act_types['description'] }}" hidden>
-    <input name="order_ids" id="order_ids" value="{{ orders['order_id'] }}" hidden>
-    <input name="order_descs" id="order_descs" value="{{ orders['order_desc'] }}" hidden>
     <!-- Campo di appoggio per la griglia in JSON -->
     <input type="hidden" name="dati_griglia_json" id="dati_griglia_json">
 
@@ -31,9 +26,9 @@
   <script type="text/javascript" src="/static/accounting_hours/common.js"></script>
   <script>
     document.getElementById("date").valueAsDate = new Date();
-
-    document.getElementById("date").valueAsDate = new Date();
-    load_grid();
+    var act_types = JSON.parse('{{ act_types | default("[]") | safe }}');
+    var acts = JSON.parse('{{ acts | default("[]") | safe }}');
+    load_grid(act_types,acts);
 
     function goBack() {
       window.location.assign(document.getElementById("goback").value);

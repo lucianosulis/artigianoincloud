@@ -1,3 +1,9 @@
+Release 2.16
+Refactoring delle funzionalità timesheet e accountng_hours per passaggio dati in JSON o dictionary.
+Modificata logica introducendo il legame con l'attività oltre che con l'ordine. Aggiunta colonna 
+act_id nella tabella timesheet e relativa foreign key. order_id viene comunque vorizzato a 
+partire dall'attività.
+
 Release 2.15
 Corretto bug su export_timesheet.py. Adesso per ogni collaboratore vengono create 9 righe Excel 
 non più 6, in modo che tutte le voci (comeprese CISOA, Ferie, ecc.) stiano ognuna su un riga diversa.

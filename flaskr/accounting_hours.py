@@ -77,23 +77,13 @@ def index():
 @bp.route('/accounting_hours/create', methods=('GET', 'POST'))
 @login_required
 def create():
-    #act_type_List=get_act_type_List()
-    #today = datetime.today().strftime('%Y-%m-%d')
-    #orderList = get_orderListFiltered(today)
     people = get_people()
-
-    act_types = get_act_type_List2()
+    act_types_ld = get_act_type_List() #lista dizionari
+    act_types = json.dumps(act_types_ld) #json
     date = datetime.today().strftime('%Y-%m-%d')
-    orders = get_orderListFiltered2(date)
-    order_ids = orders["order_id"]
-    order_descs = orders["order_desc"]
-    if order_ids == None:
-        order_ids = ""
-        order_descs = ""
-    #Aggiungo un elemento vuoto per la jsgrid dell'interfaccia utente
-    order_ids = "," + order_ids 
-    order_descs = "|§|" + order_descs
-    orders = {"order_id" : order_ids, "order_desc" : order_descs}
+    acts_ld = get_actsFiltered(date) #lista dizionari
+    acts_ld.insert(0, {'act_desc': '','act_id': 0,'p_order_id': 0 })
+    acts = json.dumps(acts_ld) #json
 
     if request.method == 'POST': 
         date = request.form['date']
@@ -122,33 +112,35 @@ def create():
                 # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
                 # Estraggo i singoli campi da questo dizionario
                 act_type_id = record['act_type_id']
-                order_id = record['order_id']
-                if not order_id:
+                if act_type_id != 1:
+                    act_id = None
                     order_id = None
+                else:
+                    act_id = record['act_id']
+                    cursor.execute('SELECT p_order_id FROM activity ' 
+                        ' WHERE id=%s', (act_id,))
+                    result = cursor.fetchone()
+                    order_id = result['p_order_id']
+                
                 ore_lav = record['ore_lav']
                 night = record['night']
-
                 cursor.execute(
-                    'INSERT INTO timesheet (date, act_type_id, people_id, order_id, ore_lav, night)'
-                    ' VALUES (%s, %s, %s, %s, %s, %s)',
-                    (date, act_type_id, people_id, order_id, ore_lav, night)
-                )
+                        'INSERT INTO timesheet (date, act_type_id, people_id, order_id, ore_lav, night, act_id)'
+                        ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                        (date, act_type_id, people_id, order_id, ore_lav, night, act_id)
+                    )
             db.commit()
             return redirect(url_for('accounting_hours.index'))
 
-    return render_template('accounting_hours/create.html', act_types=act_types, orders=orders, people=people)
+    return render_template('accounting_hours/create.html', act_types=act_types, acts=acts, people=people)
 
 @bp.route('/accounting_hours/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):
-    #current_app.logger.debug("id: " + str(id))
     ts_record = get_ts_record(id)
     people_id = ts_record['people_id']
     date = ts_record['date']
-    #print("order_id: " + str(ts_record['order_id']))
-    #print("act_type_id: " + str(ts_record['act_type_id']))
-    #print("people_id: " + str(people_id))
-    
+      
     if ts_record['locked'] == True:
         error = 'Questa consuntivazione non può essere modificata.'
         flash(error)
@@ -160,40 +152,49 @@ def update(id):
             error = 'Questa consuntivazione non può essere modificata.'
             flash(error)
             return redirect(url_for('accounting_hours.index'))
-    act_type_List=get_act_type_List()
-    orderList = get_orderListFiltered(date)
-    
+    act_types = get_act_type_List()
+    acts = get_actsFiltered(date)
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
     if request.method == 'POST':
         date = request.form['date']
-        act_type_id = request.form['input_act_type_id']
-        #people_id = request.form['input_people_id']
-        order_id = request.form['input_order_id']
+        act_type_id = request.form.get('act_type_id')
+        act_id = request.form.get('act_id')
         ore_lav = request.form['ore_lav']
-        night = request.form['input_night']
+        night = request.form.get('night')
+        
+        if night == None:
+            night = 0
+        print("night:")
+        print(night)
+        if act_type_id != "1":
+            act_id = None
+            order_id = None
+        else:
+            cursor.execute('SELECT p_order_id FROM activity ' 
+                ' WHERE id=%s', (act_id,))
+            result = cursor.fetchone()
+            order_id = result['p_order_id']
         error = None
 
         if (not date) or (not act_type_id) or (not ore_lav):
             error = 'Compila tutti i campi obbligatori.'
-        if (act_type_id == "1") and (not order_id):
-            error = 'Compila tutti i campi obbligatori.'
+        #if (act_type_id == "1") and (not act_id):
+        #    error = 'Compila tutti i campi obbligatori.'
 
         if error is not None:
             flash(error)
         else:
-            print("act_type_id: " + request.form['input_act_type_id'])
             if (act_type_id != "1"):
                 order_id = None
-            db = get_db()
-            cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'UPDATE timesheet SET date = %s, act_type_id = %s, people_id = %s, order_id = %s, ore_lav = %s, night = %s'
+               'UPDATE timesheet SET date = %s, act_type_id = %s, people_id = %s, order_id = %s, ore_lav = %s, night = %s, act_id = %s'
                 ' WHERE id = %s',
-                (date, act_type_id, people_id, order_id, ore_lav, night, id)
+                (date, act_type_id, people_id, order_id, ore_lav, night, act_id, id)
             )
             db.commit()
             return redirect(url_for('accounting_hours.index'))
-    #print(orderList)
-    return render_template('accounting_hours/update.html', ts_record=ts_record, act_type_List=act_type_List, orderList=orderList)
+    return render_template('accounting_hours/update.html', ts_record=ts_record, act_types=act_types, acts=acts)
 
 @bp.route('/accounting_hours/<int:id>/delete', methods=('POST',))
 @login_required 
@@ -220,10 +221,11 @@ def delete(id):
 @login_required
 def detail(id):
     ts_record = get_ts_record(id)
-    orderList = get_orderList()
-    act_type_List=get_act_type_List()
+    date = ts_record['date']
+    acts = get_actsFiltered(date)
+    act_types=get_act_type_List()
     anag_people = get_anag_people()
-    return render_template('accounting_hours/detail.html', ts_record=ts_record, act_type_List=act_type_List, orderList=orderList, anag_people=anag_people)
+    return render_template('accounting_hours/detail.html', ts_record=ts_record, act_types=act_types, acts=acts, anag_people=anag_people)
 
 @bp.route("/ts_sel_order/<date>", methods=('POST',))
 @login_required
@@ -251,7 +253,7 @@ def get_act_type_List():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT id, description, short_code'
+        'SELECT id AS act_type_id, description AS act_type_desc, short_code'
         ' FROM act_type '
     )
     act_type_List = cursor.fetchall()
@@ -344,4 +346,25 @@ def get_orderListFiltered2(date):
     if orders is None:
         abort(404, f"orders è vuota.")
     return orders
+
+def get_actsFiltered(date):
+    # Con questa query si ottengono solo le attività  
+    # programmate nel giorno in cui si consuntiva (date)
+    # viene estratto anche l'ID dell'ordine
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT a.id AS act_id, CONCAT(c.full_name, " - ", a.title) AS act_desc, ' \
+        ' o.id as p_order_id'
+        ' FROM p_order o '
+        ' INNER JOIN customer c ON o.customer_id = c.id '
+        ' INNER JOIN activity a ON o.id = a.p_order_id '
+        ' WHERE %s >= a.start AND %s <= a.end '
+        ' ORDER BY c.full_name ASC',
+        (date,date)
+    )
+    acts = cursor.fetchall()
+    if acts is None:
+        abort(404, f"acts è vuota.")
+    return acts
 

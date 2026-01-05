@@ -5,13 +5,13 @@
   
 {% endblock %}
 
-{% block content %} 
+{% block content %}  
 
   <form method="post" onsubmit="afterSubmitCreate()">
     <table>
       <tr>
         <td><label for="date">Data</label></td>
-        <td><input name="date" id="date" type="date" value="{{ request.form['date'] }}" onblur="setComboOrders2()" required></td>
+        <td><input name="date" id="date" type="date" value="{{ request.form['date'] }}" onblur="setComboActs2()" required></td>
       </tr>
       <tr>
         <td><label for="people_ids">Persone</label></td>
@@ -23,12 +23,7 @@
         </td>
       </tr>
     </table>
-    <br>
-    <!-- Anagrafiche -->
-    <input name="act_type_ids" id="act_type_ids" value="{{ act_types['id'] }}" hidden>
-    <input name="act_type_descs" id="act_type_descs" value="{{ act_types['description'] }}" hidden>
-    <input name="order_ids" id="order_ids" value="{{ orders['order_id'] }}" hidden>
-    <input name="order_descs" id="order_descs" value="{{ orders['order_desc'] }}" hidden>
+    <br> 
     <!-- Campo di appoggio per la griglia in JSON -->
     <input type="hidden" name="dati_griglia_json" id="dati_griglia_json">
     <!-- Grid per l'inserimento delle ore-->
@@ -42,7 +37,9 @@
   <script type="text/javascript" src="/static/timesheet/common.js"></script>
   <script>
     document.getElementById("date").valueAsDate = new Date();
-    load_grid();
+    var act_types = JSON.parse('{{ act_types | default("[]") | safe }}');
+    var acts = JSON.parse('{{ acts | default("[]") | safe }}');
+    load_grid(act_types,acts);
 
     function goBack() {
         window.location.assign(document.getElementById("goback").value);

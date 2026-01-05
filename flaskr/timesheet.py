@@ -125,21 +125,16 @@ def index():
 @login_required
 def create():
     anag_people = get_anag_people()
-    act_types = get_act_type_List2()
+    act_types_ld = get_act_type_List() #lista dizionari
+    act_types = json.dumps(act_types_ld) #json
     date = datetime.today().strftime('%Y-%m-%d')
-    orders = get_orderListFiltered2(date)
-    order_ids = orders["order_id"]
-    order_descs = orders["order_desc"]
-    if order_ids == None:
-        order_ids = ""
-        order_descs = ""
-    #Aggiungo un elemento vuoto per la jsgrid dell'interfaccia utente
-    order_ids = "," + order_ids 
-    order_descs = "|§|" + order_descs
-    orders = {"order_id" : order_ids, "order_desc" : order_descs}
+    acts_ld = get_actsFiltered(date) #lista dizionari
+    acts_ld.insert(0, {'act_desc': '','act_id': 0,'p_order_id': 0 })
+    acts = json.dumps(acts_ld) #json
+    #print(acts)
 
     if request.method == 'POST':
-        error = None
+        error = None 
         date = request.form['date']
         people_ids_arr = request.form.getlist('people_ids')
         dati_json_stringa = request.form.get('dati_griglia_json')
@@ -165,22 +160,29 @@ def create():
                 # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
                 # Estraggo i singoli campi da questo dizionario
                 act_type_id = record['act_type_id']
-                order_id = record['order_id']
-                if not order_id:
+                if act_type_id != 1:
+                    act_id = None
                     order_id = None
+                else:
+                    act_id = record['act_id']
+                    cursor.execute('SELECT p_order_id FROM activity ' 
+                        ' WHERE id=%s', (act_id,))
+                    result = cursor.fetchone()
+                    order_id = result['p_order_id']
+                
                 ore_lav = record['ore_lav']
                 night = record['night']
 
                 for people_id in people_ids_arr:
                     cursor.execute(
-                        'INSERT INTO timesheet (date, act_type_id, people_id, order_id, ore_lav, night)'
-                        ' VALUES (%s, %s, %s, %s, %s, %s)',
-                        (date, act_type_id, people_id, order_id, ore_lav, night)
+                        'INSERT INTO timesheet (date, act_type_id, people_id, order_id, ore_lav, night, act_id)'
+                        ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                        (date, act_type_id, people_id, order_id, ore_lav, night, act_id)
                     )
             db.commit()
             return redirect(url_for('timesheet.index'))
 
-    return render_template('timesheet/create.html', act_types=act_types, orders=orders, anag_people=anag_people)
+    return render_template('timesheet/create.html', act_types=act_types, acts=acts, anag_people=anag_people)
 
 @bp.route('/timesheet/create_daysoff', methods=('GET', 'POST'))
 @login_required
@@ -197,19 +199,18 @@ def create_daysoff():
         date1_dt = datetime.strptime(date1, format)
         date2_dt = datetime.strptime(date2, format)
         #print("Range di date: " + date1_dt.strftime(format) + " - " + date2_dt.strftime(format))
-        people_ids = request.form['input_people_ids']
+        people = request.form.getlist('people')
         act_type_id = 2
         
         error = None
 
-        if (not date1) or (not date2) or (not people_ids):
+        if (not date1) or (not date2) or (not people):
             error = 'Compila tutti i campi obbligatori.'
        
         if error is not None:
             flash(error)
         else:
             db = get_db()
-            people_ids_arr = people_ids.split(",") 
             date_dt = date1_dt
             while date_dt <= date2_dt:
                 date = date_dt.strftime(format)
@@ -226,8 +227,7 @@ def create_daysoff():
                     else:
                         ore_lav = 8
                     print("ore_lav: " + str(ore_lav))
-                    for people_id in people_ids_arr:
-                    
+                    for people_id in people:
                         cursor = db.cursor(dictionary=True)
                         cursor.execute(
                             'INSERT INTO timesheet (date, act_type_id, people_id, ore_lav)'
@@ -247,13 +247,12 @@ def create_daysoff():
 @bp.route('/timesheet/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):
-    current_app.logger.debug("id: " + str(id))
     ts_record = get_ts_record(id)
     if ts_record['locked'] == True:
         error = 'Questa consuntivazione non può essere modificata.'
         flash(error)
         return redirect(url_for('timesheet.index'))
-    act_type_List=get_act_type_List()
+    act_types = get_act_type_List()
     anag_people = get_anag_people()
     date = ts_record['date']
     data_plus_one = date + timedelta(days=1)
@@ -262,87 +261,96 @@ def update(id):
         error = 'Questa consuntivazione non può essere modificata.'
         flash(error)
         return redirect(url_for('timesheet.index'))
-    #orderList = get_orderList() #Non filtrata
-    orderList = get_orderListFiltered(date)
+    acts = get_actsFiltered(date)
 
     if request.method == 'POST':
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
         date = request.form['date']
-        act_type_id = request.form['input_act_type_id']
-        people_id = request.form['input_people_id']
-        order_id = request.form['input_order_id']
+        people_id = request.form.get('people_id')
+        act_type_id = request.form.get('act_type_id')
+        act_id = request.form.get('act_id')
         ore_lav = request.form['ore_lav']
-        night = request.form['input_night']
+        night = request.form.get('night')
+        if night == None:
+            night = 0
+
+        if act_type_id != "1":
+            act_id = None
+            order_id = None
+        else:
+            cursor.execute('SELECT p_order_id FROM activity ' 
+                ' WHERE id=%s', (act_id,))
+            result = cursor.fetchone()
+            order_id = result['p_order_id']
         
         error = None
-        print("Debug:")
-        print(date)
-        print(act_type_id)
-        print(people_id)
-        print(ore_lav)
-        print(order_id)
 
         if (not date) or (not act_type_id) or (not people_id) or (not ore_lav):
             error = 'Compila tutti i campi obbligatori.'
-        if (act_type_id == "1") and (not order_id):
-            error = 'Compila tutti i campi obbligatori.'
+        #if (act_type_id == "1") and (not act_id):
+        #    error = 'Compila tutti i campi obbligatori.'
 
         if error is not None:
             flash(error)
         else:
-            if (act_type_id != "1"):
-                order_id = None
-            db = get_db()
-            cursor = db.cursor(dictionary=True)
             cursor.execute(
-               'UPDATE timesheet SET date = %s, act_type_id = %s, people_id = %s, order_id = %s, ore_lav = %s, night = %s'
+               'UPDATE timesheet SET date = %s, act_type_id = %s, people_id = %s, order_id = %s, ore_lav = %s, night = %s, act_id = %s'
                 ' WHERE id = %s',
-                (date, act_type_id, people_id, order_id, ore_lav, night, id)
+                (date, act_type_id, people_id, order_id, ore_lav, night, act_id, id)
             )
             db.commit()
             return redirect(url_for('timesheet.index'))
-    return render_template('timesheet/update.html', ts_record=ts_record, act_type_List=act_type_List, orderList=orderList, anag_people=anag_people)
+    return render_template('timesheet/update.html', ts_record=ts_record, act_types=act_types, acts=acts, anag_people=anag_people)
 
 @bp.route('/timesheet/<int:id>/duplicate', methods=('GET', 'POST'))
 @login_required
 def duplicate(id):
-    current_app.logger.debug("id: " + str(id))
     ts_record = get_ts_record(id)
-    act_type_List=get_act_type_List()
+    act_types=get_act_type_List()
     anag_people = get_anag_people()
-    #orderList = get_orderList()
     date = ts_record['date']
-    orderList = get_orderListFiltered(date)
+    acts = get_actsFiltered(date)
 
     if request.method == 'POST':
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
         date = request.form['date']
-        act_type_id = request.form['input_act_type_id']
-        people_id = request.form['input_people_id']
-        order_id = request.form['input_order_id']
+        people_id = request.form.get('people_id')
+        act_type_id = request.form.get('act_type_id')
+        act_id = request.form.get('act_id')
         ore_lav = request.form['ore_lav']
+        night = request.form.get('night')
+        if night == None:
+            night = 0
+
+        if act_type_id != "1":
+            act_id = None
+            order_id = None
+        else:
+            cursor.execute('SELECT p_order_id FROM activity ' 
+                ' WHERE id=%s', (act_id,))
+            result = cursor.fetchone()
+            order_id = result['p_order_id']
         
         error = None
 
         if (not date) or (not act_type_id) or (not people_id) or (not ore_lav):
             error = 'Compila tutti i campi obbligatori.'
-        if (act_type_id == "1") and (not order_id):
-            error = 'Compila tutti i campi obbligatori.'
+        #if (act_type_id == "1") and (not order_id):
+        #    error = 'Compila tutti i campi obbligatori.'
 
         if error is not None:
             flash(error)
         else:
-            if (act_type_id != "1"):
-                order_id = None
-            db = get_db()
-            cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'INSERT INTO timesheet (date, act_type_id, people_id, order_id, ore_lav)'
-                ' VALUES (%s, %s, %s, %s, %s)',
-                (date, act_type_id, people_id, order_id, ore_lav)
+               'UPDATE timesheet SET date = %s, act_type_id = %s, people_id = %s, order_id = %s, ore_lav = %s, night = %s, act_id = %s'
+                ' WHERE id = %s',
+                (date, act_type_id, people_id, order_id, ore_lav, night, act_id, id)
             )
             db.commit()
             return redirect(url_for('timesheet.index'))
-    return render_template('timesheet/update.html', ts_record=ts_record, act_type_List=act_type_List, orderList=orderList, anag_people=anag_people)
-
+    return render_template('timesheet/update.html', ts_record=ts_record, act_types=act_types, acts=acts, anag_people=anag_people)
 
 @bp.route('/timesheet/<int:id>/delete', methods=('POST',))
 @login_required
@@ -370,10 +378,11 @@ def delete(id):
 @login_required
 def detail(id):
     ts_record = get_ts_record(id)
-    orderList = get_orderList()
-    act_type_List=get_act_type_List()
+    date = ts_record['date']
+    acts = get_actsFiltered(date)
+    act_types=get_act_type_List()
     anag_people = get_anag_people()
-    return render_template('timesheet/detail.html', ts_record=ts_record, act_type_List=act_type_List, orderList=orderList, anag_people=anag_people, show_calendar = session["show_calendar"])
+    return render_template('timesheet/detail.html', ts_record=ts_record, act_types=act_types, acts=acts, anag_people=anag_people, show_calendar = session["show_calendar"])
 
 @bp.route("/ts_sel_order/<date>", methods=('POST',))
 @login_required
@@ -399,11 +408,26 @@ def sel_order2(date):
     orderList = {"order_id" : order_ids, "order_desc" : order_descs}
     return (orderList)
 
+@bp.route("/ts_sel_act2/<date>", methods=('POST',))
+@login_required
+def sel_act2(date):
+    acts_ld = get_actsFiltered(date)
+    #Aggiungo un elemento vuoto per la jsgrid dell'interfaccia utente
+    acts_ld.insert(0, {'act_desc': '','act_id': 0,'p_order_id': 0 })
+    acts = json.dumps(acts_ld) #json
+    return (acts)
+
+@bp.route("/ts_sel_act/<date>", methods=('POST',))
+@login_required
+def sel_act(date):
+    acts = get_actsFiltered(date)
+    return (acts)
+
 def get_ts_record(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT id, date, act_type_id, people_id, order_id, ore_lav, night, locked' 
+        'SELECT id, date, act_type_id, people_id, act_id, ore_lav, night, locked' 
         ' FROM timesheet '
         ' WHERE id = %s',
         (id,)
@@ -418,7 +442,7 @@ def get_act_type_List():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT id, description, short_code'
+        'SELECT id AS act_type_id, description AS act_type_desc, short_code'
         ' FROM act_type '
     )
     act_type_List = cursor.fetchall()
@@ -493,6 +517,27 @@ def get_orderListFiltered2(date):
     if orders is None:
         abort(404, f"orders è vuota.")
     return orders
+
+def get_actsFiltered(date):
+    # Con questa query si ottengono solo le attività  
+    # programmate nel giorno in cui si consuntiva (date)
+    # viene estratto anche l'ID dell'ordine
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT a.id AS act_id, CONCAT(c.full_name, " - ", a.title) AS act_desc, ' \
+        ' o.id as p_order_id'
+        ' FROM p_order o '
+        ' INNER JOIN customer c ON o.customer_id = c.id '
+        ' INNER JOIN activity a ON o.id = a.p_order_id '
+        ' WHERE %s >= a.start AND %s <= a.end '
+        ' ORDER BY c.full_name ASC',
+        (date,date)
+    )
+    acts = cursor.fetchall()
+    if acts is None:
+        abort(404, f"acts è vuota.")
+    return acts
 
 def get_anag_people():
     db = get_db()
