@@ -7,28 +7,28 @@
 
 {% block content %}
 
-<form method="post" onsubmit="afterSubmitUpdate()">
+<form method="post">
   <label for="date">Data</label>
-  <input name="date" id="date" type="date" value="{{ request.form['date']  or tu_record['date'] }}" onblur="setComboOrders()" required>
+  <input name="date" id="date" type="date" value="{{ request.form['date']  or tu_record['date'] }}" onblur="setComboActs()" required>
   <label for="tool_id">Mezzo</label>
-  <SELECT id="tool_id" required>
-    {% for tool in anag_tool %}
-      {% if tool.id == tu_record['tool_id'] %}
-      <OPTION value={{tool.id}} selected>{{tool.t_name}}</option>
+  <SELECT id="tool_id" name="tool_id" required>
+    {% for tool in anag_tools %}
+      {% if tool.tool_id == tu_record.tool_id %}
+      <OPTION value={{tool.tool_id}} selected>{{tool.tool_name}}</option>
       {% else %}
-        <OPTION value={{tool.id}}>{{tool.t_name}}</option>
+        <OPTION value={{tool.tool_id}}>{{tool.tool_name}}</option>
       {% endif %}
     {% endfor %}
   </SELECT>
   
-  <label for="order_id">Ordine</label>
-  <SELECT id="order_id">
-      <OPTION value="" disabled="disabled" selected>Selezionare un ordine</option>
-      {% for order in orderList %}
-        {% if order.id == tu_record['order_id'] %}
-        <OPTION value={{order.id}} selected>{{order.full_name}} - {{order.description}}</option>
+  <label for="act_id">Attività</label>
+  <SELECT id="act_id" name="act_id">
+      <OPTION value="" disabled="disabled" selected>Selezionare un'attività</option>
+      {% for act in acts %}
+        {% if act.act_id == tu_record.act_id %}
+        <OPTION value={{act.act_id}} selected>{{act.act_desc}}</option>
         {% else %}
-          <OPTION value={{order.id}}>{{order.full_name}} - {{order.description}}</option>
+          <OPTION value={{act.act_id}}>{{act.act_desc}}</option>
         {% endif %}
       {% endfor %}
   </SELECT> 
@@ -39,9 +39,13 @@
     <tr>
       <td><input name="ore_lav" id="ore_lav" type="number" step="0.1" value="{{ request.form['ore_lav']  or tu_record['ore_lav'] }}"></td>
     </tr>  
+    <tr>
+      <td><label for="km">Km</label></td>
+    </tr>
+    <tr>
+      <td><input name="km" id="km" type="number" step="1" value="{{ request.form['km']  or tu_record['km'] }}"></td>
+    </tr>  
   </table>
-  <input name="input_tool_id" id="input_tool_id" hidden>
-  <input name="input_order_id" id="input_order_id" hidden>
   <input type="submit" value="Salva">
   <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
     <input name="goback" id="goback" value="{{ url_for('tool_usage.index') }}" hidden>

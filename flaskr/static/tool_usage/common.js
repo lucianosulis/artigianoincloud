@@ -1,28 +1,7 @@
   function afterSubmitCreate() {
-    
-    var tool_ids = $("#tool_ids").val() || []
-    document.getElementById("input_tool_ids").value = tool_ids.join();
-    var data = $("#jsGrid").jsGrid("option", "data");
-    //console.log(data);
-    var order_ids_sel = "";
-    var ore_lavs_sel = "";
-
-    for (let i = 0; i < data.length; i++) {
-      tu_record = data[i];
-  
-      if (order_ids_sel != "") {
-        order_ids_sel = order_ids_sel + ",";
-      }
-      order_ids_sel = order_ids_sel + ts_record["order_id"];
-      document.getElementById("order_ids_sel").value = order_ids_sel;
-
-      if (ore_lavs_sel != "") {
-        ore_lavs_sel = ore_lavs_sel + ",";
-      }
-      ore_lavs_sel = ore_lavs_sel + ts_record["ore_lav"];
-      document.getElementById("ore_lavs_sel").value = ore_lavs_sel;
-
-    }
+    const data = $("#jsGrid").jsGrid("option", "data");
+    const dataJSONStringa = JSON.stringify(data);
+    document.getElementById('dati_griglia_json').value = dataJSONStringa;
   }
 
   function afterSubmitCreate2() {
@@ -36,6 +15,51 @@
     document.getElementById("input_tool_id").value = new_tool_id;
     document.getElementById("input_order_id").value = new_order_id;
   }
+  
+  function setComboActs() {
+      console.log(setComboActs);
+      var date = document.getElementById("date").value
+      let selectBox = document.getElementById("act_id");
+      function removeAll(select) {
+                while (select.options.length > 0) {
+                  select.remove(0);
+                  }
+                }
+      removeAll(selectBox);
+      selectBox.required = false;
+      $.ajax({
+      type: "POST",
+      url: "/tu_sel_act" + "/" + date,
+      contentType: "application/json",
+      dataType: 'json',
+      success: function(result) {
+        selectBox.required = true;
+        const option0 = new Option("Selezionare un'attività","");
+        option0.setAttribute("disabled","disabled");
+        option0.setAttribute("selected",true);
+        selectBox.add(option0, undefined);
+        for (let i = 0; i < result.length; i++) {
+          const option = new Option(result[i]['act_desc'],result[i]['act_id']);
+          selectBox.add(option, undefined);
+        }
+      }
+      })
+  }; 
+
+  function setComboActs2() {
+            var date = document.getElementById("date").value
+            $.ajax({
+            type: "POST",
+            url: "/tu_sel_act2" + "/" + date,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result) {
+              acts = result
+              load_grid(anag_tools,acts);
+            }  
+          }); 
+      }
+  
   function setComboOrders() {
       var date = document.getElementById("date").value
       let selectBox = document.getElementById("order_id");
@@ -79,31 +103,23 @@
   });
   jsGrid.fields.decimalnumber = FloatNumberField;
 
-  function load_grid() {
+  function load_grid(anag_tools,acts) {
     var tu_records = [];
-    var orderList = [];
-    var order_ids = document.getElementById("order_ids").value;
-    var order_ids_arr = order_ids.split(",");
-    var order_descs = document.getElementById("order_descs").value;
-    var order_descs_arr = order_descs.split("|§|");
-    for (let i = 0; i < order_ids_arr.length; i++) {
-      var new_element = '{"order_id": "' + order_ids_arr[i] + '", "order_desc": "' + order_descs_arr[i] + '"}';
-      var new_object = JSON.parse(new_element);
-      orderList.push(new_object);
-    }
     
     $("#jsGrid").jsGrid({
         width: "100%",
         height: "400px",
         inserting: true,
         editing: true,
-        sorting: true,
+        sorting: true, 
         paging: true,
         data: tu_records,
             
         fields: [
-            { name: "order_id", title: "Ordine", type: "select", items: orderList, valueField: "order_id", textField: "order_desc", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare l'ordine.", validator: function(value) {if (value != "") {return true} else {return false}}}},
+            { name: "act_id", title: "Attività", type: "select", items: acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare l'attività.", validator: function(value) {if (value != "") {return true} else {return false}}}},
+            { name: "tool_id", title: "Mezzo", type: "select", items: anag_tools, valueField: "tool_id", textField: "tool_name", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare il mezzo.", validator: function(value) {if (value != "") {return true} else {return false}}}},
             { name: "ore_lav", title: "Ore", type: "decimalnumber", readOnly: false,  width: "20%", align: "right"},
+            { name: "km", title: "Km", type: "decimalnumber", readOnly: false,  width: "20%", align: "right"},
             { type: "control" }
         ]
       });

@@ -48,8 +48,8 @@
   </form>
   <script>
     console.log("Sono nello script principale di detail.html");
-    var anag_people = JSON.parse('{{ anag_people | default("[]") | safe }}');
-    var people = JSON.parse('{{ people | default("[]") | safe }}');
+    var anag_people = JSON.parse(`{{ anag_people | default("[]") | safe }}`);
+    var people = JSON.parse(`{{ people | default("[]") | safe }}`);
     
     $("#jsGridPeople").jsGrid({
             width: "40%",
@@ -64,9 +64,9 @@
                 { name: "id", title: "Operatore", type: "select", items: anag_people, valueField: "id", textField: "name", width: "50%", align: "left" }
             ]
           });
-          var anag_tool_type = JSON.parse('{{ anag_tool_type | default("[]") | safe }}');
-          var anag_tools = JSON.parse('{{ anag_tools | default("[]") | safe }}');
-          var tools = JSON.parse('{{ tools | default("[]") | safe }}');
+          var anag_tool_type = JSON.parse(`{{ anag_tool_type | default("[]") | safe }}`);
+          var anag_tools = JSON.parse(`{{ anag_tools | default("[]") | safe }}`);
+          var tools = JSON.parse(`{{ tools | default("[]") | safe }}`);
 
     $("#jsGridTool").jsGrid({
         width: "40%",
@@ -94,8 +94,8 @@
             }
         ]
     });
-    var anag_acts = JSON.parse('{{ anag_acts | default("[]") | safe }}');
-    var acts = JSON.parse('{{ acts | default("[]") | safe }}');
+    var anag_acts = JSON.parse(`{{ anag_acts | default("[]") | safe }}`);
+    var acts = JSON.parse(`{{ acts | default("[]") | safe }}`);
     $("#jsGridAct").jsGrid({
                 width: "40%",
                 height: "400px",

@@ -21,10 +21,10 @@
 </div>
 <div class="table-striped">
   <table>
-    <th>Data</th><th>Mezzo</th><th>Ordine</th><th>Ore</th><th></th>
+    <th>Data</th><th>Mezzo</th><th>Ordine</th><th>Ore</th><th>Km</th><th></th>
   {% for tu_record in tu_records %}       
         <tr>
-          <td>{{ tu_record['date'] }} </td> <td>{{ tu_record['t_name'] }}</td> <td style="text-align: left">{{ tu_record['p_order'] }}</td> <td>{{ tu_record['ore_lav'] }}</td>
+          <td>{{ tu_record['date'] }} </td> <td>{{ tu_record['t_name'] }}</td> <td style="text-align: left">{{ tu_record['p_order'] }}</td> <td>{{ tu_record['ore_lav'] }}</td><td>{{ tu_record['km'] }}</td>
           <td>
             <a href="{{ url_for('tool_usage.detail', id=tu_record['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
             <br/>

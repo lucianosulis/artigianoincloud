@@ -6,26 +6,26 @@
 {% block content %}
 <form>
   <label for="date">Data</label>
-  <input name="date" id="date" type="date" value="{{ request.form['date']  or tu_record['date'] }}" readonly>
+  <input name="date" id="date" type="date" value="{{ tu_record['date'] }}" readonly>
   <label for="tool_id">Mezzo</label>
-  <SELECT id="tool_id" disabled>
-    {% for tool in anag_tool %}
-      {% if tool.id == tu_record['tool_id'] %}
-      <OPTION value={{tool.id}} selected>{{tool.name}}</option>
+  <SELECT id="tool_id" name="tool_id" disabled>
+    {% for tool in anag_tools %}
+      {% if tool.tool_id == tu_record.tool_id %}
+      <OPTION value={{tool.tool_id}} selected>{{tool.tool_name}}</option>
       {% else %}
-        <OPTION value={{tool.id}}>{{tool.name}}</option>
+        <OPTION value={{tool.tool_id}}>{{tool.tool_name}}</option>
       {% endif %}
     {% endfor %}
   </SELECT>
   
-  <label for="order_id">Ordine</label>
-  <SELECT id="order_id" disabled>
+  <label for="act_id">Attività</label>
+  <SELECT id="act_id" name="act_id" disabled>
     <OPTION value="" disabled="disabled" selected></option>
-    {% for order in orderList %}
-      {% if order.id == tu_record['order_id'] %}
-       <OPTION value={{order.id}} selected>{{order.full_name}} - {{order.description}}</option>
+    {% for act in acts %}
+      {% if act.act_id == tu_record.act_id %}
+       <OPTION value={{act.act_id}} selected>{{act.act_desc}}</option>
       {% else %}
-        <OPTION value={{order.id}}>{{order.full_name}} - {{order.description}}</option>
+        <OPTION value={{act.act_id}}>{{act.act_desc}}</option>
       {% endif %}
     {% endfor %}
   </SELECT> 
@@ -36,9 +36,13 @@
     <tr>
       <td><input name="ore_lav" id="ore_lav" type="number" step="0.1" value="{{ request.form['ore_lav']  or tu_record['ore_lav'] }}" readonly></td>
     </tr>  
+    <tr>
+      <td><label for="km">Km</label></td>
+    </tr>
+    <tr>
+      <td><input name="km" id="km" type="number" step="1" value="{{ request.form['km']  or tu_record['km'] }}" readonly></td>
+    </tr> 
   </table>
-  <input name="input_tool_id" id="input_tool_id" hidden>
-  <input name="input_order_id" id="input_order_id" hidden>
 </form>
   
 <table>

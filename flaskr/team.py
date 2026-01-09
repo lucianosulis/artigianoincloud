@@ -105,13 +105,14 @@ def create():
     anag_tool_type = json.dumps(anag_tool_type_ld) #json
     anag_acts_ld = get_actListFiltered(date) #lista dizionari
     anag_acts = json.dumps(anag_acts_ld) #json
+    print(anag_acts)
 
     if request.method == 'POST':
         title = request.form['title']
         date = request.form['date']
         start_time = request.form['start_time']
         finish_time = request.form['finish_time']
-        notes = request.form['notes']
+        notes = request.form['notes'] 
 
         dati_jsGridPeople_stringa = request.form.get('dati_jsGridPeople_json')
         dati_jsGridPeople = []
@@ -597,7 +598,8 @@ def get_anag_people():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT id, CONCAT(surname," ",name) AS name FROM people WHERE cessato=0'
+        'SELECT id, CONCAT(surname," ",name) AS name FROM people WHERE cessato=0 '
+        ' ORDER BY name ASC'
     )
     anag_people=cursor.fetchall()
     return anag_people

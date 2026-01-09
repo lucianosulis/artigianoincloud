@@ -1,3 +1,9 @@
+Release 2.17
+Ultimato refactoring tool_usage. Aggiunti i km e sostituito order_id 
+(che viene mantenuto per compatibilità) con act_id. 
+Sostituiti gli apici ' nelle istruzione JSON.PARSE con ` perché se nei valori JSON comparivano
+apici, il programma andava in crash. Così si evita di inserire i caratteri di Escape.
+
 Release 2.16
 Refactoring delle funzionalità timesheet e accountng_hours per passaggio dati in JSON o dictionary.
 Modificata logica introducendo il legame con l'attività oltre che con l'ordine. Aggiunta colonna 

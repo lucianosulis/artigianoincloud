@@ -44,8 +44,8 @@
     function goBack() {
       window.location.assign(document.getElementById("goback").value);
     }
-    var anag_people = JSON.parse('{{ anag_people | default("[]") | safe }}');
-    var people = JSON.parse('{{ people | default("[]") | safe }}');
+    var anag_people = JSON.parse(`{{ anag_people | default("[]") | safe }}`);
+    var people = JSON.parse(`{{ people | default("[]") | safe }}`);
     var team_people = people;
     $("#jsGridPeople").jsGrid({
             width: "40%",
@@ -61,9 +61,9 @@
                 { type: "control" }
             ]
           });
-        var anag_tool_type = JSON.parse('{{ anag_tool_type | default("[]") | safe }}');
-        var anag_tools = JSON.parse('{{ anag_tools | default("[]") | safe }}');
-        var tools = JSON.parse('{{ tools | default("[]") | safe }}');
+        var anag_tool_type = JSON.parse(`{{ anag_tool_type | default("[]") | safe }}`);
+        var anag_tools = JSON.parse(`{{ anag_tools | default("[]") | safe }}`);
+        var tools = (`{{ tools | default("[]") | safe }}`);
           
 // Variabili per memorizzare i riferimenti ai controlli correnti
 var $insertMezzoSelect;
@@ -156,8 +156,8 @@ function updateDropdown($selectControl, categoryId) {
     }
 }
 
-        var anag_acts = JSON.parse('{{ anag_acts | default("[]") | safe }}');
-        var acts = JSON.parse('{{ acts | default("[]") | safe }}');
+        var anag_acts = JSON.parse(`{{ anag_acts | default("[]") | safe }}`);
+        var acts = JSON.parse(`{{ acts | default("[]") | safe }}`);
         $("#jsGridAct").jsGrid({
                     width: "40%",
                     height: "400px",
