@@ -14,11 +14,15 @@
         <td><input name="date" id="date" type="date" value="{{ request.form['date'] }}" onblur="setComboActs2()" required></td>
       </tr>
     </table>
-    <!-- Campo di appoggio per la griglia in JSON -->
-    <input type="hidden" name="dati_griglia_json" id="dati_griglia_json">
+    <!-- Campi di appoggio per le griglie in JSON -->
+    <input type="hidden" name="dati_griglia_json1" id="dati_griglia_json1">
+    <input type="hidden" name="dati_griglia_json2" id="dati_griglia_json2">
     <!-- Grid per l'inserimento delle ore-->
-    <h4>Mezzi utilizzati nell'attività</h4> 
-    <div id="jsGrid"></div>
+    <h4>Mezzi utilizzati a ore</h4> 
+    <div id="jsGrid1"></div>
+    <br>
+    <h4>Mezzi utilizzati a Km</h4> 
+    <div id="jsGrid2"></div>
     <br>
     <input type="submit" value="Salva">
     <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
@@ -27,9 +31,11 @@
   <script type="text/javascript" src="/static/tool_usage/common.js"></script>
   <script>
     document.getElementById("date").valueAsDate = new Date();
-    var anag_tools = JSON.parse(`{{ anag_tools | default("[]") | safe }}`);
+    var anag_tools1 = JSON.parse(`{{ anag_tools1 | default("[]") | safe }}`);
+    var anag_tools2 = JSON.parse(`{{ anag_tools2 | default("[]") | safe }}`);
     var acts = JSON.parse(`{{ acts | default("[]") | safe }}`);
-    load_grid(anag_tools,acts);
+    load_grid1(anag_tools1,acts);
+    load_grid2(anag_tools2,acts);
 
     function goBack() {
         window.location.assign(document.getElementById("goback").value);

@@ -1,7 +1,10 @@
   function afterSubmitCreate() {
-    const data = $("#jsGrid").jsGrid("option", "data");
-    const dataJSONStringa = JSON.stringify(data);
-    document.getElementById('dati_griglia_json').value = dataJSONStringa;
+    const data1 = $("#jsGrid1").jsGrid("option", "data");
+    const dataJSONStringa1 = JSON.stringify(data1);
+    document.getElementById('dati_griglia_json1').value = dataJSONStringa1;
+    const data2 = $("#jsGrid2").jsGrid("option", "data");
+    const dataJSONStringa2 = JSON.stringify(data2);
+    document.getElementById('dati_griglia_json2').value = dataJSONStringa2;
   }
 
   function afterSubmitCreate2() {
@@ -54,8 +57,9 @@
             contentType: "application/json",
             dataType: 'json',
             success: function(result) {
-              acts = result
-              load_grid(anag_tools,acts);
+              acts = result;
+              load_grid1(anag_tools1,acts);
+              load_grid2(anag_tools2,acts);
             }  
           }); 
       }
@@ -103,12 +107,12 @@
   });
   jsGrid.fields.decimalnumber = FloatNumberField;
 
-  function load_grid(anag_tools,acts) {
+  function load_grid1(anag_tools1,acts) {
     var tu_records = [];
     
-    $("#jsGrid").jsGrid({
+    $("#jsGrid1").jsGrid({
         width: "100%",
-        height: "400px",
+        height: "300px",
         inserting: true,
         editing: true,
         sorting: true, 
@@ -117,8 +121,28 @@
             
         fields: [
             { name: "act_id", title: "Attività", type: "select", items: acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare l'attività.", validator: function(value) {if (value != "") {return true} else {return false}}}},
-            { name: "tool_id", title: "Mezzo", type: "select", items: anag_tools, valueField: "tool_id", textField: "tool_name", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare il mezzo.", validator: function(value) {if (value != "") {return true} else {return false}}}},
+            { name: "tool_id", title: "Mezzo", type: "select", items: anag_tools1, valueField: "tool_id", textField: "tool_name", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare il mezzo.", validator: function(value) {if (value != "") {return true} else {return false}}}},
             { name: "ore_lav", title: "Ore", type: "decimalnumber", readOnly: false,  width: "20%", align: "right"},
+            { type: "control" }
+        ]
+      });
+  }
+
+  function load_grid2(anag_tools2,acts) {
+    var tu_records = [];
+    
+    $("#jsGrid2").jsGrid({
+        width: "100%",
+        height: "300px",
+        inserting: true,
+        editing: true,
+        sorting: true, 
+        paging: true,
+        data: tu_records,
+            
+        fields: [
+            { name: "act_id", title: "Attività", type: "select", items: acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare l'attività.", validator: function(value) {if (value != "") {return true} else {return false}}}},
+            { name: "tool_id", title: "Mezzo", type: "select", items: anag_tools2, valueField: "tool_id", textField: "tool_name", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare il mezzo.", validator: function(value) {if (value != "") {return true} else {return false}}}},
             { name: "km", title: "Km", type: "decimalnumber", readOnly: false,  width: "20%", align: "right"},
             { type: "control" }
         ]

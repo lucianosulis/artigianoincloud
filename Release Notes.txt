@@ -1,3 +1,7 @@
+Release 2.18
+Modificato tool_usage per differenziare i mezzi contabilizzati a ore e quelli a km.
+Aggiunti due flag in anagrafica tool_type: cons_ore e cons_km.
+
 Release 2.17
 Ultimato refactoring tool_usage. Aggiunti i km e sostituito order_id 
 (che viene mantenuto per compatibilità) con act_id. 

@@ -10,16 +10,8 @@
 <form method="post">
   <label for="date">Data</label>
   <input name="date" id="date" type="date" value="{{ request.form['date']  or tu_record['date'] }}" onblur="setComboActs()" required>
-  <label for="tool_id">Mezzo</label>
-  <SELECT id="tool_id" name="tool_id" required>
-    {% for tool in anag_tools %}
-      {% if tool.tool_id == tu_record.tool_id %}
-      <OPTION value={{tool.tool_id}} selected>{{tool.tool_name}}</option>
-      {% else %}
-        <OPTION value={{tool.tool_id}}>{{tool.tool_name}}</option>
-      {% endif %}
-    {% endfor %}
-  </SELECT>
+  <label for="tool_name">Mezzo</label>
+  <input name="tool_name" id="tool_name" type="text" value="{{ tool_name }}" readonly>
   
   <label for="act_id">Attività</label>
   <SELECT id="act_id" name="act_id">
@@ -33,18 +25,22 @@
       {% endfor %}
   </SELECT> 
   <table>
-    <tr>
-      <td><label for="ore_lav">Ore</label></td>
-    </tr>
-    <tr>
-      <td><input name="ore_lav" id="ore_lav" type="number" step="0.1" value="{{ request.form['ore_lav']  or tu_record['ore_lav'] }}"></td>
-    </tr>  
-    <tr>
-      <td><label for="km">Km</label></td>
-    </tr>
-    <tr>
-      <td><input name="km" id="km" type="number" step="1" value="{{ request.form['km']  or tu_record['km'] }}"></td>
-    </tr>  
+    {% if cons_ore == 1 %}
+      <tr>
+        <td><label for="ore_lav">Ore</label></td>
+      </tr>
+      <tr>
+        <td><input name="ore_lav" id="ore_lav" type="number" step="0.1" value="{{ request.form['ore_lav']  or tu_record['ore_lav'] }}"></td>
+      </tr> 
+    {% endif %} 
+    {% if cons_km == 1 %}
+      <tr>
+        <td><label for="km">Km</label></td>
+      </tr>
+      <tr>
+        <td><input name="km" id="km" type="number" step="1" value="{{ request.form['km']  or tu_record['km'] }}"></td>
+      </tr>  
+    {% endif %} 
   </table>
   <input type="submit" value="Salva">
   <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">

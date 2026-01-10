@@ -7,16 +7,8 @@
 <form>
   <label for="date">Data</label>
   <input name="date" id="date" type="date" value="{{ tu_record['date'] }}" readonly>
-  <label for="tool_id">Mezzo</label>
-  <SELECT id="tool_id" name="tool_id" disabled>
-    {% for tool in anag_tools %}
-      {% if tool.tool_id == tu_record.tool_id %}
-      <OPTION value={{tool.tool_id}} selected>{{tool.tool_name}}</option>
-      {% else %}
-        <OPTION value={{tool.tool_id}}>{{tool.tool_name}}</option>
-      {% endif %}
-    {% endfor %}
-  </SELECT>
+  <label for="tool_name">Mezzo</label>
+  <input name="tool_name" id="tool_name" type="text" value="{{ tool_name }}" readonly>
   
   <label for="act_id">Attività</label>
   <SELECT id="act_id" name="act_id" disabled>

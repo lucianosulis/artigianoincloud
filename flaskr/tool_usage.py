@@ -114,8 +114,10 @@ def index():
 @bp.route('/tool_usage/create', methods=('GET', 'POST'))
 @login_required
 def create(): 
-    ld_anag_tools = get_anag_tools()
-    anag_tools = json.dumps(ld_anag_tools) #json
+    ld_anag_tools1 = get_anag_tools_ore()
+    anag_tools1 = json.dumps(ld_anag_tools1) #json
+    ld_anag_tools2 = get_anag_tools_km()
+    anag_tools2 = json.dumps(ld_anag_tools2) #json
     date = datetime.today().strftime('%Y-%m-%d')
     acts_ld = get_actsFiltered(date) #lista dizionari
     acts_ld.insert(0, {'act_desc': '','act_id': 0,'p_order_id': 0 })
@@ -123,29 +125,42 @@ def create():
 
     if request.method == 'POST':
         date = request.form['date']
-        dati_json_stringa = request.form.get('dati_griglia_json')
-        #print(dati_json_stringa)
-        dati_griglia = []
-        if dati_json_stringa:
+
+        dati_json_stringa1 = request.form.get('dati_griglia_json1')
+        #print(dati_json_stringa1)
+        dati_griglia1 = []
+        if dati_json_stringa1:
             try:
                 # Deserializza la stringa JSON in una lista di dizionari Python
-                dati_griglia = json.loads(dati_json_stringa)
+                dati_griglia1 = json.loads(dati_json_stringa1)
                 #print(dati_griglia)
             except json.JSONDecodeError:
-                print("Errore nella decodifica dei dati JSON della griglia")
-                error = 'Errore nella decodifica dei dati JSON della griglia.'
+                print("Errore nella decodifica dei dati JSON della griglia 1")
+                error = 'Errore nella decodifica dei dati JSON della griglia 1.'
+        
+        dati_json_stringa2 = request.form.get('dati_griglia_json2')
+        #print(dati_json_stringa2)
+        dati_griglia2 = []
+        if dati_json_stringa2:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_griglia2 = json.loads(dati_json_stringa2)
+                #print(dati_griglia2)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia 2")
+                error = 'Errore nella decodifica dei dati JSON della griglia 2.'
         error = None
 
         if (not date):
             error = 'Compila tutti i campi obbligatori.'
-        if (not dati_griglia):
+        if (not dati_griglia1) and (not dati_griglia2):
             error = 'Devi inserire almeno un utilizzo mezzo.'
         if error is not None:
             flash(error)
         else:
             db = get_db()
             cursor = db.cursor(dictionary=True)
-            for record in dati_griglia:
+            for record in dati_griglia1:
                 # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
                 # Estraggo i singoli campi da questo dizionario
                 act_id = record['act_id']
@@ -153,24 +168,41 @@ def create():
                     ' WHERE id=%s', (act_id,))
                 result = cursor.fetchone()
                 order_id = result['p_order_id']
-                ore_lav = record['ore_lav']  
+                ore_lav = record['ore_lav']        
+                tool_id = record['tool_id']
+                cursor.execute(
+                    'INSERT INTO tool_usage (date, tool_id, act_id, order_id, ore_lav) '
+                    ' VALUES (%s, %s, %s, %s, %s)',
+                    (date, tool_id, act_id, order_id, ore_lav)
+                )
+            for record in dati_griglia2:
+                # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
+                # Estraggo i singoli campi da questo dizionario
+                act_id = record['act_id']
+                cursor.execute('SELECT p_order_id FROM activity ' 
+                    ' WHERE id=%s', (act_id,))
+                result = cursor.fetchone()
+                order_id = result['p_order_id']  
                 km = record['km']      
                 tool_id = record['tool_id']
                 cursor.execute(
-                    'INSERT INTO tool_usage (date, tool_id, act_id, order_id, ore_lav, km) '
-                    ' VALUES (%s, %s, %s, %s, %s, %s)',
-                    (date, tool_id, act_id, order_id, ore_lav, km)
+                    'INSERT INTO tool_usage (date, tool_id, act_id, order_id, km) '
+                    ' VALUES (%s, %s, %s, %s, %s)',
+                    (date, tool_id, act_id, order_id, km)
                 )
             db.commit()
             return redirect(url_for('tool_usage.index'))
 
-    return render_template('tool_usage/create.html', acts=acts, anag_tools=anag_tools)
+    return render_template('tool_usage/create.html', acts=acts, anag_tools1=anag_tools1, anag_tools2=anag_tools2)
 
 @bp.route('/tool_usage/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):
     tu_record = get_tu_record(id)
-    anag_tools = get_anag_tools()
+    tool_name = get_tool_name(tu_record['tool_id'])
+    cons_type = get_cons_type(id) #Lista flag ore km. Es. [1,0] vuol dire ore sì, km no
+    cons_ore = cons_type['cons_ore'] 
+    cons_km = cons_type['cons_km'] 
     date = tu_record['date']
     acts = get_actsFiltered(date) #lista dizionari
 
@@ -178,18 +210,23 @@ def update(id):
         db = get_db()
         cursor = db.cursor(dictionary=True)
         date = request.form.get('date')
-        tool_id = request.form.get('tool_id')
         act_id = request.form.get('act_id')
-        ore_lav = request.form['ore_lav']
-        if ore_lav == "":
-            ore_lav = None
-        km = request.form['km']
-        if km == "":
-            km = None
+        if cons_ore == 1:
+            ore_lav = request.form['ore_lav']
+            if ore_lav == "":
+                ore_lav = 0
+        else:
+            ore_lav = 0
+        if cons_km == 1:
+            km = request.form['km']
+            if km == "":
+                km = 0
+        else:
+            km = 0
         
         error = None
 
-        if (not date)  or (not tool_id) or (not act_id):
+        if (not date)  or (not act_id):
             error = 'Compila tutti i campi obbligatori.'
 
         if error is not None:
@@ -200,19 +237,23 @@ def update(id):
             result = cursor.fetchone()
             order_id = result['p_order_id']
             cursor.execute(
-               'UPDATE tool_usage SET date = %s, tool_id = %s, act_id = %s, order_id = %s, ore_lav = %s, km = %s '
+               'UPDATE tool_usage SET date = %s, act_id = %s, order_id = %s, ore_lav = %s, km = %s '
                 ' WHERE id = %s',
-                (date, tool_id, act_id, order_id, ore_lav, km, id)
+                (date, act_id, order_id, ore_lav, km, id)
             )
             db.commit()
             return redirect(url_for('tool_usage.index'))
-    return render_template('tool_usage/update.html', tu_record=tu_record, acts=acts, anag_tools=anag_tools)
+    return render_template('tool_usage/update.html', tu_record=tu_record, tool_name=tool_name, acts=acts, cons_ore=cons_ore,cons_km=cons_km )
 
 @bp.route('/tool_usage/<int:id>/duplicate', methods=('GET', 'POST'))
 @login_required
 def duplicate(id):
     tu_record = get_tu_record(id)
-    anag_tools = get_anag_tools()
+    tool_id = tu_record['tool_id']
+    tool_name = get_tool_name(tu_record['tool_id'])
+    cons_type = get_cons_type(id) #Lista flag ore km. Es. [1,0] vuol dire ore sì, km no
+    cons_ore = cons_type['cons_ore'] 
+    cons_km = cons_type['cons_km'] 
     date = tu_record['date']
     acts = get_actsFiltered(date) #lista dizionari
 
@@ -220,13 +261,18 @@ def duplicate(id):
         db = get_db()
         cursor = db.cursor(dictionary=True)
         date = request.form.get('date')
-        tool_id = request.form.get('tool_id')
         act_id = request.form.get('act_id')
-        ore_lav = request.form['ore_lav']
-        if ore_lav == "":
+        if cons_ore == 1:
+            ore_lav = request.form['ore_lav']
+            if ore_lav == "":
+                ore_lav = 0
+        else:
             ore_lav = 0
-        km = request.form['km']
-        if km == "":
+        if cons_km == 1:
+            km = request.form['km']
+            if km == "":
+                km = 0
+        else:
             km = 0
         cursor.execute('SELECT p_order_id FROM activity ' 
                     ' WHERE id=%s', (act_id,))
@@ -235,7 +281,7 @@ def duplicate(id):
                 
         error = None
 
-        if (not date)  or (not tool_id) or (not act_id):
+        if (not date)  or (not act_id):
             error = 'Compila tutti i campi obbligatori.'
         if error is not None:
             flash(error)
@@ -247,7 +293,7 @@ def duplicate(id):
                 )
             db.commit()
             return redirect(url_for('tool_usage.index'))
-    return render_template('tool_usage/update.html', tu_record=tu_record, acts=acts, anag_tools=anag_tools)
+    return render_template('tool_usage/update.html', tu_record=tu_record, tool_name=tool_name, acts=acts, cons_ore=cons_ore,cons_km=cons_km )
 
 
 @bp.route('/tool_usage/<int:id>/delete', methods=('POST',))
@@ -264,10 +310,10 @@ def delete(id):
 @login_required
 def detail(id):
     tu_record = get_tu_record(id)
+    tool_name = get_tool_name(tu_record['tool_id'])
     date = tu_record['date']
     acts = get_actsFiltered(date) #lista dizionari
-    anag_tools = get_anag_tools()
-    return render_template('tool_usage/detail.html', tu_record=tu_record, acts=acts, anag_tools=anag_tools)
+    return render_template('tool_usage/detail.html', tu_record=tu_record, acts=acts, tool_name=tool_name)
 
 @bp.route("/tu_sel_act/<date>", methods=('POST',))
 @login_required
@@ -353,15 +399,52 @@ def get_orderListFiltered2(date):
         abort(404, f"orders è vuota.")
     return orders
 
-def get_anag_tools():
+def get_anag_tools_ore():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT id AS tool_id, CONCAT(brand," ",model, " ", license_plate) AS tool_name ' 
-        ' FROM tool WHERE discontinued=0 ORDER BY brand,model ASC'
+        'SELECT t.id AS tool_id, CONCAT(brand," ",model, " ", license_plate) AS tool_name ' 
+        ' FROM tool t INNER JOIN tool_type tt ON t.tool_type_id=tt.id '
+        ' WHERE tt.cons_ore=1 AND t.discontinued=0 '
+        ' ORDER BY brand,model ASC'
     )
-    anag_tools=cursor.fetchall()
-    return anag_tools
+    anag_tools1=cursor.fetchall()
+    return anag_tools1
+
+def get_anag_tools_km():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT t.id AS tool_id, CONCAT(brand," ",model, " ", license_plate) AS tool_name ' 
+        ' FROM tool t INNER JOIN tool_type tt ON t.tool_type_id=tt.id '
+        ' WHERE tt.cons_km=1 AND t.discontinued=0 '
+        ' ORDER BY brand,model ASC'
+    )
+    anag_tools2=cursor.fetchall()
+    return anag_tools2
+
+def get_tool_name(id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT CONCAT(brand," ",model, " ", license_plate) AS tool_name ' 
+        ' FROM  tool ' 
+        ' WHERE id=%s ',(id,))
+    result=cursor.fetchone()
+    tool_name = result['tool_name']
+    return tool_name
+
+def get_cons_type(id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT tt.cons_ore,tt.cons_km ' 
+        ' FROM  tool_usage tu ' 
+        ' INNER JOIN tool t ON t.id=tu.tool_id ' 
+        ' INNER JOIN tool_type tt ON t.tool_type_id=tt.id '
+        ' WHERE tu.id=%s ',(id,))
+    cons_type=cursor.fetchone()
+    return cons_type
 
 def get_actsFiltered(date):
     # Con questa query si ottengono solo le attività  
