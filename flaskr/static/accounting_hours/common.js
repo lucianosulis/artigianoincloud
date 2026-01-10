@@ -3,6 +3,9 @@
     const data = $("#jsGrid").jsGrid("option", "data");
     const dataJSONStringa = JSON.stringify(data);
     document.getElementById('dati_griglia_json').value = dataJSONStringa;
+    const data1 = $("#jsGrid1").jsGrid("option", "data");
+    const dataJSONStringa1 = JSON.stringify(data1);
+    document.getElementById('dati_griglia_json1').value = dataJSONStringa1;
     }
     catch(err) {alert(err.message)}
   }
@@ -13,7 +16,7 @@ function afterSubmitUpdate() {
     else {
       document.getElementById("night").value = 0;
     }
-  }
+  } 
 
   function setComboActs() {
       console.log(setComboActs);
@@ -58,6 +61,16 @@ function afterSubmitUpdate() {
             success: function(result) {
               acts = result
               load_grid(act_types,acts);
+            }  
+          }); 
+          $.ajax({
+            type: "POST",
+            url: "/tu_sel_act2" + "/" + date,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result) {
+              acts = result;
+              load_grid1(anag_tools1,acts);
             }  
           }); 
       }
@@ -174,6 +187,27 @@ function FloatNumberField(config) {
             { name: "act_id", title: "Attività", type: "select", items: acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left", validate: { message: "Se è un cantiere è obbligatorio specificare l'attività; negli altri casi l'attività dev'essere vuota.", validator: function(value, item) {if ((item.act_type_id == 1 && value != "") || (item.act_type_id != 1 && value == "")) {return true} else {return false}}}},
             { name: "ore_lav", title: "Ore", type: "decimalnumber", readOnly: false,  width: "20%", align: "right"},
             { name: "night", title: "Notturno", type: "checkbox"},
+            { type: "control" }
+        ]
+      });
+  }
+
+  function load_grid1(anag_tools1,acts) {
+    var tu_records = [];
+    
+    $("#jsGrid1").jsGrid({
+        width: "100%",
+        height: "300px",
+        inserting: true,
+        editing: true,
+        sorting: true, 
+        paging: true,
+        data: tu_records,
+            
+        fields: [
+            { name: "act_id", title: "Attività", type: "select", items: acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare l'attività.", validator: function(value) {if (value != "") {return true} else {return false}}}},
+            { name: "tool_id", title: "Mezzo", type: "select", items: anag_tools1, valueField: "tool_id", textField: "tool_name", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare il mezzo.", validator: function(value) {if (value != "") {return true} else {return false}}}},
+            { name: "ore_lav", title: "Ore", type: "decimalnumber", readOnly: false,  width: "20%", align: "right"},
             { type: "control" }
         ]
       });

@@ -1,3 +1,8 @@
+Release 2.19
+Aggiunta la consuntivazione dei soli mezzi a ore nelle pagine timesheet create e 
+accountig_hours ceate. Spostata la voce "Utilizzo mezzi" sotto il menu Presenze.
+Tutti sono abilitati alla funzione.
+
 Release 2.18
 Modificato tool_usage per differenziare i mezzi contabilizzati a ore e quelli a km.
 Aggiunti due flag in anagrafica tool_type: cons_ore e cons_km.

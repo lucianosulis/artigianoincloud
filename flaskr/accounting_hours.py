@@ -77,13 +77,15 @@ def index():
 @bp.route('/accounting_hours/create', methods=('GET', 'POST'))
 @login_required
 def create():
-    people = get_people()
+    people = get_people() 
     act_types_ld = get_act_type_List() #lista dizionari
     act_types = json.dumps(act_types_ld) #json
     date = datetime.today().strftime('%Y-%m-%d')
     acts_ld = get_actsFiltered(date) #lista dizionari
     acts_ld.insert(0, {'act_desc': '','act_id': 0,'p_order_id': 0 })
     acts = json.dumps(acts_ld) #json
+    ld_anag_tools1 = get_anag_tools_ore()
+    anag_tools1 = json.dumps(ld_anag_tools1) #json
 
     if request.method == 'POST': 
         date = request.form['date']
@@ -99,6 +101,18 @@ def create():
             except json.JSONDecodeError:
                 print("Errore nella decodifica dei dati JSON della griglia")
                 error = 'Errore nella decodifica dei dati JSON della griglia.'
+        dati_json_stringa1 = request.form.get('dati_griglia_json1')
+        #print(dati_json_stringa1)
+        dati_griglia1 = []
+        if dati_json_stringa1:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_griglia1 = json.loads(dati_json_stringa1)
+                #print(dati_griglia)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia 1")
+                error = 'Errore nella decodifica dei dati JSON della griglia 1.'
+        
         if (not date):
             error = 'Compila tutti i campi obbligatori.'
         if (not dati_griglia):
@@ -129,10 +143,26 @@ def create():
                         ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
                         (date, act_type_id, people_id, order_id, ore_lav, night, act_id)
                     )
+                
+            for record in dati_griglia1:
+                # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
+                # Estraggo i singoli campi da questo dizionario
+                act_id = record['act_id']
+                cursor.execute('SELECT p_order_id FROM activity ' 
+                    ' WHERE id=%s', (act_id,))
+                result = cursor.fetchone()
+                order_id = result['p_order_id']
+                ore_lav = record['ore_lav']        
+                tool_id = record['tool_id']
+                cursor.execute(
+                    'INSERT INTO tool_usage (date, tool_id, act_id, order_id, ore_lav) '
+                    ' VALUES (%s, %s, %s, %s, %s)',
+                    (date, tool_id, act_id, order_id, ore_lav)
+                )
             db.commit()
             return redirect(url_for('accounting_hours.index'))
 
-    return render_template('accounting_hours/create.html', act_types=act_types, acts=acts, people=people)
+    return render_template('accounting_hours/create.html', act_types=act_types, acts=acts, people=people, anag_tools1=anag_tools1)
 
 @bp.route('/accounting_hours/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -368,3 +398,14 @@ def get_actsFiltered(date):
         abort(404, f"acts è vuota.")
     return acts
 
+def get_anag_tools_ore():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT t.id AS tool_id, CONCAT(brand," ",model, " ", license_plate) AS tool_name ' 
+        ' FROM tool t INNER JOIN tool_type tt ON t.tool_type_id=tt.id '
+        ' WHERE tt.cons_ore=1 AND t.discontinued=0 '
+        ' ORDER BY brand,model ASC'
+    )
+    anag_tools1=cursor.fetchall()
+    return anag_tools1

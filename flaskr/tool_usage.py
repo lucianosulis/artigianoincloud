@@ -15,21 +15,17 @@ bp = Blueprint('tool_usage', __name__)
 @bp.route('/tool_usage', methods=('GET', 'POST'))
 @login_required
 def index():
-    if g.role != "ADMIN":
-         error = 'Non sei autorizzato a questa funzione.'
-         flash(error)
-         return redirect(url_for("calendar.show_cal"))
     
     session["activity_first_page"] = 'Y'
    
-    if not "search" in session:
-        session["search"] = ""
-    searchStr = session["search"]
+    if not "search_tu" in session:
+        session["search_tu"] = ""
+    searchStr = session["search_tu"]
     
     db = get_db()
     cursor = db.cursor(dictionary=True)
     current_app.logger.debug("searchStr 1: " + searchStr)
-    current_app.logger.debug("session.get('search'): " + str(session.get('search')))
+    current_app.logger.debug("session.get('search'): " + str(session.get('search_tu')))
     cursor.execute(
             'SELECT COUNT(*) AS count FROM '
             ' (SELECT tu.id, tu.date as date, tt.type as tool_type, CONCAT(t.brand," ",t.model) as t_name, coalesce(CONCAT(c.full_name," - ",o.description), " - ") as p_order, tu.ore_lav'
@@ -70,10 +66,10 @@ def index():
         #searchStr = searchStr.upper()
         if (searchDate + searchCustomer + searchTool) == "":
             searchStr = ""
-            session["search"] = searchStr
+            session["search_tu"] = searchStr
         current_app.logger.debug("searchStr 2: " + searchStr)
-        session["search"] = searchStr
-        current_app.logger.debug("session.search: " + session["search"])
+        session["search_tu"] = searchStr
+        current_app.logger.debug("session.search: " + session["search_tu"])
         cursor.execute(
             'SELECT COUNT(*) AS count FROM '
             ' (SELECT tu.id, tu.date as date, tt.type as tool_type, CONCAT(t.brand," ",t.model) as t_name, coalesce(CONCAT(c.full_name," - ",o.description), " - ") as p_order, tu.ore_lav'
