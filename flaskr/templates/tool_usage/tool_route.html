@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Calcolo Km percorsi dai mezzi{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <table>
+      <tr>
+        <td><label for="date_start">Data inizio</label></td>
+        <td><input name="date_start" id="date_start" type="date" value="{{ request.form['date_start'] or date_start }}"> </td>
+      </tr>
+      <tr>
+        <td><label for="date_end">Data fine</label></td>
+        <td><input name="date_end" id="date_end" type="date" value="{{ request.form['date_end'] or date_end }}"></td>
+      </tr>
+    </table> 
+    <br>
+    <!-- Campo di appoggio per la griglia in JSON -->
+    <input type="hidden" name="dati_griglia_json3" id="dati_griglia_json3">
+    <!-- Grid per l'inserimento dei Km -->
+    <h4>Mezzi utilizzati a Km</h4> 
+    <div id="jsGrid3"></div>
+    <br>
+    <button id="btn-calcola" style="width: 160px;">
+      <span id="spinner" class="spinner-border spinner-border-sm d-none"></span>
+      Calcola Distanze</button>
+    <br>
+    <input type="submit" value="Salva">
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ url_for('tool_usage.index') }}" hidden>
+  </form>
+  <script type="text/javascript" src="/static/tool_usage/common.js"></script>
+  <script>
+    //Calcolo Distanze
+    $("#btn-calcola").click(function() {
+            $("#spinner").removeClass("d-none"); // Mostra lo spinner
+            $("#btn-calcola").prop("disabled", true); // Disabilita il tasto
+            $("#progress-text").text("Calcolo in corso... per favore attendi.");
+            event.preventDefault(); // <--- BLOCCA IL REFRESH DELLA PAGINA
+            console.log("Parte #btn-calcola")
+            var date_start = document.getElementById("date_start").value
+            var date_end = document.getElementById("date_end").value
+            var url = "{{ url_for('tool_usage.route_calc', date_start='DATA1', date_end='DATA2') }}"
+           .replace('DATA1', date_start)
+           .replace('DATA2', date_end);
+            $.ajax({
+            type: "POST",
+            cache: false, // <--- FORZA IL REFRESH (evita il 304)
+            url: url,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result) {
+              tools = result;
+              console.log("Arrivanoi dati:")
+              console.log(tools)
+              $("#jsGrid3").jsGrid({
+                width: "100%",
+                editing: true, // Permette all'utente di modificare i km manualmente
+                sorting: true,
+                data: tools, 
+                fields: [
+                  { name: "date", title: "Data", type: "text", readOnly: true,  width: "20%", align: "center"},
+                  { name: "act_id", title: "ID Attività", type: "number", visible: false, width: "50%", align: "left"},
+                  { name: "act_desc", title: "Attività", type: "text", readOnly: true, width: "50%", align: "left"},
+                  { name: "order_id", title: "Ordine", type: "number", visible: false },
+                  { name: "tool_id", title: "ID Mezzo", type: "number", visible: false, width: "50%", align: "left"},
+                  { name: "tool_name", title: "Mezzo", type: "text", width: "50%", align: "left"},
+                  { name: "km", title: "Km", type: "number", readOnly: false,  width: "20%", align: "right"},
+                  { type: "control" }
+                ]
+              });
+              const data3 = $("#jsGrid3").jsGrid("option", "data");
+              const dataJSONStringa3 = JSON.stringify(data3);
+              document.getElementById('dati_griglia_json3').value = dataJSONStringa3;
+            }  
+          }); 
+          
+        });
+
+    function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+      }
+   </script>
+
+{% endblock %}

@@ -149,5 +149,25 @@
       });
   }
 
+  function load_grid3(anag_tools2,acts) {
+    var tu_records = [];
+    
+    $("#jsGrid3").jsGrid({
+        width: "100%",
+        height: "300px",
+        inserting: true,
+        editing: true,
+        sorting: true, 
+        paging: true,
+        data: tu_records,
+            
+        fields: [
+            { name: "act_id", title: "Attività", type: "select", items: acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare l'attività.", validator: function(value) {if (value != "") {return true} else {return false}}}},
+            { name: "tool_id", title: "Mezzo", type: "select", items: anag_tools2, valueField: "tool_id", textField: "tool_name", width: "50%", align: "left", validate: { message: "E'obbligatorio specificare il mezzo.", validator: function(value) {if (value != "") {return true} else {return false}}}},
+            { name: "km", title: "Km", type: "decimalnumber", readOnly: false,  width: "20%", align: "right"},
+            { type: "control" }
+        ]
+      });
+  }
 
 

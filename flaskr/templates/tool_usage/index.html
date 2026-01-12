@@ -10,7 +10,8 @@
   <table>
     <tr>
       <td>{{ pagination.info }}</td>   
-      <td><a href="{{ url_for('tool_usage.create') }}"><img src="static/images/add.jpg" alt="Nuova consuntivazione" style="width:42px;height:42px;"></a></td>            
+      <td><a href="{{ url_for('tool_usage.create') }}"><img src="static/images/add.jpg" alt="Nuova consuntivazione" style="width:42px;height:42px;"></a></td>
+      <td><a href="{{ url_for('tool_usage.tool_route') }}"><img src="static/images/route_calc.png" alt="Calcolo percorsi" style="width:42px;height:42px;"></a></td>            
     </tr>
   </table>
   <table>
@@ -63,6 +64,7 @@
       <td><input type="button" onclick="resetSearch()" value="Ripristina">
         <a href="{{ url_for('tool_usage.create') }}"><img src="static/images/add.jpg" alt="Nuova consuntivazione" style="width:42px;height:42px;"></a>
       </td>
+      <td><a href="{{ url_for('tool_usage.tool_route') }}"><img src="static/images/route_calc.png" alt="Calcolo percorsi" style="width:42px;height:42px;"></a></td>
   </tr>
   </table>
   </form>

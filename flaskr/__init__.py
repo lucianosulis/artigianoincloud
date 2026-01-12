@@ -108,7 +108,7 @@ def create_app(test_config=None):
 # register blueprint "tool_usage"
     from . import tool_usage
     app.register_blueprint(tool_usage.bp)
-    app.add_url_rule('/tool_usage', endpoint='index')
+    #app.add_url_rule('/tool_usage', endpoint='index')
 
 # register blueprint "accounting_hours"
     from . import accounting_hours

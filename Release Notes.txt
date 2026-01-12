@@ -1,3 +1,12 @@
+Release 2.20
+Aggiunto il calcolo automatico dei Km per i mezzi consuntivati a Km (tool_route all'interno di 
+tool_usage). Il programma estrae in un intervallo di date tutti i mezzi programmati nelle squadre
+(team) che hanno almeno una attività effettiva e calcola i Km percorsi tra la sede di Mapello 
+e il sito del cliente. La pagina si popola con una griglia in cui si possono cambiare i Km calcolati
+e riempire quelli rimasti a zero perché il servizio di geolocalizzazione non è riuscito nel calcolo.
+Funzione molto lenta, anche perché usa un servizio gratuito che obbliga a fare pausa di 1 secondo tra 
+un calcolo e l'altro, ma si può ottimizzare molto. Intanto proviamolo così.
+
 Release 2.19
 Aggiunta la consuntivazione dei soli mezzi a ore nelle pagine timesheet create e 
 accountig_hours ceate. Spostata la voce "Utilizzo mezzi" sotto il menu Presenze.

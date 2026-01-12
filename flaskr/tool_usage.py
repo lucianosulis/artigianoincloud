@@ -10,6 +10,11 @@ from flaskr.db import get_db
 from datetime import datetime, timedelta
 from dateutil.easter import *
 
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
+import time
+import requests
+
 bp = Blueprint('tool_usage', __name__)
 
 @bp.route('/tool_usage', methods=('GET', 'POST'))
@@ -310,6 +315,134 @@ def detail(id):
     date = tu_record['date']
     acts = get_actsFiltered(date) #lista dizionari
     return render_template('tool_usage/detail.html', tu_record=tu_record, acts=acts, tool_name=tool_name)
+
+@bp.route('/tool_usage/tool_route', methods=('GET','POST'))
+@login_required
+def tool_route():  
+    #Prendo come data di partenza quella successiva all'ultimo record con Km
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute('select date from tool_usage tu where km <> 0 '
+                    ' ORDER BY date DESC LIMIT 1 ')
+    result=cursor.fetchone()
+    if (not result):
+        date_obj = datetime.today()
+    else:
+        date_obj = result['date']
+    date_start = (date_obj + timedelta(days=1)).strftime('%Y-%m-%d')
+    print(f"date_start: {date_start}")
+    #date_start= datetime.today().strftime('%Y-%m-%d')
+    #Prendo come data fine quella di oggi (modificabile sulla form)
+    date_end = datetime.today().strftime('%Y-%m-%d')
+    if request.method == 'POST':
+        print("POST salvataggio dati")
+        error = None
+        date_start= request.form['date_start']
+        date_end =  request.form['date_end']
+        dati_json_stringa3 = request.form.get('dati_griglia_json3')
+        #print(dati_json_stringa2)
+        dati_griglia3 = []
+        if dati_json_stringa3:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_griglia3 = json.loads(dati_json_stringa3)
+                #print(dati_griglia3)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia 3")
+                error = 'Errore nella decodifica dei dati JSON della griglia 3.'
+
+        if (not dati_griglia3) :
+            error = 'Non ci sono mezzi da registrare.'
+        if error is not None:
+            flash(error)
+        else:
+            for record in dati_griglia3:
+                print(record)
+                # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
+                # Estraggo i singoli campi da questo dizionario
+                date = record['date']
+                act_id = record['act_id']
+                order_id = record['order_id']       
+                tool_id = record['tool_id']
+                km = round(record['km']) 
+                cursor.execute(
+                    'INSERT INTO tool_usage (date, tool_id, act_id, order_id, km) '
+                    ' VALUES (%s, %s, %s, %s, %s)',
+                    (date, tool_id, act_id, order_id, km)
+                )
+                db.commit()
+            return redirect(url_for('tool_usage.index'))
+
+    return render_template('tool_usage/tool_route.html', date_start=date_start, date_end=date_end)
+
+@bp.route('/tool_usage/route_calc/<date_start>/<date_end>', methods=('POST',))
+@login_required
+def route_calc(date_start,date_end): 
+    print("Sono in route_calc")
+    error = None
+    data_returned = []
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT t.date as date, a.id as act_id, CONCAT(c.full_name, " - ", a.title) AS act_desc, '
+        ' o.id as order_id, tl.id as tool_id, CONCAT(brand," ",model, " ", license_plate) AS tool_name, '
+        ' CONCAT(s.address,", ",s.city) as arrival_site, 0 AS km '
+        ' from activity a '
+        ' inner join site s on a.site_id = s.id '
+        ' inner join p_order o ON a.p_order_id = o.id '
+        ' inner join customer c ON o.customer_id = c.id '
+        ' inner join rel_team_activity rta on rta.activity_id = a.id '
+        ' inner join team t on rta.team_id = t.id '
+        ' inner join rel_team_tool rtt on rtt.team_id = t.id '
+        ' inner join tool tl on rtt.tool_id  = tl.id '
+        ' inner join tool_type tt on tl.tool_type_id = tt.id '
+        ' where t.date >= %s and t.date <= %s and tt.cons_km = 1', (date_start,date_end))
+    
+    tools = cursor.fetchall()
+    #print(tools)
+    start_site = "Via San Cassiano 1, Mapello"
+    # 1. Inizializza il geolocalizzatore
+    # Nota: inserisci un user_agent personalizzato per rispettare le policy di OSM
+    geolocator = Nominatim(user_agent="mio_calcolatore_distanze_v1")
+    # 2. Geocodifica Partenza
+    loc1 = geolocator.geocode(start_site)
+    if not loc1:
+        flash("Errore: indirizzo partenza non è stato trovato.")
+        return redirect(url_for('tool_usage.index'))
+    lat1, lon1 = loc1.latitude, loc1.longitude
+    
+    for tool in tools:
+        arrival_site = tool['arrival_site']
+        tool_date = tool['date']
+        tool['date'] = tool_date.strftime('%Y-%m-%d')
+        try:
+            time.sleep(1) # Rispetto del limite di 1 richiesta al secondo
+            # 3. Geocodifica Arrivo
+            loc2 = geolocator.geocode(arrival_site)
+            if not loc2:
+                flash(f"Errore: indirizzo: {arrival_site}  non è stato trovato.")
+            else:        
+                # Estraggo le coordinate
+                lat1, lon1 = loc1.latitude, loc1.longitude
+                lat2, lon2 = loc2.latitude, loc2.longitude
+                # Utilizza le API pubbliche di OSRM
+                url = f"http://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false"
+                r = requests.get(url)
+                data = r.json()
+                # La distanza restituita è in metri
+                distanza_metri = data['routes'][0]['distance']
+                dist_stradale = distanza_metri / 1000
+                tool['km'] = dist_stradale
+                data_returned.append(tool)
+        except Exception as e:
+            flash(f"Errore durante l'esecuzione: {e}")
+    try:
+         risposta_json = jsonify(data_returned)
+         print("JSON creato con successo")
+         return risposta_json
+    except Exception as e:
+        print(f"ERRORE FATALE durante la creazione del JSON: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @bp.route("/tu_sel_act/<date>", methods=('POST',))
 @login_required
