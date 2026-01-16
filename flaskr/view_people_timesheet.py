@@ -167,7 +167,9 @@ def index():
             except:
                 hours_dict['OreMaltempo'] = 0
 
-            hours_dict['OreTotali'] = hours_dict['OreLavDiurne'] + hours_dict['OreLavNotturne'] + hours_dict['OreFerie'] + hours_dict['OreMalattia'] + hours_dict['OrePNR'] + hours_dict['OrePR'] + hours_dict['OreMaltempo']
+            #hours_dict['OreTotali'] = hours_dict['OreLavDiurne'] + hours_dict['OreLavNotturne'] + hours_dict['OreFerie'] + hours_dict['OreMalattia'] + hours_dict['OrePNR'] + hours_dict['OrePR'] + hours_dict['OreMaltempo']
+            #Solo le ore lavorative
+            hours_dict['OreTotali'] = hours_dict['OreLavDiurne'] + hours_dict['OreLavNotturne']
 
     return render_template('view_people_timesheet/index.html',hours_dict = hours_dict)
     

@@ -124,7 +124,7 @@
             sorting: false,
             paging: true,
     
-            data: ts_people,
+            data: ts_people, 
     
             fields: [
                 { name: "date", title: "Data", type: "text", width: 35, align: "left" },
@@ -146,13 +146,32 @@
         if (tu_tool_dates != "" && tu_tool_dates != null && tu_tool_dates != "None") {
           var tu_tool = [];
           for (let i = 0; i < tu_tool_dates_arr.length; i++) {
-            var new_element = '{"date": "' + tu_tool_dates_arr[i] + '", "t_name": "' + tu_tool_names_arr[i] + '", "ore": "' + tu_tool_hours_arr[i] + '"}';
+            var new_element = '{"date": "' + tu_tool_dates_arr[i] + '", "name": "' + tu_tool_names_arr[i] + '", "ore": "' + tu_tool_hours_arr[i] + '"}';
             console.log("new_element: " + new_element);
             var new_object = JSON.parse(new_element);
             tu_tool.push(new_object);
 
           }
         } 
+
+        $("#jsGrid3").jsGrid({
+            width: "100%",
+            height: "250px",
+    
+            inserting: false,
+            editing: false,
+            sorting: false,
+            paging: true,
+    
+            data: tu_tool, 
+    
+            fields: [
+                { name: "date", title: "Data", type: "text", width: 35, align: "left" },
+                { name: "name", title: "Mezzo", type: "text", width: 55, align: "left" },
+                { name: "ore", title: "Ore", type: "text", width: 10, align: "left" }
+            ]
+          });
+
 
     function activity_to_do() {
         var act_id = document.getElementById("act_id").value;

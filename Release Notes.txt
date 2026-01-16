@@ -1,3 +1,9 @@
+Release 2.21
+In "Visualizza ore" il totale diventa quello delle sole ore lavorate.
+In activity detail mancava il popolamento della griglia mezzi (che dovrà subire un refactoring).
+In tool_usage.py funzione route_calc corretto i lcalcolo dei Km moltiplicando per 2 (A/R) e 
+arrotondando all'intero.
+
 Release 2.20
 Aggiunto il calcolo automatico dei Km per i mezzi consuntivati a Km (tool_route all'interno di 
 tool_usage). Il programma estrae in un intervallo di date tutti i mezzi programmati nelle squadre

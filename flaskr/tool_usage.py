@@ -431,7 +431,7 @@ def route_calc(date_start,date_end):
                 data = r.json()
                 # La distanza restituita è in metri
                 distanza_metri = data['routes'][0]['distance']
-                dist_stradale = distanza_metri / 1000
+                dist_stradale = round(distanza_metri / 1000 * 2) 
                 tool['km'] = dist_stradale
                 data_returned.append(tool)
         except Exception as e:
