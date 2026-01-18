@@ -1,3 +1,9 @@
+Release 2.22
+Refactoring del calcolo dei percorsi e della georeferenziazione. Aggiunte latidudine e 
+longitudine in tabella site. Separato il calcolo delle coordinate da quello dei percorsi.
+Creata tabella company con coordinate delal sede di PRONTOGIARDINI. 
+Sarà la base della futura versioen multiazienda.
+
 Release 2.21
 In "Visualizza ore" il totale diventa quello delle sole ore lavorate.
 In activity detail mancava il popolamento della griglia mezzi (che dovrà subire un refactoring).

@@ -1,3 +1,9 @@
+  function afterSubmit() {
+    const data = $("#jsGrid3").jsGrid("option", "data");
+    const dataJSONStringa3 = JSON.stringify(data);
+    document.getElementById('dati_griglia_json3').value = dataJSONStringa3;
+  }
+  
   function afterSubmitCreate() {
     const data1 = $("#jsGrid1").jsGrid("option", "data");
     const dataJSONStringa1 = JSON.stringify(data1);

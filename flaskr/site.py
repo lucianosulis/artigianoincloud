@@ -6,6 +6,7 @@ from werkzeug.exceptions import abort
 
 from flaskr.auth import login_required
 from flaskr.db import get_db
+from .geo_utils import geocoordinates
 
 bp = Blueprint('site', __name__)
 
@@ -113,6 +114,8 @@ def update(id):
         contact_people = request.form['contact_people']
         telephone = request.form['telephone']
         email = request.form['email']
+        lat = request.form['lat']
+        lon = request.form['lon']
         error = None
 
         if (not customer_id) or (not city) or (not address):
@@ -124,9 +127,10 @@ def update(id):
             db = get_db()
             cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'UPDATE site SET customer_id = %s, city = %s, address = %s, contact_people = %s, telephone = %s, email = %s'
+                'UPDATE site SET customer_id = %s, city = %s, address = %s, contact_people = %s, ' \
+                ' telephone = %s, email = %s, latitude=%s, longitude=%s'
                 ' WHERE id = %s',
-                (customer_id, city, address, contact_people, telephone, email, id)
+                (customer_id, city, address, contact_people, telephone, email, lat, lon, id)
             )
             db.commit()
             return redirect(url_for('site.index'))
@@ -153,7 +157,7 @@ def get_site(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT id, customer_id, address, city, contact_people, telephone, email' 
+        'SELECT id, customer_id, address, city, contact_people, telephone, email, latitude, longitude ' 
         ' FROM site'
         ' WHERE id = %s',
         (id,)
@@ -184,3 +188,34 @@ def get_customerList():
     if customerList is None:
         abort(404, f"customerList è vuota.")
     return customerList
+@bp.route('/site/geo_site', methods=('POST',))
+@login_required
+def geo_site():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT s.id,CONCAT(s.address,",",s.city) AS full_address, c.full_name'
+                ' FROM site s ' \
+                ' INNER JOIN customer c ON s.customer_id = c.id' \
+                ' WHERE latitude IS NULL OR longitude IS NULL'
+                #' LIMIT 15'
+                )
+    sites = cursor.fetchall()
+    for site in sites:
+        #print(site)
+        site_id = site['id']
+        latitudine, longitudine, messaggio_errore = geocoordinates(site['full_address'])
+        #print(f"Lat: {latitudine} Long: {longitudine}")
+        if not messaggio_errore:
+            cursor.execute(
+                'UPDATE site SET latitude=%s, longitude=%s'
+                ' WHERE id=%s',
+                (latitudine,longitudine,site_id)
+                )
+            db.commit()
+        else:
+            msg = messaggio_errore + ": " + site['full_name'] + " - " + site['full_address']
+            print(msg)
+            flash(msg)
+    
+    return redirect(url_for('site.index')) 

@@ -7,7 +7,7 @@
 
 {% block content %}
 
-  <form method="post">
+  <form method="post" onsubmit="afterSubmit()">
     <table>
       <tr>
         <td><label for="date_start">Data inizio</label></td>
@@ -55,7 +55,7 @@
             dataType: 'json',
             success: function(result) {
               tools = result;
-              console.log("Arrivanoi dati:")
+              console.log("Arrivano i dati:")
               console.log(tools)
               $("#jsGrid3").jsGrid({
                 width: "100%",
@@ -68,7 +68,7 @@
                   { name: "act_desc", title: "Attività", type: "text", readOnly: true, width: "50%", align: "left"},
                   { name: "order_id", title: "Ordine", type: "number", visible: false },
                   { name: "tool_id", title: "ID Mezzo", type: "number", visible: false, width: "50%", align: "left"},
-                  { name: "tool_name", title: "Mezzo", type: "text", width: "50%", align: "left"},
+                  { name: "tool_name", title: "Mezzo", type: "text", readOnly: true, width: "50%", align: "left"},
                   { name: "km", title: "Km", type: "number", readOnly: false,  width: "20%", align: "right"},
                   { type: "control" }
                 ]
@@ -76,6 +76,7 @@
               const data3 = $("#jsGrid3").jsGrid("option", "data");
               const dataJSONStringa3 = JSON.stringify(data3);
               document.getElementById('dati_griglia_json3').value = dataJSONStringa3;
+              $("#spinner").addClass("d-none");
             }  
           }); 
           
