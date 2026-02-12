@@ -7,7 +7,7 @@
 
 {% block content %}
 
-  <form method="post" onsubmit="afterSubmit()">
+  <form method="post" onsubmit="return afterSubmit()">
     <label for="title">Titolo</label>
     <input name="title" id="title" value="{{ request.form['title'] or team['title'] }}" required>
     <label for="date">Data</label>
@@ -19,10 +19,14 @@
     <label for="notes">Note</label>
     <textarea name="notes" id="notes" rows="3">{{ request.form['notes'] or team['notes'] }}</textarea>
     <!-- Campi di appoggio per le griglie in JSON -->
+    <input type="hidden" name="dati_jsGridAct_json" id="dati_jsGridAct_json">
     <input type="hidden" name="dati_jsGridPeople_json" id="dati_jsGridPeople_json">
     <input type="hidden" name="dati_jsGridTool_json" id="dati_jsGridTool_json">
-    <input type="hidden" name="dati_jsGridAct_json" id="dati_jsGridAct_json">
     <br> 
+    <!-- Grid per l'inserimento delle attività -->
+    <h4>Attività</h4>
+    <div id="jsGridAct"></div>
+    <br>
     <!-- Grid per la selezione del personale-->
     <h4>Operatori previsti</h4>
     <div id="jsGridPeople"></div>
@@ -30,10 +34,7 @@
     <!-- Grid per la selezione dei mezzi-->
     <h4>Mezzi previsti</h4>
     <div id="jsGridTool"></div>
-    <br>
-    <!-- Grid per l'inserimento delle attività -->
-    <h4>Attività</h4>
-    <div id="jsGridAct"></div>
+    <button type="button" id="btn-put_tool_type" style="height:30px; width:160px">Popola categorie</button>
     <br>
 
     <input type="submit" value="Salva">
@@ -54,6 +55,23 @@
     function goBack() {
       window.location.assign(document.getElementById("goback").value);
     }
+    
+    var anag_acts = JSON.parse(`{{ anag_acts | default("[]") | safe }}`);
+    var acts = JSON.parse(`{{ acts | default("[]") | safe }}`);
+        $("#jsGridAct").jsGrid({
+                    width: "40%",
+                    height: "400px",
+                    inserting: true, 
+                    editing: true,
+                    sorting: true,
+                    paging: true,
+                    data: acts,
+                        
+                    fields: [
+                        { name: "act_id", title: "Attività", type: "select", items: anag_acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left" }, 
+                        { type: "control" }
+                    ]
+                  });
 
     var anag_people = JSON.parse(`{{ anag_people | default("[]") | safe }}`);
     var people = JSON.parse(`{{ people | default("[]") | safe }}`);
@@ -168,27 +186,6 @@ function updateDropdown($selectControl, categoryId) {
     }
 }
 
-        var anag_acts = JSON.parse(`{{ anag_acts | default("[]") | safe }}`);
-        var acts = JSON.parse(`{{ acts | default("[]") | safe }}`);
-        $("#jsGridAct").jsGrid({
-                    width: "40%",
-                    height: "400px",
-                    inserting: true, 
-                    editing: true,
-                    sorting: true,
-                    paging: true,
-                    data: acts,
-                        
-                    fields: [
-                        { name: "act_id", title: "Attività", type: "select", items: anag_acts, valueField: "act_id", textField: "act_desc", width: "50%", align: "left" }, 
-                        { type: "control" }
-                    ]
-                  });
-
-    function goBack() {
-      window.location.assign(document.getElementById("goback").value);
-    }
-
-  </script>
+</script>
 
 {% endblock %}

@@ -43,6 +43,16 @@
     <input name="order_desc" id="order_desc" value="{{ order['order_desc'] }}" readonly>
     <label for="site_id">Sede</label>
     <input name="site" id="site" value="{{ site['site_desc'] }}" readonly>
+    <label for="tag_ids">Tag</label></td>
+    <SELECT id="tag_ids" name="tag_ids" multiple size="5" disabled> 
+        {% for tag in anag_tags %}
+          {% if tag.tag_id in tag_ids %}
+              <OPTION value={{tag.tag_id}} selected>{{tag.tag_desc}}</option>
+          {% else %}
+              <OPTION value={{tag.tag_id}} >{{tag.tag_desc}}</option>
+          {% endif %}
+        {% endfor %}
+    </SELECT> 
     <label for="description">Descrizione lavorazioni</label>
     <textarea name="description" id="description" readonly>{{ request.form['description'] or act['description'] }}</textarea>
     <input name="ts_people_dates" id="ts_people_dates" value="{{ request.form['ts_people'] or ts_people['date'] }}" hidden>
@@ -59,6 +69,9 @@
         <td style="width: 100%"><div id="jsGrid2"></div></td>
       </tr>
       </table>
+    
+      <h4>Totale ore lavorate: {{ts_total_hours}}</h4>
+      <br>
       <h4>Mezzi effettivi</h4>
       <table>
       <tr>

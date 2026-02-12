@@ -226,8 +226,17 @@ class Oauth:
                     
                     cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
                     row = cursor.fetchone()
-                    id = row['last_insert']
-                    #aggiungere le eventuali relazioni con team
+                    #eventuali tag
+                    activity_id = row['last_insert']
+                    tag_ids_arr = session['selected_tag']
+                    for tag_id in tag_ids_arr:
+                        print(f"tag_id: {tag_id}")
+                        cursor.execute(
+                            'INSERT INTO rel_tag_activity (activity_id, tag_id)'
+                            ' VALUES (%s, %s)',
+                            (activity_id, tag_id)
+                        )
+                    db.commit()
 
                 elif session["fc_call_type"] == "fc_new_order_wo_act": 
                     print("Creo nuovo ordine spot senza attività")

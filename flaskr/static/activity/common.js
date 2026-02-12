@@ -191,4 +191,6 @@ console.log("Sono nello script principale di activity/common.js");
       window.open(document.getElementById("url").value,"Clienti", "toolbar=no,fullscreen=yes");
     }
 
+
+
        

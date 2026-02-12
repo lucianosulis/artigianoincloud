@@ -137,7 +137,7 @@ def index():
                     #print("p_type: " + people['p_type'])
                     cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
                     cell.font = font3
-                    ws.merge_cells('A' + str(i) + ':A' + str(i+8))
+                    ws.merge_cells('A' + str(i) + ':A' + str(i+9))
                     
                     gg_paga = people['gg_paga']
                     if not gg_paga:
@@ -174,6 +174,7 @@ def index():
                         ore_PNR = 0
                         ore_M = 0
                         ore_CISOA = 0
+                        ore_CP = 0
             
                         k = 0
                         while k < len(code_arr):
@@ -193,9 +194,11 @@ def index():
                                 ore_M = ore_M + float(ore_arr[k])
                             if code_arr[k] == "CISOA":
                                 ore_CISOA = ore_CISOA + float(ore_arr[k])
+                            if code_arr[k] == "CP":
+                                ore_CP = ore_CP + float(ore_arr[k])
                             k = k + 1
                         
-                        ore_NOLAV = ore_FE + ore_PR + ore_PNR + ore_M + ore_CISOA
+                        ore_NOLAV = ore_FE + ore_PR + ore_PNR + ore_M + ore_CISOA + ore_CP
                         print("ore_NOLAV:")
                         print(ore_NOLAV)
                         ore_STD_NETTE = ore_STD - ore_NOLAV
@@ -281,6 +284,12 @@ def index():
                             c.font = font6
                             c = ws.cell(row=row + 8, column=34, value="=SUM(C"+str(row+8)+":AG"+str(row+8)+")")
                             c.font = font6
+                        if ore_CP > 0:
+                            c = ws.cell(row=row + 9, column=col, value=ore_CP) 
+                            c = ws.cell(row=row + 9, column=2, value="CP") 
+                            c.font = font6
+                            c = ws.cell(row=row + 9, column=34, value="=SUM(C"+str(row+9)+":AG"+str(row+9)+")")
+                            c.font = font6
                         
                         col_letter = get_column_letter(col)
                         ws.column_dimensions[col_letter].width = 4
@@ -307,7 +316,7 @@ def index():
                                     c = ws.cell(row=row_index, column=day + 2)
                                     c.fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid") #rosso    
                     
-                    i = i + 9
+                    i = i + 10
             n = 3
             while n <= last_month_day + 2:
                 dayNum = n - 2 

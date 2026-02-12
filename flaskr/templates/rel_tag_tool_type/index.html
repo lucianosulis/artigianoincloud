@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+{% block content %}
+<h4>Associazione tag -> tipologia mezzi</h4>
+
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.info }}</td>
+      </tr>
+      <tr>
+        <td>{{ pagination.links }}</td>
+        <td>
+          <a href="{{ url_for('rel_tag_tool_type.create') }}"><img src="static/images/add.jpg" alt="Nuova associazione tag" style="width:42px;height:42px;"></a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="table-striped">
+    <table>
+      <tr>
+        <th>Tag</th><th>Codice</th><th>Tipologia mezzo</th><th></th>
+      </tr>
+      {% for rel_tag_tool_type in rel_tag_tool_types %}
+      <tr>
+        <td>{{ rel_tag_tool_type['tag_description'] }}</td><td>{{ rel_tag_tool_type['tag_code'] }}</td><td>{{ rel_tag_tool_type['tool_type'] }}</td>
+        <td>
+          <a href="{{ url_for('rel_tag_tool_type.update', id=rel_tag_tool_type['id']) }}"><img src="static/images/update.jpg" alt="Modifica" style="width:25px;height:25px;"></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="table">
+    <table>
+      <tr>
+        <td>{{ pagination.links }}</td>
+      </tr>
+    </table>
+  </div>
+  
+  <script>
+    function resetSearch() {
+      //document.getElementById("searchCompany").value = "";
+      //document.getElementById("SearchForm").submit();
+    }
+    
+  </script>
+{% endblock %}

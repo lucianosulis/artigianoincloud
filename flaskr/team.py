@@ -108,6 +108,7 @@ def create():
     print(anag_acts)
 
     if request.method == 'POST':
+        error = None
         title = request.form['title']
         date = request.form['date']
         start_time = request.form['start_time']
@@ -131,7 +132,9 @@ def create():
             try:
                 # Deserializza la stringa JSON in una lista di dizionari Python
                 dati_jsGridTool = json.loads(dati_jsGridTool_stringa)
-                #print(dati_griglia)
+                print(f"dati_jsGridTool: {dati_jsGridTool}")
+                if not all("tool_id" in d for d in dati_jsGridTool):
+                    error = "Devi compilare tutti i mezzi."
             except json.JSONDecodeError:
                 print("Errore nella decodifica dei dati JSON della griglia")
                 error = 'Errore nella decodifica dei dati JSON della griglia.'
@@ -146,8 +149,6 @@ def create():
             except json.JSONDecodeError:
                 print("Errore nella decodifica dei dati JSON della griglia")
                 error = 'Errore nella decodifica dei dati JSON della griglia.'
-
-        error = None
 
         if (not date) or (not title):
             error = 'Compila tutti i campi obbligatori.'
@@ -179,6 +180,7 @@ def create():
                 db.commit()
             
             for record in dati_jsGridTool:
+                print(record) 
                 tool_id = record['tool_id']
                 cursor.execute('INSERT INTO rel_team_tool (team_id, tool_id)'
                     ' VALUES (%s, %s)',
@@ -344,12 +346,13 @@ def update(id):
                 error = 'Errore nella decodifica dei dati JSON della griglia.'
 
         dati_jsGridTool_stringa = request.form.get('dati_jsGridTool_json')
+        #print(f"dati_jsGridTool_json: {dati_jsGridTool_stringa}")
         dati_jsGridTool = []
         if dati_jsGridTool_stringa:
             try:
                 # Deserializza la stringa JSON in una lista di dizionari Python
                 dati_jsGridTool = json.loads(dati_jsGridTool_stringa)
-                #print(dati_griglia)
+                #print(dati_jsGridTool)
             except json.JSONDecodeError:
                 print("Errore nella decodifica dei dati JSON della griglia")
                 error = 'Errore nella decodifica dei dati JSON della griglia.'
@@ -577,10 +580,32 @@ def team_sel_acts(date):
     anag_act = get_actListFiltered(date)
     return (anag_act)
 
+#Per chiamata Ajax che seleziona i tool_type di una squadra 
+@bp.route("/team_sel_tool_type", methods=('POST',))
+@login_required
+def team_sel_tool_type():
+    data = request.get_json() #Non viene passato un parametro, ma la jsgrid delle attività selezionate 
+    act_ids = data.get('ids', [])
+    #print(act_ids)
+    tool_types = []
+    act_ids_SQL = ",".join(str(id) for id in act_ids)
+    if (act_ids_SQL):
+        query = 'SELECT tt.id as type_id  from rel_tag_activity rta ' \
+            'inner join rel_tag_tool_type rttt on rta.tag_id = rttt.tag_id ' \
+            'inner join tool_type tt on tt.id = rttt.tool_type_id ' \
+            'where activity_id in (' + act_ids_SQL + ')'
+        #print(query)
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute(query)
+        tool_types = cursor.fetchall()
+        #print(tool_types)
+    return(tool_types)
+
 def get_team(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    #Uso CAST e SUBTRING per ottenere il formato stringa HH:MM, 
+    # Uso CAST e SUBTRING per ottenere il formato stringa HH:MM, 
     # altrimenti il connettore SQL tira fuori un tipo timedelta.
     cursor.execute(
         'SELECT id, title, date, SUBSTRING(CAST(start_time AS CHAR),1,5) as start_time, SUBSTRING(CAST(finish_time AS CHAR),1,5) as finish_time, notes ' 

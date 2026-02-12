@@ -135,6 +135,7 @@ def create():
          flash(error)
          return redirect(url_for("activity.index"))
     orderList = get_orderList()
+    anag_tags = get_anag_tags()
     
     if request.method == 'POST':
         title = request.form['title']
@@ -142,8 +143,9 @@ def create():
         start = request.form['start']
         end = request.form['end']
         order_id = request.form['order_id']
-        site_id = request.form['input_site_id']
-    
+        site_id = request.form['input_site_id'] 
+        tag_ids_arr = request.form.getlist('tag_ids')
+        
         error = None
 
         if (not start) or (not end) or (not order_id) or (not site_id):
@@ -161,7 +163,7 @@ def create():
                 cursor.execute('SELECT description FROM p_order WHERE id = %s', (order_id,))
                 row = cursor.fetchone()
                 title = row['description']
-            #Creo il nuovo record per l'attività
+             #Creo il nuovo record per l'attività
             cursor.execute(
                 'INSERT INTO activity (title, description, start, end, p_order_id, site_id)'
                 ' VALUES (%s, %s, %s, %s, %s, %s)',
@@ -169,9 +171,21 @@ def create():
             )
             db.commit()
 
+            cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
+            row = cursor.fetchone()
+            activity_id = row['last_insert']
+            for tag_id in tag_ids_arr:
+                print(f"tag_id: {tag_id}")
+                cursor.execute(
+                    'INSERT INTO rel_tag_activity (activity_id, tag_id)'
+                    ' VALUES (%s, %s)',
+                    (activity_id, tag_id)
+                )
+            db.commit()
+
             return redirect(url_for('activity.index'))
 
-    return render_template('activity/create.html', orderList=orderList)
+    return render_template('activity/create.html', orderList=orderList, anag_tags=anag_tags)
 
 @bp.route('/activity/<sel_date>/create_from_cal', methods=('GET', 'POST'))
 @login_required
@@ -181,6 +195,7 @@ def create_from_cal(sel_date):
          flash(error)
          return redirect(url_for("activity.index"))
     orderList = get_orderList()
+    anag_tags = get_anag_tags()
 
     if request.method == 'POST':
         title = request.form['title']
@@ -189,6 +204,7 @@ def create_from_cal(sel_date):
         end = request.form['end']
         order_id = request.form['order_id']
         site_id = request.form['input_site_id']
+        tag_ids_arr = request.form.getlist('tag_ids')
     
         error = None
 
@@ -214,10 +230,22 @@ def create_from_cal(sel_date):
                 (title, description, start, end, order_id, site_id)
             )
             db.commit()
+
+            cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
+            row = cursor.fetchone()
+            activity_id = row['last_insert']
+            for tag_id in tag_ids_arr:
+                print(f"tag_id: {tag_id}")
+                cursor.execute(
+                    'INSERT INTO rel_tag_activity (activity_id, tag_id)'
+                    ' VALUES (%s, %s)',
+                    (activity_id, tag_id)
+                )
+            db.commit()
             
             return redirect(url_for('calendar.show_cal'))
 
-    return render_template('activity/create_from_cal.html',orderList=orderList,sel_date=sel_date)
+    return render_template('activity/create_from_cal.html',orderList=orderList,sel_date=sel_date, anag_tags=anag_tags)
 
 @bp.route('/activity/create_wo_order', methods=('GET', 'POST'))
 @login_required
@@ -227,6 +255,7 @@ def create_wo_order():
          flash(error)
          return redirect(url_for("activity.index"))
     customerList = get_customerList()
+    anag_tags = get_anag_tags()
     
     if request.method == 'POST':
         title = request.form['title']
@@ -235,6 +264,7 @@ def create_wo_order():
         end = request.form['end']
         customer_id = request.form['customer_id']
         site_id = request.form['input_site_id']
+        tag_ids_arr = request.form.getlist('tag_ids')
     
         error = None
 
@@ -247,6 +277,7 @@ def create_wo_order():
         if error is not None:
             flash(error)
         else:
+            
             session["fc_call_type"] = "fc_new_order"
             session["customer_id"] = customer_id
             session["site_id"] = site_id
@@ -255,9 +286,10 @@ def create_wo_order():
             session["start"] = start
             session["end"] = end
             session["notes"] = ""
+            session['selected_tag'] = tag_ids_arr
             return redirect('/oauth')
 
-    return render_template('activity/create_wo_order.html', customerList=customerList)
+    return render_template('activity/create_wo_order.html', customerList=customerList, anag_tags=anag_tags)
 
 @bp.route('/activity/<int:id>/create_from_order', methods=('GET', 'POST'))
 @login_required
@@ -268,6 +300,7 @@ def create_from_order(id):
          return redirect(url_for("activity.index"))
     order = get_order_desc(id)
     order_desc = order['order_desc']
+    anag_tags = get_anag_tags()
 
     if request.method == 'POST':
         title = request.form['title']
@@ -276,6 +309,7 @@ def create_from_order(id):
         end = request.form['end']
         order_id = request.form['order_id']
         site_id = request.form['input_site_id']
+        tag_ids_arr = request.form.getlist('tag_ids')
     
         error = None
 
@@ -301,10 +335,20 @@ def create_from_order(id):
                 (title, description, start, end, order_id, site_id)
             )
             db.commit()
-            
+            cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
+            row = cursor.fetchone()
+            activity_id = row['last_insert']
+            for tag_id in tag_ids_arr:
+                print(f"tag_id: {tag_id}")
+                cursor.execute(
+                    'INSERT INTO rel_tag_activity (activity_id, tag_id)'
+                    ' VALUES (%s, %s)',
+                    (activity_id, tag_id)
+                )
+            db.commit()
             return redirect(url_for('activity.index'))
 
-    return render_template('activity/create_from_order.html', order_id=id, order_desc=order_desc)
+    return render_template('activity/create_from_order.html', order_id=id, order_desc=order_desc, anag_tags=anag_tags)
 
 
 @bp.route('/activity/<int:id>/update', methods=('GET', 'POST'))
@@ -318,6 +362,10 @@ def update(id):
     order_id = act['p_order_id']
     order_desc = get_order(id)
     siteList = get_siteList(order_id)
+    anag_tags = get_anag_tags()
+    tags = get_act_tags(id)
+    tag_ids = [item['tag_id'] for item in tags]
+    #print(f"tag_ids: {tag_ids}")
         
     if request.method == 'POST': 
         title = request.form['title']
@@ -326,6 +374,7 @@ def update(id):
         end = request.form['end']
         order_id = request.form['order_id']
         site_id = request.form['input_site_id']
+        tag_ids_arr = request.form.getlist('tag_ids')
         
         error = None
 
@@ -344,11 +393,22 @@ def update(id):
                 ' WHERE id = %s',
                 (title, description, start, end, order_id, site_id, id)
             )
+            db.commit() 
+            cursor.execute(
+                'DELETE FROM rel_tag_activity '
+                ' WHERE activity_id = %s ',
+                (id,)
+            )
+            for tag_id in tag_ids_arr:
+                    cursor.execute(
+                        'INSERT INTO rel_tag_activity (activity_id, tag_id) '
+                        ' VALUES (%s, %s)',
+                        (id,tag_id)
+                    )
             db.commit()
-            
             return redirect(url_for('activity.index'))
     show_calendar =  session["show_calendar"]
-    return render_template('activity/update.html', act=act, order_id=order_id, order_desc=order_desc, siteList=siteList, show_calendar=show_calendar)
+    return render_template('activity/update.html', act=act, order_id=order_id, order_desc=order_desc, siteList=siteList, anag_tags=anag_tags, tag_ids=tag_ids, show_calendar=show_calendar)
 
 @bp.route('/activity/<int:id>/duplicate', methods=('GET', 'POST'))
 @login_required
@@ -466,6 +526,7 @@ def delete(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute('DELETE FROM rel_team_activity WHERE activity_id = %s', (id,))
+    cursor.execute('DELETE FROM rel_tag_activity WHERE activity_id = %s', (id,))
     cursor.execute('DELETE FROM activity WHERE id = %s', (id,))
     db.commit()
     return redirect(url_for('activity.index'))
@@ -478,9 +539,13 @@ def detail(id):
     order = get_order(id)
     site = get_site(id)
     ts_people = get_ts_people(id)
+    ts_total_hours = get_ts_total_hours(id)
     tu_tool = get_tu_tool(id)
+    anag_tags = get_anag_tags()
+    tags = get_act_tags(id)
+    tag_ids = [item['tag_id'] for item in tags]
     show_calendar =  session["show_calendar"]
-    return render_template('activity/detail.html', act=act, order=order, site=site, ts_people=ts_people, tu_tool=tu_tool, show_calendar=show_calendar)
+    return render_template('activity/detail.html', act=act, order=order, site=site, ts_people=ts_people, tu_tool=tu_tool, anag_tags=anag_tags, tag_ids=tag_ids, ts_total_hours=ts_total_hours, show_calendar=show_calendar)
 
 @bp.route("/sel_order", methods=('POST',))
 @login_required
@@ -775,3 +840,51 @@ def get_tool(id):
     )
     tool = cursor.fetchone()
     return tool
+
+def get_anag_tags():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT id AS tag_id, CONCAT(code," - ",description) AS tag_desc'
+        ' FROM tag'
+        ' ORDER BY code ASC'
+    )
+    tags=cursor.fetchall()
+
+    if tags is None:
+        abort(404, f"tags è vuota.")
+    return tags
+
+def get_act_tags(id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT tag_id FROM rel_tag_activity '
+        ' WHERE activity_id = %s ',
+        (id,)
+    )
+    tags=cursor.fetchall()
+    return tags
+
+def get_tool_typeList():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT id, type'
+        ' FROM tool_type ORDER BY type ASC'
+    )
+    tool_typeList=cursor.fetchall()
+
+    if tool_typeList is None:
+        abort(404, f"tool_typeList è vuota.")
+    return tool_typeList
+
+def get_ts_total_hours(id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT SUM(ore_lav) AS total_hours from timesheet '
+        ' WHERE act_id=%s',(id,)
+    )
+    total_hours = cursor.fetchone()['total_hours']
+    return total_hours

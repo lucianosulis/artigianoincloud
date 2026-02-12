@@ -82,6 +82,39 @@ INTO OUTFILE '/var/lib/mysql-files/output.csv'
 FIELDS TERMINATED BY ';' ENCLOSED BY ''
 LINES TERMINATED BY '\n';
 
+Estrazione utilizzo mezzi:
+
+(select 'Data','Mezzo','Tipo','Ore','Km','Attività','Cliente','Indirizzo','Città')
+union all
+(select tu.date,concat(t.brand,' ',t.model,' ',t.license_plate ) as tool,
+tt.type,tu.ore_lav,tu.km,a.title ,c.full_name as customer, s.address,s.city
+from tool_usage tu
+inner join tool t on tu.tool_id = t.id
+inner join tool_type tt on t.tool_type_id = tt.id
+inner join activity a on tu.act_id = a.id
+inner join p_order po on a.p_order_id = po.id
+inner join customer c on po.customer_id = c.id
+inner join site s on s.customer_id = c.id
+where tu.date >= '2026-01-01' and tu.date <= '2026-12-31')
+INTO OUTFILE '/var/lib/mysql-files/tool_usage.csv'
+FIELDS TERMINATED BY ';' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
+
+Estrazione ore lavorate:
+
+(select 'Data', 'Cliente', 'ID_Ordine', 'Ordine','Attività', 'Operatore','Ore_lavorate')
+union all
+(select t.date as data,c.full_name as Cliente, po.id as ID_Ordine, po.description as Ordine,a.title as Attività, CONCAT(p.surname, ' ',p.name) as Operatore,  t.ore_lav as Ore_lavorate 
+from p_order po 
+inner join timesheet t on po.id = t.order_id 
+inner join people p on p.id = t.people_id
+inner join customer c on c.id = po.customer_id
+inner join activity a on t.act_id = a.id 
+order by po.id, t.date)
+INTO OUTFILE '/var/lib/mysql-files/ore_lavorateusage.csv'
+FIELDS TERMINATED BY ';' ENCLOSED BY ''
+LINES TERMINATED BY '\n';
+
 
 
 

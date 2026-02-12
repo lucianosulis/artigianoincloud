@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Modifica associazione{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <label for="tag_id">Tag</label></td>
+    <SELECT id="tag_id" name="tag_id"> 
+        <OPTION value="" disabled="disabled" selected>Selezionare un tag</option>
+        {% for tag in tag_list %}
+          {% if tag.id == rel_tag_tool_type.tag_id %}
+            <OPTION value={{tag.id}} selected>{{tag.tag}}</option>
+          {% else %}
+            <OPTION value={{tag.id}}>{{tag.tag}}</option>
+           {% endif %}
+        {% endfor %}
+    </SELECT> 
+    <br>
+    <label for="tool_type_id">Tipo di mezzo</label>
+    <SELECT id="tool_type_id" name="tool_type_id">
+      <OPTION value="" disabled="disabled" selected>Selezionare un tipo di mezzo</option>
+      {% for tool_type in tool_type_list %}
+        {% if tool_type.id == rel_tag_tool_type.tool_type_id %}
+          <OPTION value={{tool_type.id}} selected>{{tool_type.type}}</option>
+        {% else %}
+          <OPTION value={{tool_type.id}}>{{tool_type.type}}</option>
+        {% endif %}
+      {% endfor %}
+    </SELECT>
+  <table>
+    <tr>
+      <td>
+        <input type="submit" value="Salva">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+        <input name="goback" id="goback" value="{{ url_for('rel_tag_tool_type.index') }}" hidden>
+      </td>
+    </tr>
+  </table>
+  </form>
+  <form action="{{ url_for('rel_tag_tool_type.delete', id=rel_tag_tool_type['id']) }}" method="post">
+    <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questa associazione?');">
+  </form>
+  <hr>
+  <script> 
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+  </script>
+{% endblock %}

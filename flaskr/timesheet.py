@@ -15,107 +15,99 @@ bp = Blueprint('timesheet', __name__)
 @bp.route('/timesheet', methods=('GET', 'POST'))
 @login_required
 def index():
-    
     if g.role != "ADMIN" and g.role != "TEAM_LEADER" and g.role != "SEGRETERIA":
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
          return redirect(url_for("calendar.show_cal"))
-    
     session["activity_first_page"] = 'Y'
     session["show_calendar"] = 'N'
-   
-    if not "timesheet_filter" in session:
-        session["timesheet_filter"] = "wo_holidays"
-        session["search"] = " WHERE act_type_id <> 2 "
-    searchStr = session["search"]
-    print("timesheet_filter: " + session["timesheet_filter"]) 
-    if session["timesheet_filter"] == "wo_holidays":
-        filterA = "wo_holidays"
-    else:
-        filterA = "with_holidays"
-    print("filterA: " + filterA)
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-    current_app.logger.debug("searchStr 1: " + searchStr)
-    current_app.logger.debug("session.get('search'): " + str(session.get('search')))
-    cursor.execute(
-            'SELECT COUNT(*) AS count FROM '
-            ' (SELECT ts.id, ts.date as date, at.description as act_type, CONCAT(p.surname," ",p.name) as p_name, coalesce(CONCAT(c.full_name," - ",o.description), " - ") as p_order, ts.ore_lav'
-            ' FROM timesheet ts' 
-            ' LEFT JOIN p_order o on ts.order_id = o.id'
-            ' LEFT JOIN customer c on o.customer_id = c.id'
-            ' INNER JOIN act_type at on ts.act_type_id = at.id'
-            ' INNER JOIN people p on ts.people_id = p.id ' +
-            searchStr + ") AS ts_tables" 
-            )
-    rowCount = cursor.fetchone()
-    total = rowCount['count']
-    page = request.args.get('page')
     current_app.config.from_file("config.json", load=json.load)
     per_page = current_app.config["FL_PER_PAGE"]
 
-    if request.method == 'POST': 
-        page = "1"
-        filterA = request.form['filterA']
-        session["timesheet_filter"] = filterA
+    if request.method == 'GET': 
+        page = request.args.get('page', 1, type=int)
+        filterA = session.get("timesheet_filter","wo_holidays")
+        current_app.logger.debug(f"filterA: {filterA}")
         if filterA == "wo_holidays":
-            searchStr = " WHERE act_type_id <> 2 "
+            searchStr = session.get("search","WHERE ts.act_type_id <> 2")
         else:
-            searchStr = "" 
-        print("filterA nella POST: " + filterA)
-        searchDate = request.form['searchDate']
-        searchCustomer = request.form['searchCustomer']
-        searchPeople = request.form['searchPeople']
-        if ((searchDate + searchCustomer + searchPeople) != "") and searchStr == "":
-            searchStr = " WHERE "
-        if (searchDate != ""):
-            if (searchStr != " WHERE "):
-                searchStr = searchStr + " AND "
-            searchStr = searchStr + "ts.date = '" + searchDate + "'"
-        if (searchCustomer != ""):
-            if (searchStr != " WHERE "):
-                searchStr = searchStr + " AND "
-            searchStr = searchStr + " c.full_name LIKE '%" + searchCustomer + "%'"
-        if (searchPeople != ""):
-            if (searchStr != " WHERE "):
-                searchStr = searchStr + " AND "
-            searchStr = searchStr + " CONCAT(p.surname,\" \",p.name) LIKE '%" + searchPeople + "%'"
-        #searchStr = searchStr.upper()
-        current_app.logger.debug("searchStr 2: " + searchStr)
+            searchStr = session.get("search","")
+        current_app.logger.debug(f"searchStr: {searchStr}")
+        params = session.get("search_params", [])
+        current_app.logger.debug(f"params: {params}")
+
+    if request.method == 'POST': 
+        page = 1
+        filterA = request.form.get("filterA","wo_holidays")
+        session["timesheet_filter"] = filterA
+        current_app.logger.debug(f"filterA da POST: {filterA}")
+        # 1. Inizializziamo una lista per le condizioni e una per i parametri
+        conditions = []
+        params = []
+        # Gestione filtro holidays
+        if filterA == "wo_holidays":
+            conditions.append("ts.act_type_id <> 2")
+        searchDate = request.form.get('searchDate')
+        current_app.logger.debug(f"searchDate: {searchDate}")
+        searchCustomer = request.form.get('searchCustomer')
+        current_app.logger.debug(f"searchCustomer: {searchCustomer}")
+        searchPeople = request.form.get('searchPeople')
+        current_app.logger.debug(f"searchPeople: {searchPeople}")
+        
+        if searchDate:
+            conditions.append("ts.date = %s")
+            params.append(searchDate)
+        if searchCustomer:
+            conditions.append("c.full_name LIKE %s")
+            params.append(f"%{searchCustomer}%") # Il % lo mettiamo nel dato, non nella query
+        if searchPeople:
+            conditions.append("CONCAT(p.surname, ' ', p.name) LIKE %s")
+            params.append(f"%{searchPeople}%")
+        # 2. Trasformiamo la lista di condizioni in una stringa WHERE
+        searchStr = ""
+        if conditions:
+            searchStr = " WHERE " + " AND ".join(conditions)
+        current_app.logger.debug(f"POST searchStr: {searchStr}")
+        current_app.logger.debug(f"POST params: {params}") 
         session["search"] = searchStr
-        current_app.logger.debug("session.search: " + session["search"])
-        cursor.execute(
-            'SELECT COUNT(*) AS count FROM '
-            ' (SELECT ts.id, ts.date as date, at.description as act_type, CONCAT(p.surname," ",p.name) as p_name, coalesce(CONCAT(c.full_name," - ",o.description), " - ") as p_order, ts.ore_lav'
-            ' FROM timesheet ts' 
-            ' LEFT JOIN p_order o on ts.order_id = o.id'
-            ' LEFT JOIN customer c on o.customer_id = c.id'
-            ' INNER JOIN act_type at on ts.act_type_id = at.id'
-            ' INNER JOIN people p on ts.people_id = p.id ' +
-            searchStr + ") AS ts_tables" 
-            )
-        rowCount = cursor.fetchone()
-        total = rowCount['count']
-        #print("total=" + str(total))
-    if page != None:
-        offset = (int(page)-1) * per_page
-    else:
-        page = "1"
-        offset = 0   
+        session["search_params"] = [str(p) for p in params]
+    
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    count_query = (
+    'SELECT COUNT(*) AS count FROM ('
+    ' SELECT ts.id FROM timesheet ts'
+    ' LEFT JOIN p_order o on ts.order_id = o.id'
+    ' LEFT JOIN customer c on o.customer_id = c.id'
+    ' INNER JOIN act_type at on ts.act_type_id = at.id'
+    ' INNER JOIN people p on ts.people_id = p.id ' + searchStr +
+    ') AS ts_tables'
+    )
+    current_app.logger.debug(f"count_query: {count_query}")
+    current_app.logger.debug(f"params: {params}")
+    cursor.execute(count_query, params)
+    total = cursor.fetchone()['count']
+    offset = (page-1) * per_page 
     pagination = Pagination(page=page, per_page=per_page, total=total, 
                             css_framework='bootstrap4')
-    #print(str(per_page) + " ----- " + str(offset))
-    cursor.execute(
-            ' SELECT ts.id, ts.date as date, at.description as act_type, CONCAT(p.surname," ",p.name) as p_name, coalesce(CONCAT(c.full_name," - ",o.description), " - ") as p_order, ts.ore_lav'
-            ' FROM timesheet ts' 
-            ' LEFT JOIN p_order o on ts.order_id = o.id'
-            ' LEFT JOIN customer c on o.customer_id = c.id'
-            ' INNER JOIN act_type at on ts.act_type_id = at.id'
-            ' INNER JOIN people p on ts.people_id = p.id ' +
-            str(searchStr) +
-            ' ORDER BY ts.date DESC, p_name ASC LIMIT %s OFFSET %s', 
-            (per_page, offset)
-        )
+    
+    final_query = (
+        'SELECT ts.id, ts.date, at.description as act_type, '
+        'CONCAT(p.surname," ",p.name) as p_name, '
+        'coalesce(CONCAT(c.full_name," - ",o.description), " - ") as p_order, ts.ore_lav '
+        'FROM timesheet ts '
+        'LEFT JOIN p_order o on ts.order_id = o.id '
+        'LEFT JOIN customer c on o.customer_id = c.id '
+        'INNER JOIN act_type at on ts.act_type_id = at.id '
+        'INNER JOIN people p on ts.people_id = p.id ' +
+        searchStr +
+        ' ORDER BY ts.date DESC, p_name ASC LIMIT %s OFFSET %s'
+    )
+    # Aggiungiamo LIMIT e OFFSET alla lista dei parametri esistenti
+    final_params = params + [per_page, offset]
+    current_app.logger.debug(f"final_query: {final_query}")
+    current_app.logger.debug(f"final_params: {final_params}")
+    cursor.execute(final_query, final_params)
     ts_records = cursor.fetchall()
     
     return render_template('timesheet/index.html', ts_records=ts_records, page=page,

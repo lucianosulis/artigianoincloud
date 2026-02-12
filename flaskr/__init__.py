@@ -191,5 +191,10 @@ def create_app(test_config=None):
     app.register_blueprint(rentri.bp)
     app.add_url_rule('/rentri', endpoint='index')
 
+# register blueprint "rel_tag_tool_type"
+    from . import rel_tag_tool_type
+    app.register_blueprint(rel_tag_tool_type.bp)
+    app.add_url_rule('/rel_tag_tool_type', endpoint='index')
+
     return app
 

@@ -1,3 +1,12 @@
+Release 2.24 
+Aggiunte le voci "Congedo parentale" e "Formazione" nella tabella act_type. 
+Modificato export_timesheet per aggiungere la riga CP (congedo parentale).
+Formazione è codificato come LAV e pertanto non richiede modifiche.
+Definiti i tag con l enuove tabelle tag, rel_tag_tool_type, rel_tag_order, rel_tag_activity.
+Modificato activity.py, le relative pagine html e gli script. 
+Aggiunta nelle anagrafiche la gestione delle associazioni tra tag e tipologia mezzi.
+Manca ancora la gestione dei tag sull'ordine.
+
 Release 2.22
 Refactoring del calcolo dei percorsi e della georeferenziazione. Aggiunte latidudine e 
 longitudine in tabella site. Separato il calcolo delle coordinate da quello dei percorsi.
