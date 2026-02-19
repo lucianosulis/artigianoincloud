@@ -480,6 +480,13 @@ class Oauth:
                         (order_id, title, customer_id, date, 'spot', order_notes)
                     )
                     db.commit()
+                    #Creo la relazione col tag
+                    cursor.execute(
+                        'INSERT INTO rel_tag_order (p_order_id, tag_id)'
+                        ' VALUES (%s, %s)',
+                        (order_id, tag_id)
+                    )
+                    db.commit()
 
                 elif session["fc_call_type"] == "fc_new_order_duplicate": 
                     print("Creo nuovo ordine duplicato")

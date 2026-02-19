@@ -1,3 +1,6 @@
+Release 2.3.1
+Corretto bug in fcsync.py su creazione nuovo ordine con nuovo cliente (non registrava il tag su AIC).
+
 Release 2.3.0
 Completato lo sviluppo relativo ai tag.
 I tag (anche più di uno) vengono impostati nelle righe d'ordine di FIC, come categoria prodotto (codice tag) e 
