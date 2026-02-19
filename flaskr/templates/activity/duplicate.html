@@ -29,7 +29,17 @@
           <OPTION value={{site.id}}>{{site.city}} - {{site.address}}</option>
         {% endif %}
       {% endfor %}
-    </SELECT>
+    </SELECT> 
+    <label for="tag_id">Tag</label></td>
+    <SELECT id="tag_id" name="tag_id" multiple size="3"> 
+        {% for tag in order_tags %}
+          {% if tag.tag_id == tag_id %}
+              <OPTION value={{tag.tag_id}} selected>{{tag.tag_desc}}</option>
+          {% else %}
+              <OPTION value={{tag.tag_id}} >{{tag.tag_desc}}</option>
+          {% endif %}
+        {% endfor %}
+    </SELECT> 
     <label for="description">Descrizione lavorazioni</label>
     <textarea name="description" id="description">{{ request.form['description'] or act['description'] }}</textarea>
     <input name="input_site_id" id="input_site_id" hidden>

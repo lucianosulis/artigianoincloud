@@ -6,7 +6,7 @@
 
 {% block content %}
 
-  <form method="post">
+  <form method="post"> 
     <h6>Verrà creato automaticamente un ordine in Fatture in Cloud</h6>
     <label for="customer_fullname">Cliente</label>
     <input name="customer_fullname" id="customer_fullname" type="text" readonly>
@@ -23,6 +23,13 @@
     <br>
     <label for="title">Descrizione</label>
     <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <label for="tag_id">Tag</label></td>
+    <SELECT id="tag_id" name="tag_id" size="5"> 
+              {% for tag in anag_tags %}
+                <OPTION value={{tag.tag_id}}>{{tag.tag_desc}}</option>
+              {% endfor %}
+    </SELECT> 
+    <br>
     <label for="notes">Note</label>
     <input name="notes" id="notes" value="{{ request.form['notes'] }}" >
     <br>

@@ -113,7 +113,8 @@
       opener.document.getElementById("order_desc").value = order_customer + " - " + order_desc + " - " + order_date;
       opener.document.getElementById("title").value = order_desc;
       //alert(order_customer)
-      window.opener.getComboSite(order_id); 
+      window.opener.getComboSite(order_id);
+      window.opener.getOrderTags(order_id);
       self.close();
     }
   </script>

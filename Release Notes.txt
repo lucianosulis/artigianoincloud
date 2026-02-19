@@ -1,4 +1,13 @@
-Release 2.24 
+Release 2.3.0
+Completato lo sviluppo relativo ai tag.
+I tag (anche più di uno) vengono impostati nelle righe d'ordine di FIC, come categoria prodotto (codice tag) e 
+scaricati in Artigianoincloud.
+Ogni attività può essere associata ad un solo tag scelto tra quelli associati all'ordine 
+proveniente da FiC.
+In un ordine creato in AIC e poi in FIC tramite API, si può specificare un solo tag per ora.
+Nella funzione duplica però è già supportato il valore multiplo.
+
+Release 2.23
 Aggiunte le voci "Congedo parentale" e "Formazione" nella tabella act_type. 
 Modificato export_timesheet per aggiungere la riga CP (congedo parentale).
 Formazione è codificato come LAV e pertanto non richiede modifiche.

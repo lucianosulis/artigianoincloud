@@ -27,11 +27,8 @@
     <label for="end">Data fine attività</label>
     <input name="end" id="end" type="date" size="10" value="{{ request.form['end'] }}" required>
     
-    <label for="tag_ids">Tag</label></td>
-    <SELECT id="tag_ids" name="tag_ids" multiple size="5"> 
-              {% for tag in anag_tags %}
-                <OPTION value={{tag.tag_id}}>{{tag.tag_desc}}</option>
-              {% endfor %}
+    <label for="tag_id">Tag</label></td>
+    <SELECT id="tag_id" name="tag_id" size="3">       
     </SELECT> 
     <br>
     <label for="description">Descrizione lavorazioni</label>

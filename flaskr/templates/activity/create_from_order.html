@@ -25,11 +25,16 @@
     <label for="end">Data fine attività</label>
     <input name="end" id="end" type="date" size="10" value="{{ request.form['end'] }}" required>
     <label for="tag_ids">Tag</label></td>
-    <SELECT id="tag_ids" name="tag_ids" multiple size="5"> 
-              {% for tag in anag_tags %}
-                <OPTION value={{tag.tag_id}}>{{tag.tag_desc}}</option>
-              {% endfor %}
-    </SELECT> 
+    <label for="tag_id">Tag</label></td>
+    <SELECT id="tag_id" name="tag_id" size="3"> 
+        {% for tag in order_tags %}
+          {% if tag.tag_id == tag_id %}
+              <OPTION value={{tag.tag_id}} selected>{{tag.tag_desc}}</option>
+          {% else %}
+              <OPTION value={{tag.tag_id}} >{{tag.tag_desc}}</option>
+          {% endif %}
+        {% endfor %}
+    </SELECT>   
     <br>
     <label for="description">Descrizione lavorazioni</label>
     <textarea name="description" id="description" rows="2">{{ request.form['description'] }}</textarea>

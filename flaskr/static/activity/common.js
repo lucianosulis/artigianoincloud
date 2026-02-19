@@ -142,7 +142,7 @@ console.log("Sono nello script principale di activity/common.js");
       } 
     });
     }
-
+ 
     function getComboSite2() {
       var customer_id = document.getElementById("customer_id").value;  
       //alert("Sono in getComboSite2")
@@ -179,6 +179,36 @@ console.log("Sono nello script principale di activity/common.js");
         endDate = document.getElementById("start").value;
         document.getElementById("end").value = endDate;
       }
+    }
+
+    function getOrderTags(order_id) {  
+      //alert(order_id);
+      $.ajax({
+      type: "POST",
+      url: "/" + order_id + "/get_order_tags",
+      contentType: "application/json",
+      dataType: 'json',
+      success: function(result) {
+        console.log("Result:");
+        console.log(result);
+        let selectBox = document.getElementById("tag_id");
+        console.log("Indice: " + selectBox.selectedIndex);
+        function removeAll(select) {
+          while (select.options.length > 0) {
+            select.remove(0);
+            }
+          } 
+        removeAll(selectBox);
+        for (let i = 0; i < result.length; i++) {
+          const option = new Option(result[i]['tag_desc'],result[i]['tag_id']);
+          // Imposta come selezionato se è il primo elemento
+          if (i === 0) {
+            option.selected = true;
+          }
+          selectBox.add(option, undefined);
+        }
+      } 
+    });
     }
 
     function open_order_select() {

@@ -21,6 +21,12 @@
     <input name="amount" id="amount" type="text" value="{{order['amount'] }}" readonly>
     <label for="date">Data</label>
     <input name="date" id="date" type="text" value="{{order['date'] }}" readonly>
+    <label for="tag_ids">Tag</label></td>
+    <SELECT id="tag_ids" name="tag_ids" size="3" disabled> 
+        {% for tag in order_tags %}
+              <OPTION value={{tag.tag_id}} >{{tag.tag_desc}}</option>
+        {% endfor %}
+    </SELECT> 
     <label for="notes">Note</label>
     <input name="notes" id="notes" value="{{ order['notes'] }}" readonly>
     <label for="total_hours">Ore lavorate in totale</label>
@@ -28,7 +34,7 @@
     <label for="closed">Stato dell'ordine</label>
     {% if order.closed == 1 %}
       <input id="closed" type="text"  value="Ordine chiuso" readonly>
-    {% else %}
+    {% else %} 
       <input id="closed" type="text"  value="Ordine aperto" readonly>
     {% endif %}
   <table>

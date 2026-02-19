@@ -71,6 +71,7 @@ class Oauth:
                     order_total_insert=0
                     order_total_update=0
                     order_wo_customer = 0
+
                     while i < last_page:
                         i = i + 1
                         #print(i)
@@ -115,12 +116,34 @@ class Oauth:
                     last_page = orders.last_page
                     print("last_page=" + str(last_page))
                     i=0
+
+                    #Per uso test
+                    #i = last_page - 1
+
                     while i < last_page:
                         i = i + 1
                         orders = documents_api_instance.list_issued_documents(company_id=first_company_id,type="order",page=i, fieldset = 'detailed')
                         for order in orders.data:
                             #if i==1:
-                            #    print(order)
+                            #print(order)
+                            #Aggiungo lettura codici Tag (categoria prodotto)
+                            product_list = order.items_list
+                            # Estrae la categoria solo se non è None (o vuota)
+                            categories = [item.category for item in product_list if item.category]
+                            #print(categories)
+                            tag_ids = []
+                            cursor = db.cursor(dictionary=True)
+                            for category in categories: 
+                                cursor.execute(
+                                    'SELECT id FROM tag where code=%s',
+                                    (category,))
+                                result = cursor.fetchone()
+                                if result:
+                                    tag_id = result['id']
+                                if tag_id:
+                                    tag_ids.append(tag_id)        
+                            #print(tag_ids)
+
                             if order.numeration == "/S":
                                 order_type = 'spot'
                                 #print("ordine spot - " + str(order.var_date) + " - " + str(order.entity.id) + " - " + order.visible_subject)
@@ -145,14 +168,26 @@ class Oauth:
                                     db.commit()
                                 else:
                                     order_total_update = order_total_update + 1
-                                    print ("Note prese fa Fattureincloud:")
-                                    print(order.notes)
+                                    #print ("Note prese fa Fattureincloud:")
+                                    #print(order.notes)
                                     cursor.execute(
                                         'UPDATE p_order SET customer_id=%s, description=%s, amount=%s, date=%s, order_type=%s, notes=%s'
                                         ' WHERE id=%s',
                                         (order.entity.id, order.visible_subject, order.amount_net, str(order.var_date), order_type, order.notes, order.id)
                                     )
                                     db.commit()
+                                cursor.execute(
+                                    'DELETE FROM rel_tag_order '
+                                    ' WHERE p_order_id = %s ',
+                                    (order.id,)
+                                )
+                                for tag_id in tag_ids:
+                                        cursor.execute(
+                                            'INSERT INTO rel_tag_order (p_order_id, tag_id) '
+                                            ' VALUES (%s, %s)',
+                                            (order.id,tag_id)
+                                        )
+                                db.commit()
                             else:
                                 order_wo_customer = order_wo_customer + 1
                     flash("Dati scaricati da Fatture in Cloud - Clienti inseriti: " + str(cust_total_insert) + ", Clienti aggiornati: " + str(cust_total_update) + ", Ordini inseriti: " + str(order_total_insert) + ", Ordini aggiornati: " + str(order_total_update) + ", Ordini non scaricati perché senza anagrafica cliente: " + str(order_wo_customer))                    
@@ -162,8 +197,17 @@ class Oauth:
                     customer_id = session["customer_id"]
                     title = session["title"]
                     order_notes = session["notes"]
+                    tag_id = session['selected_tag']
                     db = get_db()
                     cursor = db.cursor(dictionary=True)
+                    cursor.execute(
+                        'SELECT id,description,code'
+                        ' FROM tag'
+                        ' WHERE id = %s', (tag_id,)
+                    )
+                    row = cursor.fetchone()
+                    tag_code = row['code']
+                    tag_description = row['description']
                     cursor.execute(
                         'SELECT c.id, c.full_name, c.address, c.city'
                         ' FROM customer c'
@@ -184,13 +228,23 @@ class Oauth:
                             #address_province="MI",
                             #country="Italia"
                         )
+                    items_list=[IssuedDocumentItemsListItem(
+                            name=tag_description,
+                            category=tag_code,
+                            gross_price=0.00,
+                            net_price=0.00,
+                            qty=1.0,
+                            vat=None
+                        )
+                    ]
                     order = IssuedDocument(type = IssuedDocumentType("order"),
                         entity = entity,
                         date = datetime.today().strftime('%Y-%m-%d'),
                         subject = title,
                         visible_subject = title,
                         numeration = '/S',
-                        notes = order_notes
+                        notes = order_notes,
+                        items_list = items_list
                     )
                     create_issued_document_request = CreateIssuedDocumentRequest(data = order)
                     try:
@@ -216,6 +270,14 @@ class Oauth:
                         (order_id, title, customer_id, date, 'spot', order_notes)
                     )
                     db.commit()
+                    #Creo la relazione col tag
+                    cursor.execute(
+                        'INSERT INTO rel_tag_order (p_order_id, tag_id)'
+                        ' VALUES (%s, %s)',
+                        (order_id, tag_id)
+                    )
+                    db.commit()
+
                     #Creo il nuovo record per l'attività
                     cursor.execute(
                         'INSERT INTO activity (title, description, start, end, p_order_id, site_id)'
@@ -223,19 +285,15 @@ class Oauth:
                         (title, description, start, end, order_id, site_id)
                     )
                     db.commit()
-                    
                     cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
                     row = cursor.fetchone()
-                    #eventuali tag
+                    #Creo la relazione con l'unico tag
                     activity_id = row['last_insert']
-                    tag_ids_arr = session['selected_tag']
-                    for tag_id in tag_ids_arr:
-                        print(f"tag_id: {tag_id}")
-                        cursor.execute(
-                            'INSERT INTO rel_tag_activity (activity_id, tag_id)'
-                            ' VALUES (%s, %s)',
-                            (activity_id, tag_id)
-                        )
+                    cursor.execute(
+                        'INSERT INTO rel_tag_activity (activity_id, tag_id)'
+                        ' VALUES (%s, %s)',
+                        (activity_id, tag_id)
+                    )
                     db.commit()
 
                 elif session["fc_call_type"] == "fc_new_order_wo_act": 
@@ -243,8 +301,17 @@ class Oauth:
                     customer_id = session["customer_id"]
                     title = session["title"]
                     order_notes = session["notes"]
+                    tag_id = session['selected_tag']
                     db = get_db()
                     cursor = db.cursor(dictionary=True)
+                    cursor.execute(
+                        'SELECT id,description,code'
+                        ' FROM tag'
+                        ' WHERE id = %s', (tag_id,)
+                    )
+                    row = cursor.fetchone()
+                    tag_code = row['code']
+                    tag_description = row['description']
                     cursor.execute(
                         'SELECT c.id, c.full_name, c.address, c.city'
                         ' FROM customer c'
@@ -258,13 +325,23 @@ class Oauth:
                             id=int(customer_id),
                             name=customerFullName,
                         )
+                    items_list=[IssuedDocumentItemsListItem(
+                            name=tag_description,
+                            category=tag_code,
+                            gross_price=0.00,
+                            net_price=0.00,
+                            qty=1.0,
+                            vat=None
+                        )
+                    ]
                     order = IssuedDocument(type = IssuedDocumentType("order"),
                         entity = entity,
                         date = datetime.today().strftime('%Y-%m-%d'),
                         subject = title,
                         visible_subject = title,
                         numeration = '/S',
-                        notes = order_notes
+                        notes = order_notes,
+                        items_list=items_list
                     )
                     create_issued_document_request = CreateIssuedDocumentRequest(data = order)
                     try:
@@ -284,6 +361,13 @@ class Oauth:
                         'INSERT INTO p_order (id, description, customer_id, date, order_type)'
                         ' VALUES (%s, %s, %s, %s, %s)',
                         (order_id, title, customer_id, date, 'spot')
+                    )
+                    db.commit()
+                    #Creo la relazione col tag
+                    cursor.execute(
+                        'INSERT INTO rel_tag_order (p_order_id, tag_id)'
+                        ' VALUES (%s, %s)',
+                        (order_id, tag_id)
                     )
                     db.commit()
                 
@@ -333,7 +417,17 @@ class Oauth:
                     db.commit()
                     title = session["title"]
                     order_notes = session["notes"]
+                    tag_id = session['selected_tag']
                     db = get_db()
+                    cursor = db.cursor(dictionary=True)
+                    cursor.execute(
+                        'SELECT id,description,code'
+                        ' FROM tag'
+                        ' WHERE id = %s', (tag_id,)
+                    )
+                    row = cursor.fetchone()
+                    tag_code = row['code']
+                    tag_description = row['description']
                     cursor = db.cursor(dictionary=True)
                     cursor.execute(
                         'SELECT c.id, c.full_name, c.address, c.city'
@@ -348,13 +442,23 @@ class Oauth:
                             id=int(customer_id),
                             name=customerFullName,
                         )
+                    items_list=[IssuedDocumentItemsListItem(
+                            name=tag_description,
+                            category=tag_code,
+                            gross_price=0.00,
+                            net_price=0.00,
+                            qty=1.0,
+                            vat=None
+                        )
+                    ]
                     order = IssuedDocument(type = IssuedDocumentType("order"),
                         entity = entity,
                         date = datetime.today().strftime('%Y-%m-%d'),
                         subject = title,
                         visible_subject = title,
                         numeration = '/S', 
-                        notes = order_notes
+                        notes = order_notes,
+                        items_list=items_list
                     )
                     create_issued_document_request = CreateIssuedDocumentRequest(data = order)
                     try:
@@ -384,6 +488,7 @@ class Oauth:
                     order_date = session["order_date"]
                     order_amount = float(session["order_amount"])
                     order_notes = session["notes"]
+                    tag_ids = session["tag_ids"]
                     print("order_amount:")
                     print(order_amount)
                     if session["order_type"] == "spot":
@@ -405,12 +510,28 @@ class Oauth:
                             id=int(customer_id),
                             name=customerFullName,
                         )
-                    item = IssuedDocumentItemsListItem(
-                            name='Totale ordine',
-                            qty=1,
-                            net_price=order_amount
+                    items_list = []
+                    for tag_id in tag_ids:
+                        db = get_db()
+                        cursor = db.cursor(dictionary=True)
+                        cursor.execute(
+                            'SELECT id,description,code'
+                            ' FROM tag'
+                            ' WHERE id = %s', (tag_id,)
                         )
-                    itemList = [item]
+                        row = cursor.fetchone()
+                        tag_code = row['code']
+                        tag_description = row['description']
+                        item = IssuedDocumentItemsListItem(
+                            name=tag_description,
+                            category=tag_code,
+                            gross_price=0.00,
+                            net_price=0.00,
+                            qty=1.0,
+                            vat=None
+                        )
+                        items_list.append(item)    
+                    
                     payment = IssuedDocumentPaymentsListItem(
                             amount=order_amount*1.22,
                             due_date = order_date
@@ -423,7 +544,7 @@ class Oauth:
                         subject = title,
                         visible_subject = title,
                         numeration = order_numeration,
-                        items_list = itemList,
+                        items_list = items_list,
                         payments_list = paymentList,
                         notes = order_notes
                         
@@ -452,6 +573,15 @@ class Oauth:
                         (order_id, title, customer_id, date, order_type, amount, notes)
                     )
                     db.commit()
+                    #Creo le relazioni con i tag
+                    for tag_id in tag_ids:
+                        cursor.execute(
+                            'INSERT INTO rel_tag_order (p_order_id, tag_id)'
+                            ' VALUES (%s, %s)',
+                            (order_id, tag_id)
+                        )
+                        db.commit()
+
                     print("Sto per duplicare po_invoices")
                     #Duplico anche le eventuali scadenze di fatturazione spostandole di un anno
                     cursor = db.cursor(dictionary=True)

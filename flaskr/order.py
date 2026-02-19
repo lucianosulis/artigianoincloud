@@ -189,9 +189,10 @@ def open(id):
 def detail(id):
     order = get_order(id)
     customerList = get_customerList()
+    order_tags=getOrderTags(id)
     total_hours_dict = getOrderTotalHours(id)
     total_hours = total_hours_dict['total_hours']
-    return render_template('order/detail.html', order=order, customerList=customerList, total_hours=total_hours)
+    return render_template('order/detail.html', order=order, customerList=customerList, order_tags=order_tags, total_hours=total_hours)
 
 @bp.route('/order/<int:id>/update_invoice_dates', methods=('GET', 'POST'))
 @login_required
@@ -271,7 +272,12 @@ def delete(id):
          return redirect(url_for("activity.index"))
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+    #cursor.execute('SELECT COUNT(*) AS count FROM rel_tag_order WHERE p_order_id = %s', (id,))
+    #rowCount = cursor.fetchone()
+    #total = rowCount['count']
+    #print(f"Numero tag correlati: {total}")
+    cursor.execute('DELETE FROM rel_tag_order WHERE p_order_id = %s', (id,))
+    db.commit()
     try:
         cursor.execute('DELETE FROM p_order WHERE id = %s', (id,))
         db.commit()
@@ -287,6 +293,7 @@ def create():
          flash(error)
          return redirect(url_for("order.index"))
     customerList = get_customerList()
+    anag_tags = get_anag_tags()
     if request.method == 'POST':
         title = request.form['title']
         customer_name = request.form['customer_name']
@@ -294,6 +301,7 @@ def create():
         customer_city = request.form['customer_city']
         customer_id = request.form['customer_id']
         notes = request.form['notes']
+        tag_id = request.form.get('tag_id')
         print("customer_id: " + str(customer_id))
         error = None
 
@@ -303,24 +311,23 @@ def create():
         if error is not None:
             flash(error)
         else:
+            session["title"] = title
+            session["notes"] = notes
+            session['selected_tag'] = tag_id
             if customer_id != "":
+                print("fc_new_order_wo_act") 
                 session["fc_call_type"] = "fc_new_order_wo_act"
-                print("fc_new_order_wo_act")
                 session["customer_id"] = customer_id
-                session["title"] = title
-                session["notes"] = notes
             else:
                 print("fc_new_order_new_cust")
                 session["fc_call_type"] = "fc_new_order_new_cust"
-                session["title"] = title
                 session["customer_name"] = customer_name
                 session["customer_address"] = customer_address
                 session["customer_city"] = customer_city
-                session["notes"] = notes
                 
             return redirect('/oauth')
 
-    return render_template('order/create.html', customerList=customerList)
+    return render_template('order/create.html', customerList=customerList, anag_tags=anag_tags)
 
 @bp.route('/order/<int:id>/duplicate', methods=('GET', 'POST'))
 @login_required
@@ -331,6 +338,11 @@ def duplicate(id):
          return redirect(url_for("order.index"))
     current_app.logger.debug("id: " + str(id))
     order = get_order_w_cust(id)
+    anag_tags = get_anag_tags()
+    order_tags = getOrderTags(id)
+    tag_ids = []
+    for tag in order_tags:
+        tag_ids.append(tag["tag_id"]) 
     
     if request.method == 'POST':
         current_app.logger.debug("Sono nella POST della duplicate")
@@ -338,9 +350,12 @@ def duplicate(id):
         title = request.form['title']
         date = request.form['date']
         amount = request.form['amount']
+        if not amount:
+            amount = 0
         notes = request.form['notes']
         customer_id = order['customer_id']
         order_type = order['order_type']
+        tag_ids = request.form.getlist('tag_ids')
         error = None
 
         if (not title) or (not date) :
@@ -358,11 +373,12 @@ def duplicate(id):
             session["notes"] = notes 
             session["order_date"] = date
             session["old_order_id"] = id
+            session["tag_ids"] = tag_ids
                 
             return redirect('/oauth')
 
     current_app.logger.debug("Sto per fare la return da duplicate")
-    return render_template('order/duplicate.html', order=order)
+    return render_template('order/duplicate.html', order=order, anag_tags=anag_tags, tag_ids=tag_ids)
 
 
 def get_order(id):
@@ -452,3 +468,32 @@ def get_po_invoices(id):
     )
     po_invoices=cursor.fetchone()
     return [po_invoices] 
+
+def getOrderTags(order_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT t.id AS tag_id, CONCAT(t.code," - ",t.description) AS tag_desc'
+        ' FROM tag t' 
+        ' INNER JOIN rel_tag_order rto ON rto.tag_id=t.id '
+        ' WHERE rto.p_order_id=%s'
+        ' ORDER BY t.code ASC',(order_id,)
+    )
+    order_tags=cursor.fetchall()
+    if order_tags is None:
+        abort(404, f"order_tags è vuota.")
+    return order_tags
+
+def get_anag_tags():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT id AS tag_id, CONCAT(code," - ",description) AS tag_desc'
+        ' FROM tag'
+        ' ORDER BY code ASC'
+    )
+    tags=cursor.fetchall()
+
+    if tags is None:
+        abort(404, f"tags è vuota.")
+    return tags
