@@ -10,6 +10,8 @@ from flaskr.db import get_db
 from datetime import date
 from datetime import datetime
 from flaskr.fir import create_analog_fir
+import os
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 bp = Blueprint('activity', __name__)
 
@@ -551,8 +553,17 @@ def detail(id):
     #anag_tags = get_anag_tags()
     tag = get_act_tag(id)
     print(tag)
+    fotos = get_fotos(id)
+    numero_foto = len(fotos)
     show_calendar =  session["show_calendar"]
-    return render_template('activity/detail.html', act=act, order=order, site=site, ts_people=ts_people, tu_tool=tu_tool, tag=tag, ts_total_hours=ts_total_hours, show_calendar=show_calendar)
+    return render_template('activity/detail.html', act=act, order=order, site=site, ts_people=ts_people, tu_tool=tu_tool, tag=tag, ts_total_hours=ts_total_hours, show_calendar=show_calendar, numero_foto=numero_foto)
+
+@bp.route('/activity/<int:id>/gallery', methods=('GET',))
+@login_required
+def gallery(id):
+    act = get_act(id)
+    fotos = get_fotos(id)
+    return render_template('activity/gallery.html', act=act, fotos=fotos)
 
 @bp.route("/sel_order", methods=('POST',))
 @login_required
@@ -568,25 +579,13 @@ def sel_order():
 @bp.route("/<int:order_id>/sel_site", methods=('POST',))
 @login_required
 def sel_site(order_id):
-    #current_app.logger.debug("sel_site dice: " + str(order_id))
-    #siteList = get_siteList(order_id)
-    #results = [tuple(row) for row in siteList]
     results= get_siteList(order_id)
-    #print(f"{type(results)} of type {type(results[0])}")
-    #print("results:")
-    #print(results)
-    #print(jsonify(results))
-    #return (jsonify(results))
     return (results)
 
 @bp.route("/<int:customer_id>/sel_site2", methods=('POST',))
 @login_required
 def sel_site2(customer_id):
-    #current_app.logger.debug("sel_site dice: " + str(customer_id))
     results= get_siteList2(customer_id)
-    #print(f"{type(results)} of type {type(results[0])}")
-    #print("results:")
-    #print(results)
     return (results)
 
 @bp.route("/<int:order_id>/order_desc", methods=('POST',))
@@ -643,6 +642,46 @@ def done(id):
 def get_order_tags(order_id):
     order_tags= getOrderTags(order_id)
     return (order_tags)
+
+@bp.route('/activity/<int:id>/upload_foto', methods=('POST',))
+@login_required
+def upload_foto(id):
+    #print("upload_foto")
+    activity_id = id
+    if 'image' not in request.files:
+        return jsonify({"message": "Nessun file inviato"}), 400
+    file = request.files['image']
+    lat = request.form.get('lat')
+    lon = request.form.get('lon')
+    #notes = request.form.get('notes')
+    #js_timestamp = request.form.get('timestamp')
+    #print(f"js_timestamp: {js_timestamp}")
+    BASE_DIR = "/usr/local/ArtigianoInCloud"
+    current_app.config.from_file("config.json", load=json.load)
+    UPLOAD_FOLDER = current_app.config["UPLOAD_FOLDER"]
+    # Creiamo un nome file univoco con timestamp del server
+    filename = f"foto_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(filepath)
+    clic_date = datetime.now()
+    notes = ""
+    marchia_foto(filepath, lat, lon, clic_date)
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'INSERT INTO foto (filename, latitude, longitude, date, notes, activity_id)'
+                ' VALUES (%s, %s, %s, %s, %s, %s)',
+                (filename, lat, lon, clic_date, notes, activity_id)
+    )
+    db.commit()
+    # Qui potresti salvare lat, lon e filename in un database (SQLite, PostgreSQL, ecc.)
+    print(f"Salvata: {filename} | Lat: {lat} | Lon: {lon} | Ora JS: {clic_date}")
+
+    return jsonify({
+        "message": "Foto e dati GPS salvati correttamente!",
+        "filename": filename
+    }), 200
+
 
 def get_act(id):
     db = get_db()
@@ -917,3 +956,58 @@ def getOrderTags(order_id):
     if order_tags is None:
         abort(404, f"order_tags è vuota.")
     return order_tags
+
+def marchia_foto(path, lat, lon, clic_date):
+    print("marchia_foto")
+    try:
+        img = Image.open(path).convert("RGB") # Forza RGB per evitare problemi con JPG/PNG
+        #img = Image.open(path)
+        img = ImageOps.exif_transpose(img) # Ruota l'immagine fisicamente in base ai metadati
+        draw = ImageDraw.Draw(img)
+        # 1. Calcola una dimensione font proporzionale (es. 5% dell'altezza immagine)
+        width, height = img.size
+        font_size = int(height * 0.03) 
+        # 2. Carica un font (Arial o DejaVu sono standard su Ubuntu)
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+        except:
+            font = ImageFont.load_default() # Fallback se il font non esiste
+        testo = f"Pos: {lat}, {lon} \n Data: {clic_date.strftime('%d/%m/%Y %H:%M')}"
+        # Scegli una posizione (es. in basso a destra)
+        #draw.text((10, 10), testo, fill=(255, 255, 255)) # Testo bianco
+        # 3. Posizionamento (in basso a sinistra, con un po' di margine)
+        margin = 20
+        # draw.text((x, y), ...)
+        draw.text((margin, height - font_size * 2 - margin), testo, fill=(255, 255, 0), font=font) # Giallo è più visibile
+        img.save(path)
+        return True # Tutto ok!
+    except Exception as e:
+        print(f"Errore: {e}")
+        return False # Qualcosa è andato storto
+
+# Questa rotta "legge" fisicamente il file dal disco di Ubuntu
+@bp.route('/download_foto/<filename>')
+@login_required
+def download_foto(filename):
+    print(f"filename: {filename}")
+    # Usiamo current_app.config per prendere il percorso definito in __init__.py
+    current_app.config.from_file("config.json", load=json.load)
+    UPLOAD_FOLDER = current_app.config["UPLOAD_FOLDER"]
+    print(f"UPLOAD_FOLDER: {UPLOAD_FOLDER}")
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+def get_fotos(act_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT f.id,f.filename,f.latitude,f.longitude,f.date,f.notes '
+        ' FROM foto f'
+        ' INNER JOIN activity a ON a.id=f.activity_id '
+        ' WHERE a.id=%s '
+        ' ORDER BY f.date ASC',(act_id,)
+    )
+    fotos=cursor.fetchall()
+
+    if fotos is None:
+        abort(404, f"fotos è vuota.")
+    return fotos

@@ -1,3 +1,8 @@
+Release 2.4.0
+Iniziato rilascio funzioni galleria foto nelle attività.
+Da completare, ma già funziona l'inserimento delle foto da smartphone e 
+la galleria sul dettaglio attività.
+
 Release 2.3.1
 Corretto bug in fcsync.py su creazione nuovo ordine con nuovo cliente (non registrava il tag su AIC).
 

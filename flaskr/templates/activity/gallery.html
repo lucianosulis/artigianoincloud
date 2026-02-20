@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block header %}
+  <h4>{% block title %}Galleria foto{% endblock %}</h4>
+{% endblock %}
+{% block content %}
+<h2>Galleria Foto per: {{ act.full_name }} - {{ act.title }}</h2>
+
+<div class="row">
+    {% for foto in fotos %}
+    <div class="col-md-4" style="margin-bottom: 20px; border: 1px solid #ddd; padding: 10px;">
+        <img src="{{ url_for('activity.download_foto', filename=foto.filename) }}" 
+            class="card-img-top" 
+            style="height: 200px; object-fit: cover;"
+            alt="Foto">
+                
+        <p style="margin-top: 10px;">
+            <strong>Data:</strong> {{ foto.date.strftime('%d/%m/%Y %H:%M') }}<br>
+            <strong>GPS:</strong> {{ foto.latitude }}, {{ foto.longitude }}
+        </p>
+        
+        <a href="https://www.google.com/maps?q={{ foto.latitude }},{{ foto.longitude }}" 
+           target="_blank" class="btn btn-sm btn-info">
+           Vedi su Mappa
+        </a>
+    </div>
+    {% else %}
+    <p>Nessuna foto presente per questa attività.</p>
+    {% endfor %}
+</div>
+{% endblock %}
