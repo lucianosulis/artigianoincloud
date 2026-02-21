@@ -196,5 +196,10 @@ def create_app(test_config=None):
     app.register_blueprint(rel_tag_tool_type.bp)
     app.add_url_rule('/rel_tag_tool_type', endpoint='index')
 
+# register blueprint "report"
+    from . import report
+    app.register_blueprint(report.bp)
+    app.add_url_rule('/reports', endpoint='index')
+
     return app
 
