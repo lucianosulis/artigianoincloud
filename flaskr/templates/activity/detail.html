@@ -68,6 +68,8 @@
     
     <label for="cameraInput" class="custom-button">Scatta una foto</label>
     <input type="file" accept="image/*" capture="environment" id="cameraInput" hidden>
+    <label for="foto_notes">Note sulla foto</label>
+    <input type="text" name="foto_notes" id="foto_notes">
     <div id="foto_status" style="margin-top: 20px; color: rgb(0, 153, 255);"></div>
     <div class="mt-4">
       <a href="{{ url_for('activity.gallery', id=act.id) }}" class="btn btn-secondary shadow-sm">

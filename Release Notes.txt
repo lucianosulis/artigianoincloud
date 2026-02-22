@@ -1,3 +1,7 @@
+Release 2.5.1
+Aggiunto link su foto galleria per apertura fot in altra pagina.
+Aggiunto pulsante indietro su pagina galleria.
+
 Release 2.5.0
 Aggiunta la sezione report con un primo report sulle attività di un cliente.
 

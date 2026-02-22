@@ -563,7 +563,8 @@ def detail(id):
 def gallery(id):
     act = get_act(id)
     fotos = get_fotos(id)
-    return render_template('activity/gallery.html', act=act, fotos=fotos)
+    show_calendar = session["show_calendar"]
+    return render_template('activity/gallery.html', act=act, fotos=fotos, show_calendar=show_calendar)
 
 @bp.route("/sel_order", methods=('POST',))
 @login_required
@@ -653,9 +654,8 @@ def upload_foto(id):
     file = request.files['image']
     lat = request.form.get('lat')
     lon = request.form.get('lon')
-    #notes = request.form.get('notes')
-    #js_timestamp = request.form.get('timestamp')
-    #print(f"js_timestamp: {js_timestamp}")
+    foto_notes = request.form.get('foto_notes')
+    print(f"Note della foto: {foto_notes}")
     BASE_DIR = "/usr/local/ArtigianoInCloud"
     current_app.config.from_file("config.json", load=json.load)
     UPLOAD_FOLDER = current_app.config["UPLOAD_FOLDER"]
@@ -664,14 +664,13 @@ def upload_foto(id):
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
     clic_date = datetime.now()
-    notes = ""
     marchia_foto(filepath, lat, lon, clic_date)
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
         'INSERT INTO foto (filename, latitude, longitude, date, notes, activity_id)'
                 ' VALUES (%s, %s, %s, %s, %s, %s)',
-                (filename, lat, lon, clic_date, notes, activity_id)
+                (filename, lat, lon, clic_date, foto_notes, activity_id)
     )
     db.commit()
     # Qui potresti salvare lat, lon e filename in un database (SQLite, PostgreSQL, ecc.)

@@ -8,14 +8,17 @@
 <div class="row">
     {% for foto in fotos %}
     <div class="col-md-4" style="margin-bottom: 20px; border: 1px solid #ddd; padding: 10px;">
-        <img src="{{ url_for('activity.download_foto', filename=foto.filename) }}" 
-            class="card-img-top" 
-            style="height: 200px; object-fit: cover;"
-            alt="Foto">
+        <a href="{{ url_for('activity.download_foto', filename=foto.filename) }}" target="_blank">
+            <img src="{{ url_for('activity.download_foto', filename=foto.filename) }}" 
+            class="img-fluid" 
+            style="max-height: 250px; object-fit: contain;">
+        </a>
                 
         <p style="margin-top: 10px;">
             <strong>Data:</strong> {{ foto.date.strftime('%d/%m/%Y %H:%M') }}<br>
-            <strong>GPS:</strong> {{ foto.latitude }}, {{ foto.longitude }}
+            <strong>GPS:</strong> {{ foto.latitude }}, {{ foto.longitude }}<br>
+            <b>Note:</b> {{ foto.notes }}
+            
         </p>
         
         <a href="https://www.google.com/maps?q={{ foto.latitude }},{{ foto.longitude }}" 
@@ -27,4 +30,22 @@
     <p>Nessuna foto presente per questa attività.</p>
     {% endfor %}
 </div>
+<table>
+      <tr>
+        <td>
+          <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+          {% if show_calendar == "Y" %}
+            <input name="goback" id="goback" value="{{ url_for('calendar.show_cal') }}" hidden>
+          {% else %}
+            <input name="goback" id="goback" value="{{ url_for('activity.index') }}" hidden>
+            {% endif %}
+        </td>
+      </tr>
+</table>
+<script>
+    function goBack() {
+      window.location.assign(document.getElementById("goback").value);
+    }
+
+</script>
 {% endblock %}

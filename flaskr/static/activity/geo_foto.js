@@ -5,6 +5,7 @@ console.log("Sono nello script activity/geo_foto.js");
 
 $('#cameraInput').on('change', function() {
     const act_id = document.getElementById("act_id").value; 
+    const foto_notes = document.getElementById("foto_notes").value;
     // 1. Verifica che sia stato effettivamente selezionato un file
     if (this.files.length === 0) return;
 
@@ -25,6 +26,7 @@ $('#cameraInput').on('change', function() {
         formData.append('image', file);
         formData.append('lat', lat);
         formData.append('lon', lon);
+        formData.append('foto_notes', foto_notes);
 
         // 4. Invia i dati a Flask
         $.ajax({
