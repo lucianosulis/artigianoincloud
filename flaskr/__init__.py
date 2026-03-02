@@ -1,5 +1,6 @@
 import os
 from flask import Flask, redirect, url_for, request, render_template, flash, g, session
+from . import api
 
 def create_app(test_config=None):
     # create and configure the app
@@ -200,6 +201,10 @@ def create_app(test_config=None):
     from . import report
     app.register_blueprint(report.bp)
     app.add_url_rule('/reports', endpoint='index')
+
+    # register blueprint "api"
+    from . import api
+    app.register_blueprint(api.bp)
 
     return app
 

@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 {% block header %}
-  <h4>{% block title %}Galleria foto{% endblock %}</h4>
 {% endblock %}
 {% block content %}
-<h2>Galleria Foto per: {{ act.full_name }} - {{ act.title }}</h2>
+<h4>Galleria Foto per: {{ act.full_name }} - {{ act.title }}</h4>
 
 <div class="row">
     {% for foto in fotos %}

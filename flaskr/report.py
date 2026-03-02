@@ -38,8 +38,40 @@ def index():
         ' ORDER BY c.full_name ASC, o.date DESC'
     )
     orders=cursor.fetchall()
+    anag_people = get_anag_people()
 
-    return render_template('report/index.html', orders=orders)
+    return render_template('report/index.html', orders=orders, anag_people=anag_people)
+
+@bp.route('/report/ore_lav_people', methods=['POST'])
+def ore_lav_people():
+    # Recupero i parametri dal form della card
+    start = request.form.get('date1')
+    end = request.form.get('date2')
+    people_ids_list = request.form.getlist('people')
+    people_ids = ",".join(people_ids_list)
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'select c.full_name as Cliente, o.id as ID_Ordine, o.description as Attività, DATE_FORMAT(o.date,"%d/%m/%y") as Data_ordine, CONCAT(p.surname, " ",p.name) as Operatore, DATE_FORMAT(t.date,"%d/%m/%y") as Data_attività, t.ore_lav as Ore_lavorate ' 
+        'from p_order o ' 
+        'inner join timesheet t on o.id = t.order_id ' 
+        'inner join people p on p.id = t.people_id '
+        'inner join customer c on c.id = o.customer_id '
+        'where  t.date >= %s and t.date <=%s and p.id in (%s) '
+        'order by t.date ',(start,end,people_ids)
+    )
+    rows=cursor.fetchall()
+    
+    excel_file = generate_excel_response(rows,sheet_name="Ore lavorate")
+    if not excel_file:
+        flash("Nessun dato trovato")
+        return redirect(url_for('report.index')) # Torna alla pagina dei report
+    return send_file(
+            excel_file,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name="report_ore_lav_people.xlsx")
+
 
 @bp.route('/report/order_activities', methods=['POST'])
 def order_activities():
@@ -58,9 +90,8 @@ def order_activities():
         ' WHERE o.closed=0 AND a.p_order_id = %s'
         ' ORDER BY c.full_name ASC, o.date DESC',(order_id,)
     )
-    acts=cursor.fetchall()
-    print(acts)
-    excel_file = generate_excel_response(acts,sheet_name="Attività")
+    rows=cursor.fetchall()
+    excel_file = generate_excel_response(rows,sheet_name="Attività")
     if not excel_file:
         flash("Nessun dato trovato")
         return redirect(url_for('report.index')) # Torna alla pagina dei report
@@ -94,9 +125,8 @@ def order_teams():
         ' WHERE o.closed=0 AND a.p_order_id = %s'
         ' ORDER BY c.full_name ASC, o.date DESC',(order_id,)
     )
-    acts=cursor.fetchall()
-    print(acts)
-    excel_file = generate_excel_response(acts,sheet_name="Attività")
+    rows=cursor.fetchall()
+    excel_file = generate_excel_response(rows,sheet_name="Attività")
     if not excel_file:
         flash("Nessun dato trovato")
         return redirect(url_for('report.index')) # Torna alla pagina dei report
@@ -107,10 +137,9 @@ def order_teams():
             download_name="report_attivita.xlsx")
 
 def generate_excel_response(query_results, sheet_name="Report"):
-    print(query_results)
+    #print(query_results)
     if not query_results:
         return None
-    print("OK")
     # Creo un nuovo workbook
     wb = Workbook()
     ws = wb.active
@@ -145,5 +174,13 @@ def generate_excel_response(query_results, sheet_name="Report"):
     output.seek(0) #Riavvolge "il nastro" all'inizio
     return output
         
+def get_anag_people():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT id, CONCAT(surname," ",name) AS name FROM people WHERE cessato=0 ORDER BY surname,name ASC'
+    )
+    anag_people=cursor.fetchall()
+    return anag_people
 
 
