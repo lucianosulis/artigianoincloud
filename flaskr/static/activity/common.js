@@ -1,62 +1,15 @@
 
 console.log("Sono nello script principale di activity/common.js");
         
-//Sono costretto a copiare le due SELECT in campi INPUT perché le prime non vengono passate
-    //nella request.form (non capisco perché i campi INPUT sì)
     function afterSubmit() {
       //alert("Inizio Submit")
       var new_site_id = document.getElementById("site_id").value;
       document.getElementById("input_site_id").value = new_site_id;
-      //Qui passo il contenuto della jsgrid (le persone) come unica stringa 
-      //nel campo nascosto peoples per il passaggio a Python
-      var data = $("#jsGrid").jsGrid("option", "data");
-      var people_ids_Str = "";
-      for (let i = 0; i < data.length; i++) {
-        var jsonObject = data[i];
-        if (people_ids_Str != "") {
-          people_ids_Str = people_ids_Str + ",";
-        }
-        people_ids_Str = people_ids_Str + jsonObject["id"];
-      }
-      dates_Str = "";
-      for (let i = 0; i < data.length; i++) {
-        var jsonObject = data[i];
-        if (dates_Str != "") {
-          dates_Str = dates_Str + ",";
-        }
-        dates_Str = dates_Str + jsonObject["date"];
-      }
-      
-      console.log("people_ids_Str: "+people_ids_Str);
-      console.log("dates_Str: "+dates_Str);
-      document.getElementById("people_ids").value = people_ids_Str;
-      document.getElementById("people_dates").value = dates_Str;
-      
-      //Similmente per la jsgrid dei mezzi 
-      var data = $("#jsGrid2").jsGrid("option", "data");
-      var tool_ids_Str = "";
-      for (let i = 0; i < data.length; i++) {
-        var jsonObject = data[i];
-        if (tool_ids_Str != "") {
-          tool_ids_Str = tool_ids_Str + ",";
-        }
-        tool_ids_Str = tool_ids_Str + jsonObject["id"];
-      }
-      console.log("tool_ids_Str: " + tool_ids_Str);
-      dates_Str = "";
-      for (let i = 0; i < data.length; i++) {
-        var jsonObject = data[i];
-        if (dates_Str != "") {
-          dates_Str = dates_Str + ",";
-        }
-        dates_Str = dates_Str + jsonObject["date"];
-      }
-      console.log("dates_Str: " + dates_Str);
-      console.log("tool_ids_Str: "+tool_ids_Str);
-      console.log("dates_Str: " + dates_Str);
-      document.getElementById("tool_ids").value = tool_ids_Str;
-      document.getElementById("tool_dates").value = dates_Str;
-      
+      //Qui passo il contenuto della jsgrid come unica stringa 
+      //nel campo nascosto per il passaggio a Python
+      const data2 = $("#jsGrid2").jsGrid("option", "data");
+      const dataJSONStringa2 = JSON.stringify(data2);
+      document.getElementById('dati_griglia_json2').value = dataJSONStringa2;
   }
 //In questo caso devo anche creare l'ordine in Fatture in Cloud
     function afterSubmit2() {

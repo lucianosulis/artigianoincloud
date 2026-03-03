@@ -1,3 +1,8 @@
+Release 2.8.0
+Aggiunti i materiali con i relativi costi sulle attività. 
+E' anche possibile inserire i materiali (senza costi) nella consuntivazione presenze.
+Nuova tabella: material_usage
+
 Release 2.7.0
 Aggiunto il report ore lavorate per gruppo di operatori e periodo.
 Aggiunto prototipo di API REST per gara Olginate (api.py).

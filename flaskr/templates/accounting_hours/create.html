@@ -15,12 +15,16 @@
     <!-- Campi di appoggio per le griglie in JSON -->
     <input type="hidden" name="dati_griglia_json" id="dati_griglia_json">
     <input type="hidden" name="dati_griglia_json1" id="dati_griglia_json1">
+    <input type="hidden" name="dati_griglia_json2" id="dati_griglia_json2">
     <!-- Grid per l'inserimento delle ore-->
     <h4>Presenze</h4>
     <div id="jsGrid"></div> 
     <br>
     <h4>Mezzi utilizzati a ore</h4>
     <div id="jsGrid1"></div>
+    <br>
+    <h4>Materiali utilizzati</h4>
+    <div id="jsGrid2"></div>
     <br>
     <input type="submit" value="Salva">
     <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
@@ -34,6 +38,7 @@
     var anag_tools1 = JSON.parse(`{{ anag_tools1 | default("[]") | safe }}`);
     load_grid(act_types,acts);
     load_grid1(anag_tools1, acts);
+    load_grid2(acts);
 
     function goBack() {
       window.location.assign(document.getElementById("goback").value);

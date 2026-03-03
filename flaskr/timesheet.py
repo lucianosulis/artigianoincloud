@@ -154,6 +154,18 @@ def create():
                 print("Errore nella decodifica dei dati JSON della griglia 1")
                 error = 'Errore nella decodifica dei dati JSON della griglia 1.'
         
+        dati_json_stringa2 = request.form.get('dati_griglia_json2')
+        current_app.logger.debug(dati_json_stringa2)
+        dati_griglia2 = []
+        if dati_json_stringa2:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_griglia2 = json.loads(dati_json_stringa2)
+                #print(dati_griglia2)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia 2")
+                error = 'Errore nella decodifica dei dati JSON della griglia 2.'
+
         if (not date) or (not people_ids_arr):
             error = 'Compila tutti i campi obbligatori.'
         if (not dati_griglia):
@@ -203,6 +215,20 @@ def create():
                     (date, tool_id, act_id, order_id, ore_lav)
                 )
             db.commit()
+
+            print(f"dati_griglia2: {dati_griglia2}")
+            for record in dati_griglia2:
+                # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
+                # Estraggo i singoli campi da questo dizionario
+                act_id = record['act_id']
+                mat_desc = record['material_desc']
+                cursor.execute(
+                    'INSERT INTO material_usage (description, activity_id) '
+                    ' VALUES (%s, %s)',
+                    (mat_desc, act_id)
+                )
+            db.commit()
+
             return redirect(url_for('timesheet.index'))
 
     return render_template('timesheet/create.html', act_types=act_types, acts=acts, anag_people=anag_people, anag_tools1=anag_tools1)

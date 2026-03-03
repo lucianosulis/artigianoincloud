@@ -43,6 +43,10 @@
     <label for="description">Descrizione lavorazioni</label>
     <textarea name="description" id="description">{{ request.form['description'] or act['description'] }}</textarea>
     <input name="input_site_id" id="input_site_id" hidden>
+    <input type="hidden" name="dati_griglia_json2" id="dati_griglia_json2">
+    <br>
+    <h4>Materiali utilizzati</h4>
+    <div id="jsGrid2"></div>
     <br>
     <input type="submit" value="Salva">
     <!--<input class="action" type="submit" value="Annulla" onclick="history.back()">-->
@@ -60,9 +64,67 @@
   
   <script type="text/javascript" src="/static/activity/common.js"></script>
   <script>
-      function goBack() {
-        window.location.assign(document.getElementById("goback").value);
-      }
-  </script>
+    // 1. Recupera i dati
+    var materials = JSON.parse(`{{ materials | default("[]") | safe }}`);
+    // 2. DEFINISCI il campo personalizzato PRIMA di caricare la griglia
+    var FloatNumberField = function(config) {
+        jsGrid.NumberField.call(this, config);
+    };
+    FloatNumberField.prototype = $.extend(new jsGrid.NumberField(), {
+        insertTemplate: function() {
+            this._insertPicker = $("<input>").attr("type", "number").attr("step", "0.01").val(0);
+            return this._insertPicker;
+        },
+        editTemplate: function(value) {
+            this._editPicker = $("<input>").attr("type", "number").attr("step", "0.01").val(value);
+            return this._editPicker;
+        },
+        insertValue: function() {
+            return parseFloat(this._insertPicker.val()) || 0;
+        },
+        editValue: function() {
+            return parseFloat(this._editPicker.val()) || 0;
+        }
+    });
+    jsGrid.fields.decimalnumber = FloatNumberField;
+    // 3. FUNZIONE della griglia
+    function load_grid2(mat_records) {
+        $("#jsGrid2").jsGrid({
+            width: "100%",
+            height: "300px",
+            inserting: true,
+            editing: true, // Abilita l'editing globale
+            sorting: true,
+            paging: true,
+            data: mat_records,
+            fields: [
+                { 
+                    name: "description", 
+                    title: "Materiale", 
+                    type: "text", 
+                    width: "50%", 
+                    validate: "required" 
+                },
+                { 
+                    name: "cost", 
+                    title: "Costo", 
+                    type: "decimalnumber", // Ora jsGrid sa cos'è!
+                    width: "20%", 
+                    editing: true,   // Forza l'editing sul campo
+                    align: "right"
+                },
+                { type: "control" }
+            ]
+        });
+    }
 
+    // 4. ESEGUI solo ora
+    $(function() {
+        load_grid2(materials);
+    });
+
+    function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+    }
+</script>
 {% endblock %}

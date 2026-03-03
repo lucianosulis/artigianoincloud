@@ -363,6 +363,8 @@ def update(id):
     order_tags = getOrderTags(order_id)
     tag = get_act_tag(id)
     tag_id = (tag or {}).get('tag_id')
+    materials_ls = get_act_materials(id)
+    materials = json.dumps(materials_ls) #json
 
     if request.method == 'POST': 
         title = request.form['title']
@@ -372,7 +374,18 @@ def update(id):
         order_id = request.form['order_id']
         site_id = request.form['input_site_id']
         tag_id = request.form.get('tag_id')
-        
+        dati_json_stringa2 = request.form.get('dati_griglia_json2')
+        current_app.logger.debug(dati_json_stringa2)
+        dati_griglia2 = []
+        if dati_json_stringa2:
+            try:
+                # Deserializza la stringa JSON in una lista di dizionari Python
+                dati_griglia2 = json.loads(dati_json_stringa2)
+                #print(dati_griglia2)
+            except json.JSONDecodeError:
+                print("Errore nella decodifica dei dati JSON della griglia 2")
+                error = 'Errore nella decodifica dei dati JSON della griglia 2.'
+
         error = None
 
         if (not title) or (not start) or (not end) or (not order_id) or (not site_id):
@@ -402,9 +415,30 @@ def update(id):
                 (id,tag_id)
             )
             db.commit()
+
+            cursor.execute(
+                'DELETE FROM material_usage '
+                ' WHERE activity_id = %s ',
+                (id,)
+            )
+            print(f"dati_griglia2: {dati_griglia2}")
+            for record in dati_griglia2:
+                # 'record' è ora un singolo dizionario (es: {'act_type_id': 1, ...})
+                # Estraggo i singoli campi da questo dizionario
+                print(record)
+                #act_id = record['activity_id']
+                mat_desc = record['description']
+                cost = record['cost']
+                cursor.execute(
+                    'INSERT INTO material_usage (description, activity_id, cost) '
+                    ' VALUES (%s, %s, %s)',
+                    (mat_desc, id, cost)
+                )
+            db.commit()
+
             return redirect(url_for('activity.index'))
     show_calendar =  session["show_calendar"]
-    return render_template('activity/update.html', act=act, order_id=order_id, order_desc=order_desc, siteList=siteList, order_tags=order_tags, tag_id=tag_id, show_calendar=show_calendar)
+    return render_template('activity/update.html', act=act, order_id=order_id, order_desc=order_desc, siteList=siteList, order_tags=order_tags, tag_id=tag_id, materials=materials,show_calendar=show_calendar)
 
 @bp.route('/activity/<int:id>/duplicate', methods=('GET', 'POST'))
 @login_required
@@ -536,6 +570,9 @@ def delete(id):
     cursor = db.cursor(dictionary=True)
     cursor.execute('DELETE FROM rel_team_activity WHERE activity_id = %s', (id,))
     cursor.execute('DELETE FROM rel_tag_activity WHERE activity_id = %s', (id,))
+    cursor.execute('DELETE FROM material_usage WHERE activity_id = %s', (id,))
+    cursor.execute('DELETE FROM timesheet WHERE act_id = %s', (id,))
+    cursor.execute('DELETE FROM tool_usage WHERE act_id = %s', (id,))
     cursor.execute('DELETE FROM activity WHERE id = %s', (id,))
     db.commit()
     return redirect(url_for('activity.index'))
@@ -552,11 +589,12 @@ def detail(id):
     tu_tool = get_tu_tool(id)
     #anag_tags = get_anag_tags()
     tag = get_act_tag(id)
-    print(tag)
+    #print(tag)
     fotos = get_fotos(id)
     numero_foto = len(fotos)
+    materials = get_act_materials(id)
     show_calendar =  session["show_calendar"]
-    return render_template('activity/detail.html', act=act, order=order, site=site, ts_people=ts_people, tu_tool=tu_tool, tag=tag, ts_total_hours=ts_total_hours, show_calendar=show_calendar, numero_foto=numero_foto)
+    return render_template('activity/detail.html', act=act, order=order, site=site, ts_people=ts_people, tu_tool=tu_tool, tag=tag, ts_total_hours=ts_total_hours, show_calendar=show_calendar, numero_foto=numero_foto, materials=materials)
 
 @bp.route('/activity/<int:id>/gallery', methods=('GET',))
 @login_required
@@ -1010,3 +1048,15 @@ def get_fotos(act_id):
     if fotos is None:
         abort(404, f"fotos è vuota.")
     return fotos
+
+def get_act_materials(act_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'SELECT * FROM material_usage '
+        ' WHERE activity_id=%s ',(act_id,)
+    )
+    materials=cursor.fetchall()
+    if materials is None:
+        abort(404, f"materials è vuota.")
+    return materials

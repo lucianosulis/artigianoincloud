@@ -24,7 +24,7 @@
     <label for="title">Descrizione</label>
     <input name="title" id="title" value="{{ request.form['title'] }}" required>
     <label for="tag_id">Tag</label></td>
-    <SELECT id="tag_id" name="tag_id" size="5"> 
+    <SELECT id="tag_id" name="tag_id" size="5" required> 
               {% for tag in anag_tags %}
                 <OPTION value={{tag.tag_id}}>{{tag.tag_desc}}</option>
               {% endfor %}

@@ -93,7 +93,7 @@
         <!-- Grid del personale-->
         <td style="width: 100%"><div id="jsGrid2"></div></td>
       </tr>
-      </table>
+    </table>
     
       <h4>Totale ore lavorate: {{ts_total_hours}}</h4>
       <br>
@@ -104,6 +104,21 @@
         <td style="width: 100%"><div id="jsGrid3"></div></td>
       </tr>
       </table>
+      <!-- Tabella materiali--> 
+      <h4>Materiali</h4>
+      <table>
+        <tr>
+            <td><b>Descrizione</b></td>
+            <td><b>Costo</b></td>
+          </tr>
+        {% for material in materials %}
+          <tr>
+            <td>{{material.description}}</td>
+            <td>{{material.cost}}</td>
+          </tr>
+        {% endfor %}
+      </table>
+      <br>
       <table>
       <tr>
         <td>
