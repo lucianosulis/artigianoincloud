@@ -136,6 +136,42 @@ def order_teams():
             as_attachment=True,
             download_name="report_attivita.xlsx")
 
+@bp.route('/report/activity_cost', methods=['POST'])
+def activity_cost():
+    # Recupero i parametri dal form della card
+    start = request.form.get('date1')
+    end = request.form.get('date2')
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'select a.id as act_id,a.title as act_title, a.start as act_start, a.end as act_end, '
+        'o.id as order_id,o.description as order_desc,c.id as customer_id, '
+        'c.full_name as customer_name,s.address as site_address,s.city as site_city, '
+        't.code as tag, tm.ore_lav as people_ore_lav, CONCAT(p.surname," ",p.name) as people_name, '
+        'tu.ore_lav as tool_ore_lav, tu.km as tool_km, mu.description as material_desc, mu.cost as material_cost '
+        'from activity a '
+        'inner join p_order o on o.id = a.p_order_id '
+        'inner join customer c on c.id = o.customer_id ' 
+        'inner join site s on s.id = a.site_id '
+        'left join rel_tag_activity rta on rta.activity_id = a.id '
+        'left join tag t on rta.tag_id  = t.id '
+        'left join timesheet tm on tm.act_id = a.id '
+        'left join people p on p.id = tm.people_id '
+        'left join tool_usage tu on tu.act_id = a.id '
+        'left join material_usage mu on mu.activity_id = a.id '
+        'where a.start >= %s and a.start <= %s',(start,end)
+    )
+    rows=cursor.fetchall()
+    excel_file = generate_excel_response(rows,sheet_name="Attività")
+    if not excel_file:
+        flash("Nessun dato trovato")
+        return redirect(url_for('report.index')) # Torna alla pagina dei report
+    return send_file(
+            excel_file,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name="report_costi_attivita.xlsx")
+
 def generate_excel_response(query_results, sheet_name="Report"):
     #print(query_results)
     if not query_results:
