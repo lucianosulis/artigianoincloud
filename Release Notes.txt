@@ -1,3 +1,6 @@
+Release 2.9.1
+Aggiunta la colonna ore_lav nel report "Attività con operatori per ordine".
+
 Release 2.9.0
 Aggiunto il report con i costi delle attività.
 

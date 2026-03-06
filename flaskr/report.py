@@ -113,7 +113,8 @@ def order_teams():
         'SELECT a.title AS Titolo, c.full_name AS Cliente, ' 
         ' DATE_FORMAT(a.start,"%d/%m/%y") AS Inizio_attività, ' 
         ' DATE_FORMAT(a.end,"%d/%m/%y") AS Fine_attività, s.address AS Indirizzo, s.city AS Città, '
-        ' CONCAT(p.surname, " ",p.name) AS Operatore, DATE_FORMAT(t.date,"%d/%m/%y") AS Data'
+        ' CONCAT(p.surname, " ",p.name) AS Operatore, DATE_FORMAT(t.date,"%d/%m/%y") AS Data, '
+        ' ts.ore_lav AS Ore_lavorate '
         ' FROM activity a ' 
         ' INNER JOIN p_order o ON o.id = a.p_order_id '
         ' INNER JOIN site s ON s.id = a.site_id '
@@ -122,6 +123,7 @@ def order_teams():
         ' INNER JOIN team t ON t.id = rta.team_id '
         ' INNER JOIN rel_team_people rtp ON t.id = rtp.team_id '
         ' INNER JOIN people p ON p.id = rtp.people_id '
+        ' INNER JOIN timesheet ts ON a.id = ts.act_id '
         ' WHERE o.closed=0 AND a.p_order_id = %s'
         ' ORDER BY c.full_name ASC, o.date DESC',(order_id,)
     )
