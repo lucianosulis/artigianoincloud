@@ -54,15 +54,15 @@
     <table>
       <tr>
         <td>Data inizio</td>
-        <td><input name="searchDate" id="searchDate" type="date" value="{{ request.form['searchDate'] }}"></td>
+        <td><input name="searchDate" id="searchDate" type="date" value="{{ request.form['searchDate'] or search_date}}"></td>
       </tr>
       <tr>
         <td>Cliente</td>
-        <td><input name="searchCustomer" id="searchCustomer" size="12" type="text" value="{{ request.form['searchCustomer'] }}"></td>        
+        <td><input name="searchCustomer" id="searchCustomer" size="12" type="text" value="{{ request.form['searchCustomer'] or search_customer }}"></td>        
       </tr>
       <tr>  
         <td>Sede</td>
-        <td><input name="searchSite" id="searchSite" size="12" type="text" value="{{ request.form['searchSite'] }}"></td>
+        <td><input name="searchSite" id="searchSite" size="12" type="text" value="{{ request.form['searchSite'] or search_site}}"></td>
       </tr>
       <tr>
         <td>

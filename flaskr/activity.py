@@ -19,115 +19,102 @@ bp = Blueprint('activity', __name__)
 @login_required
 def index():
     session["show_calendar"] = 'N'
-    if not "activity_filter" in session:
-        searchStr = ""
+    # Recuperiamo l'URL da cui proviene l'utente
+    referrer = request.referrer or ""
+    # LOGICA DI RESET:
+    # Se l'utente arriva da un'ALTRA pagina (es. menu principale)
+    # e non è un invio di modulo (POST), allora vogliamo il posizionamento speciale.
+    if request.method == 'GET' and "/activity" not in referrer:
+        session["activity_first_page"] = 'Y'
     else:
-        searchStr = session["activity_filter"]
-        #current_app.logger.debug("1 - activity_filter: " + session["activity_filter"])
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-    #cursor.execute("SELECT COUNT(*) AS count FROM activity " + searchStr)
-    cursor.execute(
-            'SELECT COUNT(*) AS count FROM '
-            ' (SELECT a.id, title, a.start AS start, a.end AS end, c.full_name AS customer, CONCAT(site.city," - ",site.address) AS site '
-             ' FROM activity a'
-             ' INNER JOIN p_order o ON a.p_order_id = o.id '
-             ' INNER JOIN site ON a.site_id = site.id'
-			 ' INNER JOIN customer c ON o.customer_id = c.id ' +
-            searchStr + ") AS activities"
-            )
+        # Se sta già navigando dentro /activity (paginazione, filtri, ecc.)
+        # o se ha cliccato esplicitamente su un numero di pagina
+        session["activity_first_page"] = 'N'
+    activity_first_page = session.get("activity_first_page","Y")
     
-    rowCount = cursor.fetchone()
-    total = rowCount['count']
-    page = request.args.get('page')
-
     current_app.config.from_file("config.json", load=json.load)
     per_page = current_app.config["FL_PER_PAGE"]
+    db = get_db() 
+    cursor = db.cursor(dictionary=True)
+    
+    if request.method == 'GET':
+        page = request.args.get('page', 1, type=int)
+        params = session.get("act1_search_params", [])
+        searchStr = session.get("act1_search","")
+        search_date = session.get("act1_search_date","")
+        search_customer = session.get("act1_search_customer","")
+        search_site = session.get("act1_search_site","")
     
     if request.method == 'POST': 
-        #current_app.logger.debug("Sono nella POST")
-        searchDate = request.form['searchDate']
-        searchCustomer = request.form['searchCustomer']
-        searchSite = request.form['searchSite']
-        #current_app.logger.debug("searchDate: " + searchDate)
-        #current_app.logger.debug("searchCustomer: " + searchCustomer)
-        #current_app.logger.debug("searchSite: " + searchSite)
-        if ((searchDate + searchCustomer + searchSite) != ""):
-            searchStr = " WHERE "
-        else:
-            searchStr = ""
-        if (searchDate != ""):
-            searchStr = searchStr + "start = '" + searchDate +"'"
-        if (searchCustomer != ""):
-            if (searchDate != ""):
-                searchStr = searchStr + " AND "
-            searchStr = searchStr + " full_name LIKE '%" + searchCustomer.upper() + "%'"
-        if (searchSite != ""):
-            if (searchDate != "" or searchCustomer != ""):
-                searchStr = searchStr + " AND "
-            searchStr = searchStr + " CONCAT(site.city,' - ',site.address) LIKE '%" + searchSite.upper() + "%'"
-        #searchStr = searchStr.upper()
-        #current_app.logger.debug("searchStr: " + searchStr)
-        #print("searchStr: " + searchStr)
-        session["activity_filter"] = searchStr
+        page = 1
+        search_date = request.form.get("searchDate","")
+        search_customer = request.form.get("searchCustomer","")
+        search_site = request.form.get("searchSite","")
+        session["act1_search_date"] = search_date
+        session["act1_search_customer"] = search_customer
+        session["act1_search_site"] = search_site
+        # 1. Inizializziamo una lista per le condizioni e una per i parametri
+        conditions = []
+        params = []
+        if search_date:
+            conditions.append("start = %s")
+            params.append(f"{search_date}") 
+        if search_customer:
+            conditions.append("full_name LIKE %s")
+            params.append(f"%{search_customer}%") # Il % lo mettiamo nel dato, non nella query
+        if search_site:
+            conditions.append("CONCAT(site.city,' - ',site.address) LIKE %s")
+            params.append(f"%{search_site}%") # Il % lo mettiamo nel dato, non nella query
+        # 2. Trasformiamo la lista di condizioni in una stringa WHERE
+        searchStr = ""
+        if conditions:
+            searchStr = " WHERE " + " AND ".join(conditions)
+        session["act1_search"] = searchStr
+        session["act1_search_params"] = params
+        
 
-        cursor.execute(
-            'SELECT COUNT(*) AS count FROM '
-            ' (SELECT a.id, title, a.start AS start, a.end AS end, c.full_name AS customer, CONCAT(site.city," - ",site.address) AS site '
-             ' FROM activity a'
-             ' INNER JOIN p_order o ON a.p_order_id = o.id '
-             ' INNER JOIN site ON a.site_id = site.id'
-			 ' INNER JOIN customer c ON o.customer_id = c.id ' +
-            searchStr + ") AS activities"
-            )
-        rowCount = cursor.fetchone()
-        total = rowCount['count']
-    #current_app.logger.debug("total: " + str(total))  
-    #print("activity_first_page: " + session["activity_first_page"])  
-    if session["activity_first_page"] == 'N':
-        if page == None:
-            page = 1
-        offset = (int(page)-1) * per_page
-    else:
-        #Pagina iniziale (session["activity_first_page"] == 'Y')
-        #Individuo la pagina più vicina alla data odierna
-        today = date.today()
-        query = ('SELECT COUNT(*) AS count FROM ' 
-        ' (SELECT a.id, title, a.start AS start, a.end AS end, c.full_name AS customer, CONCAT(site.city," - ",site.address) AS site ' 
-        ' FROM activity a' 
-        ' INNER JOIN p_order o ON a.p_order_id = o.id ' 
-        ' INNER JOIN site ON a.site_id = site.id' 
-        ' INNER JOIN customer c ON o.customer_id = c.id ')
-        if searchStr == "":
-            query = query + ' WHERE start < %s) AS activities'
-        else:
-            query = query + searchStr +  ' AND start < %s) AS activities'
-        #print(query)
-        cursor.execute(query,(today,))
-        rowCount = cursor.fetchone()
-        number_to_bypass = rowCount['count']   
-        page_num = int((number_to_bypass / per_page)) + 1 
-        #print ("page_num: " + str(page_num))
-        offset = (int(page_num)-1) * per_page
-        page = str(page_num) 
-        session["activity_first_page"] = 'N'
+    count_query = ('SELECT COUNT(*) AS count FROM '
+                ' (SELECT a.id, title, a.start AS start, a.end AS end, c.full_name AS customer, CONCAT(site.city," - ",site.address) AS site '
+                ' FROM activity a'
+                ' INNER JOIN p_order o ON a.p_order_id = o.id'
+                ' INNER JOIN site ON a.site_id = site.id'
+			    ' INNER JOIN customer c ON o.customer_id = c.id ' +
+                searchStr + ") AS activities"
+                )
+    cursor.execute(count_query, params)
+    total = cursor.fetchone()['count']
+    offset = (page-1) * per_page 
+
+    if activity_first_page == 'Y':
+            #Si posiziona sull pagina più vicina al giorno di oggi
+            today = date.today()
+            count_query = ('SELECT COUNT(*) AS count ' 
+                ' FROM activity WHERE start < %s' )
+            cursor.execute(count_query,(today,))
+            rowCount = cursor.fetchone()
+            number_to_bypass = rowCount['count']   
+            page_num = int((number_to_bypass / per_page)) + 1 
+            offset = (int(page_num)-1) * per_page
+            page = str(page_num) 
+            session["activity_first_page"] = 'N'
+
     pagination = Pagination(page=page, per_page=per_page, total=total, 
                             css_framework='bootstrap4')
-    #print(str(per_page) + " ----- " + str(offset))
-    cursor.execute(
-            'SELECT a.id, title, DATE_FORMAT(a.start,"%d/%m/%y") AS start, DATE_FORMAT(a.end,"%d/%m/%y") AS end, c.full_name AS customer, CONCAT(site.city," - ",site.address) AS site'
+
+    final_query = ('SELECT a.id, title, DATE_FORMAT(a.start,"%d/%m/%y") AS start, DATE_FORMAT(a.end,"%d/%m/%y") AS end, c.full_name AS customer, CONCAT(site.city," - ",site.address) AS site'
              ' FROM activity a'
              ' INNER JOIN p_order o ON a.p_order_id = o.id'
              ' INNER JOIN site ON a.site_id = site.id'
 			 ' INNER JOIN customer c ON o.customer_id = c.id' +
              searchStr +
-            ' ORDER BY a.start ASC LIMIT %s OFFSET %s',
-            (per_page, offset)
+            ' ORDER BY a.start ASC LIMIT %s OFFSET %s'
         )
-    acts = cursor.fetchall()
+    # Aggiungiamo LIMIT e OFFSET alla lista dei parametri esistenti
+    final_params = params + [per_page, offset]
+    cursor.execute(final_query, final_params)
+    acts = cursor.fetchall() 
     
-    return render_template('activity/index.html', acts=acts, page=page,
-                           per_page=per_page,pagination=pagination, search=searchStr)
+    return render_template('activity/index.html', acts=acts,pagination=pagination,search_date=search_date,search_customer=search_customer,search_site=search_site)
 
 @bp.route('/activity/create', methods=('GET', 'POST'))
 @login_required
@@ -356,6 +343,10 @@ def update(id):
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
          return redirect(url_for("activity.index"))
+    if session.get("show_calendar","N")  == "N":
+        redirect_url = url_for('activity.index')
+    else:
+        redirect_url = url_for('calendar.show_cal')
     act = get_act(id)
     order_id = act['p_order_id']
     order_desc = get_order(id)
@@ -435,10 +426,8 @@ def update(id):
                     (mat_desc, id, cost)
                 )
             db.commit()
-
-            return redirect(url_for('activity.index'))
-    show_calendar =  session["show_calendar"]
-    return render_template('activity/update.html', act=act, order_id=order_id, order_desc=order_desc, siteList=siteList, order_tags=order_tags, tag_id=tag_id, materials=materials,show_calendar=show_calendar)
+            return redirect(redirect_url)
+    return render_template('activity/update.html', act=act, order_id=order_id, order_desc=order_desc, siteList=siteList, order_tags=order_tags, tag_id=tag_id, materials=materials,redirect_url=redirect_url)
 
 @bp.route('/activity/<int:id>/duplicate', methods=('GET', 'POST'))
 @login_required
@@ -593,8 +582,11 @@ def detail(id):
     fotos = get_fotos(id)
     numero_foto = len(fotos)
     materials = get_act_materials(id)
-    show_calendar =  session["show_calendar"]
-    return render_template('activity/detail.html', act=act, order=order, site=site, ts_people=ts_people, tu_tool=tu_tool, tag=tag, ts_total_hours=ts_total_hours, show_calendar=show_calendar, numero_foto=numero_foto, materials=materials)
+    if session.get("show_calendar","N")  == "N":
+        redirect_url = url_for('activity.index')
+    else:
+        redirect_url = url_for('calendar.show_cal')
+    return render_template('activity/detail.html', act=act, order=order, site=site, ts_people=ts_people, tu_tool=tu_tool, tag=tag, ts_total_hours=ts_total_hours, redirect_url=redirect_url, numero_foto=numero_foto, materials=materials)
 
 @bp.route('/activity/<int:id>/gallery', methods=('GET',))
 @login_required

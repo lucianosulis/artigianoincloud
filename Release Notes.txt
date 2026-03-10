@@ -1,3 +1,8 @@
+Release 2.10
+Aggiunto il report sui ricavi per ordine.
+Refactoring di activity.py (la ricerca nell'elenco adesso non dovrebbe dare più errori e 
+mantiene i parametri inseriti come filtro anche quando si cambia pagina). 
+
 Release 2.9.1
 Aggiunta la colonna ore_lav nel report "Attività con operatori per ordine".
 

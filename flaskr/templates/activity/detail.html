@@ -123,11 +123,7 @@
       <tr>
         <td>
           <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
-          {% if show_calendar == "Y" %}
-            <input name="goback" id="goback" value="{{ url_for('calendar.show_cal') }}" hidden>
-          {% else %}
-            <input name="goback" id="goback" value="{{ url_for('activity.index') }}" hidden>
-            {% endif %}
+          <input name="goback" id="goback" value="{{ redirect_url }}" hidden>
         </td>
         <td></td>
       </tr>

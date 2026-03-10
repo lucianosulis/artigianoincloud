@@ -14,7 +14,6 @@ bp = Blueprint('accounting_hours', __name__)
 @bp.route('/accounting_hours', methods=('GET', 'POST'))
 @login_required
 def index():
-    session["activity_first_page"] = 'Y' 
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute('SELECT COUNT(*) AS count FROM people WHERE user_id=%s',(g.user_id,))

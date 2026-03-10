@@ -17,10 +17,10 @@ bp = Blueprint('calendar', __name__)
 @bp.route("/calendar", methods=("GET", "POST"))
 @login_required
 def show_cal():
-    session["activity_first_page"] = 'Y'
+    session["show_calendar"] = 'Y'
+    #session["activity_first_page"] = 'Y'
     session["team_first_page"] = 'Y'
     session["maintenance_first_page"] = 'Y'
-    session["show_calendar"] = 'Y'
     session["schedule_first_page"] = 'Y'
     session["people_available_first_page"] = 'Y'
     db = get_db()

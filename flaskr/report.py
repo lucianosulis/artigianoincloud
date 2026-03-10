@@ -113,19 +113,16 @@ def order_teams():
         'SELECT a.title AS Titolo, c.full_name AS Cliente, ' 
         ' DATE_FORMAT(a.start,"%d/%m/%y") AS Inizio_attività, ' 
         ' DATE_FORMAT(a.end,"%d/%m/%y") AS Fine_attività, s.address AS Indirizzo, s.city AS Città, '
-        ' CONCAT(p.surname, " ",p.name) AS Operatore, DATE_FORMAT(t.date,"%d/%m/%y") AS Data, '
+        ' CONCAT(p.surname, " ",p.name) AS Operatore, DATE_FORMAT(ts.date,"%d/%m/%y") AS Data, '
         ' ts.ore_lav AS Ore_lavorate '
         ' FROM activity a ' 
         ' INNER JOIN p_order o ON o.id = a.p_order_id '
         ' INNER JOIN site s ON s.id = a.site_id '
         ' INNER JOIN customer c ON o.customer_id = c.id ' 
-        ' INNER JOIN rel_team_activity rta ON a.id = rta.activity_id '
-        ' INNER JOIN team t ON t.id = rta.team_id '
-        ' INNER JOIN rel_team_people rtp ON t.id = rtp.team_id '
-        ' INNER JOIN people p ON p.id = rtp.people_id '
         ' INNER JOIN timesheet ts ON a.id = ts.act_id '
+        ' INNER JOIN people p ON p.id = ts.people_id '
         ' WHERE o.closed=0 AND a.p_order_id = %s'
-        ' ORDER BY c.full_name ASC, o.date DESC',(order_id,)
+        ,(order_id,)
     )
     rows=cursor.fetchall()
     excel_file = generate_excel_response(rows,sheet_name="Attività")
@@ -173,6 +170,37 @@ def activity_cost():
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
             download_name="report_costi_attivita.xlsx")
+
+@bp.route('/report/order_revenue', methods=['POST'])
+def order_revenue():
+    # Recupero i parametri dal form della card
+    start = request.form.get('date1')
+    end = request.form.get('date2')
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        select o.id as order_id,o.description as order_desc,o.date as order_date,o.order_type, o.closed, 
+        o.amount as order_amount,o.customer_id,c.full_name as customer_name,
+        GROUP_CONCAT(t.code SEPARATOR ',') AS tag 
+        from p_order o 
+        inner join customer c on c.id = o.customer_id 
+        left join rel_tag_order rto on rto.p_order_id = o.id 
+        left join tag t on t.id = rto.tag_id 
+        where o.date >= %s and o.date <= %s 
+        GROUP BY o.id 
+        order by o.date """,(start,end)
+        )
+    rows=cursor.fetchall()
+    excel_file = generate_excel_response(rows,sheet_name="Attività")
+    if not excel_file:
+        flash("Nessun dato trovato")
+        return redirect(url_for('report.index')) # Torna alla pagina dei report
+    return send_file(
+            excel_file,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name="report_costi_attivita.xlsx")
+
 
 def generate_excel_response(query_results, sheet_name="Report"):
     #print(query_results)

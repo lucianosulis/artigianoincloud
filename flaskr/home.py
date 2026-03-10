@@ -11,7 +11,5 @@ bp = Blueprint('home', __name__)
 @bp.route('/home')
 @login_required
 def index():
-    #return render_template('home/index.html')
     return redirect('calendar')
-    #return redirect('activity')
     
