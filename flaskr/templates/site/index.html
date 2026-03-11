@@ -20,11 +20,11 @@
   <div class="table-striped">
     <table>
       <tr>
-        <th>Cliente</th><th>Città</th><th>Indirizzo</th><th></th>
+        <th>Cliente</th><th>Città</th><th>Indirizzo</th><th>Latitudine</th><th>Longitudine</th><th></th>
       </tr>
       {% for site in sites %}
       <tr>
-        <td>{{ site['customer_name'] }}</td><td>{{ site['city'] }}</td><td>{{ site['address'] }}</td>
+        <td>{{ site['customer_name'] }}</td><td>{{ site['city'] }}</td><td>{{ site['address'] }}</td><td>{{ site['latitude'] }}</td><td>{{ site['longitude'] }}</td>
         <td>
           <a href="{{ url_for('site.detail', id=site['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
           <br/>
@@ -45,8 +45,20 @@
     <div class="table">
     <table>
       <tr>
+        <td>
+          <label for="radio1">Tutti</label>
+          <input name="filterA" id="radio1" type="radio" value="all"
+          {% if filterA == 'all' %}checked{% endif %} >
+        </td> 
+        <td>
+          <label for="radio2">Senza coordinate</label>
+          <input name="filterA" id="radio2" type="radio" value="wo_coord"
+          {% if filterA == 'wo_coord' %}checked{% endif %} >
+        </td>
+      </tr>
+      <tr>
         <td>Cliente</td>
-        <td><input name="search" id="search" size="12" type="text" value="{{ request.form['search'] }}"></td>        
+        <td><input name="searchCustomer" id="searchCustomer" size="12" type="text" value="{{ request.form['searchCustomer'] or search_customer }}"></td>        
       </tr>
       <tr>
         <td>
@@ -66,7 +78,7 @@
   
   <script>
     function resetSearch() {
-      document.getElementById("search").value = "";
+      document.getElementById("searchCustomer").value = "";
       document.getElementById("SearchForm").submit();
     }
     

@@ -6,7 +6,9 @@ from werkzeug.exceptions import abort
 
 from flaskr.auth import login_required
 from flaskr.db import get_db
+from flask import Response, render_template
 from .geo_utils import geocoordinates
+import io
 
 bp = Blueprint('site', __name__)
 
@@ -17,55 +19,70 @@ def index():
     if g.role != "ADMIN":
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
-         return redirect(url_for("calendar.show_cal"))
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-    cursor.execute('SELECT COUNT(*) AS count FROM site')
-    rowCount = cursor.fetchone()
-    total = rowCount['count']
-    page = request.args.get('page')
+         return redirect(url_for("home.index"))
     current_app.config.from_file("config.json", load=json.load)
     per_page = current_app.config["FL_PER_PAGE"]
-    searchStr = ""
+    search_customer = session.get("site1_search_customer","")
+    filterA = session.get("site1_filter","all")
+
+    if request.method == 'GET': 
+        page = request.args.get('page', 1, type=int)
+        params = session.get("site1_search_params", [])
+        searchStr = session.get("site1_search","")
+        
     if request.method == 'POST': 
-        searchStr = request.form['search']
-        searchQ = "%" + searchStr + "%"
-        searchQ = searchQ.upper()
-        cursor.execute(
-            'SELECT COUNT(*) AS count FROM site s INNER JOIN customer c ON s.customer_id = c.id WHERE c.full_name LIKE %s',
-            (searchQ,)
-            )
-        rowCount = cursor.fetchone()
-        total = rowCount['count']
-    if page != None:
-        offset = (int(page)-1) * per_page
-    else:
-        page = "1"
-        offset = 0   
+        page = 1
+        filterA = request.form.get("filterA","all")
+        session["site1_filter"] = filterA
+        current_app.logger.debug(f"filterA da POST: {filterA}")
+        # 1. Inizializziamo una lista per le condizioni e una per i parametri
+        conditions = []
+        params = []
+        # Gestione filtro holidays
+        if filterA == "wo_coord":
+            conditions.append("(latitude IS NULL OR longitude IS NULL)")
+        search_customer = request.form.get('searchCustomer')
+        session["site1_search_customer"] = search_customer
+        if search_customer:
+            conditions.append("c.full_name LIKE %s")
+            params.append(f"%{search_customer}%") # Il % lo mettiamo nel dato, non nella query
+        # 2. Trasformiamo la lista di condizioni in una stringa WHERE
+        searchStr = ""
+        if conditions:
+            searchStr = " WHERE " + " AND ".join(conditions)
+        current_app.logger.debug(f"POST searchStr: {searchStr}")
+        current_app.logger.debug(f"POST params: {params}") 
+        session["site1_search"] = searchStr
+        session["site1_search_params"] = [str(p) for p in params]
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    count_query = ('''SELECT COUNT(*) AS count FROM site s 
+                   INNER JOIN customer c ON s.customer_id = c.id '''
+                   + searchStr 
+                )
+    print(count_query)
+    cursor.execute(count_query, params)
+    total = cursor.fetchone()['count']
+    offset = (page-1) * per_page 
+
     pagination = Pagination(page=page, per_page=per_page, total=total, 
                             css_framework='bootstrap4')
-    
-    if searchStr == "":
-        cursor.execute(
-            'SELECT s.id, s.address AS address, s.city AS city, c.full_name AS customer_name'
-            ' FROM site s INNER JOIN customer c ON s.customer_id = c.id'
-            ' ORDER BY c.full_name ASC LIMIT %s OFFSET %s',
-            (per_page, offset)
+
+    final_query = ('SELECT s.id, s.address AS address, s.city AS city, '
+                   ' c.full_name AS customer_name, s.latitude, s.longitude '
+            ' FROM site s INNER JOIN customer c ON s.customer_id = c.id ' +
+             searchStr +
+            ' ORDER BY c.full_name ASC LIMIT %s OFFSET %s'
         )
-        sites = cursor.fetchall()
-    else:
-        searchQ = "%" + searchStr + "%"
-        searchQ = searchQ.upper()
-        cursor.execute(
-            'SELECT s.id, s.address AS address, s.city AS city, c.full_name AS customer_name'
-            ' FROM site s INNER JOIN customer c ON s.customer_id = c.id'
-            ' WHERE c.full_name LIKE %s'
-            ' ORDER BY c.full_name ASC LIMIT %s OFFSET %s',
-            (searchQ, per_page, offset)
-        )
-        sites = cursor.fetchall()
-    return render_template('site/index.html', sites=sites, page=page,
-                           per_page=per_page,pagination=pagination, search=searchStr)
+    print(final_query)
+    # Aggiungiamo LIMIT e OFFSET alla lista dei parametri esistenti
+    final_params = params + [per_page, offset]
+    print(final_params)
+    cursor.execute(final_query, final_params)
+    sites = cursor.fetchall() 
+    print(f"filterA: {filterA}")
+    return render_template('site/index.html', sites=sites, pagination=pagination, search_customer=search_customer, filterA=filterA)
 
 @bp.route('/site/create', methods=('GET', 'POST'))
 @login_required
@@ -114,8 +131,10 @@ def update(id):
         contact_people = request.form['contact_people']
         telephone = request.form['telephone']
         email = request.form['email']
-        lat = request.form['lat']
-        lon = request.form['lon']
+        #lat = request.form['lat']
+        #lon = request.form['lon']
+        lat = float(request.form['lat']) if request.form['lat'].strip() else None
+        lon = float(request.form['lon']) if request.form['lon'].strip() else None
         error = None
 
         if (not customer_id) or (not city) or (not address):
@@ -201,7 +220,12 @@ def geo_site():
                 #' LIMIT 15'
                 )
     sites = cursor.fetchall()
+    # 1. Creiamo un buffer di memoria per il log
+    buffer = io.StringIO()
+    n=0
     for site in sites:
+        if n == 50:
+            break
         #print(site)
         site_id = site['id']
         latitudine, longitudine, messaggio_errore = geocoordinates(site['full_address'])
@@ -214,8 +238,15 @@ def geo_site():
                 )
             db.commit()
         else:
-            msg = messaggio_errore + ": " + site['full_name'] + " - " + site['full_address']
+            msg = messaggio_errore + ": " + site['full_name'] + " - " + site['full_address'] + "\n"
             print(msg)
-            flash(msg)
-    
-    return redirect(url_for('site.index')) 
+            buffer.write(msg)
+        n = n + 1
+    output = buffer.getvalue()
+    buffer.close()
+    return Response(
+        output,
+        mimetype="text/plain",
+        headers={"Content-disposition": "attachment; filename=log.txt"}
+    )
+    #return redirect(url_for('site.index')) 

@@ -134,10 +134,12 @@ class Oauth:
                             tag_ids = []
                             cursor = db.cursor(dictionary=True)
                             for category in categories: 
+                                print(f"category: {category}")
                                 cursor.execute(
                                     'SELECT id FROM tag where code=%s',
                                     (category,))
                                 result = cursor.fetchone()
+                                print(f"result: {result}")
                                 if result:
                                     tag_id = result['id']
                                 if tag_id:

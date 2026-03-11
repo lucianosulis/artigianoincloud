@@ -99,7 +99,7 @@ def order_activities():
             excel_file,
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
-            download_name="report_attivita.xlsx")
+            download_name="report_attivita_ordine.xlsx")
 
 @bp.route('/report/order_teams', methods=['POST'])
 def order_teams():
@@ -133,7 +133,7 @@ def order_teams():
             excel_file,
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
-            download_name="report_attivita.xlsx")
+            download_name="report_operatori_attivita.xlsx")
 
 @bp.route('/report/activity_cost', methods=['POST'])
 def activity_cost():
@@ -199,11 +199,10 @@ def order_revenue():
             excel_file,
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
-            download_name="report_costi_attivita.xlsx")
+            download_name="report_ricavi_ordine.xlsx")
 
 
 def generate_excel_response(query_results, sheet_name="Report"):
-    #print(query_results)
     if not query_results:
         return None
     # Creo un nuovo workbook

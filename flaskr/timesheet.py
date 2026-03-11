@@ -19,7 +19,6 @@ def index():
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
          return redirect(url_for("calendar.show_cal"))
-    #session["activity_first_page"] = 'Y'
     session["show_calendar"] = 'N'
     current_app.config.from_file("config.json", load=json.load)
     per_page = current_app.config["FL_PER_PAGE"]

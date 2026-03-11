@@ -1,3 +1,6 @@
+Release 2.11
+Refactoring e migliorie varie.
+
 Release 2.10
 Aggiunto il report sui ricavi per ordine.
 Refactoring di activity.py (la ricerca nell'elenco adesso non dovrebbe dare più errori e 
