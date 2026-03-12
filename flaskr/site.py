@@ -222,10 +222,7 @@ def geo_site():
     sites = cursor.fetchall()
     # 1. Creiamo un buffer di memoria per il log
     buffer = io.StringIO()
-    n=0
     for site in sites:
-        if n == 50:
-            break
         #print(site)
         site_id = site['id']
         latitudine, longitudine, messaggio_errore = geocoordinates(site['full_address'])
@@ -241,7 +238,6 @@ def geo_site():
             msg = messaggio_errore + ": " + site['full_name'] + " - " + site['full_address'] + "\n"
             print(msg)
             buffer.write(msg)
-        n = n + 1
     output = buffer.getvalue()
     buffer.close()
     return Response(

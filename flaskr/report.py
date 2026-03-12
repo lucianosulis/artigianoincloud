@@ -143,22 +143,65 @@ def activity_cost():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'select a.id as act_id,a.title as act_title, a.start as act_start, a.end as act_end, '
-        'o.id as order_id,o.description as order_desc,c.id as customer_id, '
-        'c.full_name as customer_name,s.address as site_address,s.city as site_city, '
-        't.code as tag, tm.ore_lav as people_ore_lav, CONCAT(p.surname," ",p.name) as people_name, '
-        'tu.ore_lav as tool_ore_lav, tu.km as tool_km, mu.description as material_desc, mu.cost as material_cost '
-        'from activity a '
-        'inner join p_order o on o.id = a.p_order_id '
-        'inner join customer c on c.id = o.customer_id ' 
-        'inner join site s on s.id = a.site_id '
-        'left join rel_tag_activity rta on rta.activity_id = a.id '
-        'left join tag t on rta.tag_id  = t.id '
-        'left join timesheet tm on tm.act_id = a.id '
-        'left join people p on p.id = tm.people_id '
-        'left join tool_usage tu on tu.act_id = a.id '
-        'left join material_usage mu on mu.activity_id = a.id '
-        'where a.start >= %s and a.start <= %s',(start,end)
+        '''select a.id as id_attivita,a.title as titolo, a.start as inizio, a.end as fine, 
+        o.id as id_ordine,o.description as desc_ordine,c.id as id_cliente, 
+        c.full_name as nome_cliente,s.address as indirizzo_sito,s.city as città_sito,tg.code as tag, 
+        'ore_uomo' as tipo,
+        tm.ore_lav as ore_uomo, "" as ore_mezzo,"" as km_mezzo, "" as costo_materiale,CONCAT(p.surname," ",p.name) as risorsa,tm.date as data 
+        from activity a 
+        inner join p_order o on o.id = a.p_order_id 
+        inner join customer c on c.id = o.customer_id  
+        inner join site s on s.id = a.site_id 
+        left join rel_tag_activity rta on rta.activity_id = a.id 
+        left join tag tg on rta.tag_id  = tg.id 
+        inner join timesheet tm on tm.act_id = a.id 
+        left join people p on p.id = tm.people_id 
+        where a.start >= %s and a.start <= %s
+        union all
+        select a.id as id_attivita,a.title as titolo, a.start as inizio, a.end as fine, 
+        o.id as id_ordine,o.description as desc_ordine,c.id as id_cliente, 
+        c.full_name as nome_cliente,s.address as indirizzo_sito,s.city as città_sito,tg.code as tag, 
+        'ore_mezzo' as tipo,
+        "" as ore_uomo, tu.ore_lav as ore_mezzo,"" as km_mezzo, "" as costo_materiale, CONCAT(t.brand," ",t.model," ",t.license_plate ) as risorsa,tu.date as data
+        from activity a 
+        inner join p_order o on o.id = a.p_order_id 
+        inner join customer c on c.id = o.customer_id  
+        inner join site s on s.id = a.site_id 
+        left join rel_tag_activity rta on rta.activity_id = a.id 
+        inner join tag tg on rta.tag_id  = tg.id 
+        inner join tool_usage tu on tu.act_id = a.id 
+        inner join tool t on tu.tool_id = t.id 
+        where a.start >= %s and a.start <= %s and tu.ore_lav <> 0
+        union all
+        select a.id as id_attivita,a.title as titolo, a.start as inizio, a.end as fine, 
+        o.id as id_ordine,o.description as desc_ordine,c.id as id_cliente, 
+        c.full_name as nome_cliente,s.address as indirizzo_sito,s.city as città_sito,tg.code as tag, 
+        'km_mezzo' as tipo,
+        "" as ore_uomo, "" as ore_mezzo,tu.km as km_mezzo, "" as costo_materiale, CONCAT(t.brand," ",t.model," ",t.license_plate ) as risorsa,tu.date as data
+        from activity a 
+        inner join p_order o on o.id = a.p_order_id 
+        inner join customer c on c.id = o.customer_id  
+        inner join site s on s.id = a.site_id 
+        left join rel_tag_activity rta on rta.activity_id = a.id 
+        inner join tag tg on rta.tag_id  = tg.id 
+        inner join tool_usage tu on tu.act_id = a.id 
+        inner join tool t on tu.tool_id = t.id 
+        where a.start >= %s and a.start <= %s and tu.km <> 0
+        union all
+        select a.id as id_attivita,a.title as titolo, a.start as inizio, a.end as fine, 
+        o.id as id_ordine,o.description as desc_ordine,c.id as id_cliente, 
+        c.full_name as nome_cliente,s.address as indirizzo_sito,s.city as città_sito,tg.code as tag, 
+        'costo_materiale' as tipo,
+        "" as ore_uomo, "" as ore_mezzo,"" as km_mezzo, mu.cost as costo_materiale, mu.description  as risorsa,'' as data
+        from activity a 
+        inner join p_order o on o.id = a.p_order_id 
+        inner join customer c on c.id = o.customer_id  
+        inner join site s on s.id = a.site_id 
+        left join rel_tag_activity rta on rta.activity_id = a.id 
+        inner join tag tg on rta.tag_id  = tg.id 
+        inner join material_usage mu on mu.activity_id = a.id 
+        where a.start >= %s and a.start <= %s
+        order by id_attivita,tipo''',(start,end,start,end,start,end,start,end)
     )
     rows=cursor.fetchall()
     excel_file = generate_excel_response(rows,sheet_name="Attività")

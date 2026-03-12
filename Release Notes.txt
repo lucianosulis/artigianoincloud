@@ -1,3 +1,6 @@
+Release 2.12
+Modificato il report costi attività, perché era sbagliata la query.
+
 Release 2.11
 Refactoring e migliorie varie.
 

@@ -1,4 +1,4 @@
-from geopy.geocoders import Nominatim
+from geopy.geocoders import Nominatim,ArcGIS
 from geopy.distance import geodesic
 import requests
 import time
@@ -9,7 +9,8 @@ def geocoordinates(address):
     error = None
     # 1. Inizializza il geolocalizzatore
     # Nota: inserisci un user_agent personalizzato per rispettare le policy di OSM
-    geolocator = Nominatim(user_agent="mio_calcolatore_distanze_v2")
+    #geolocator = Nominatim(user_agent="mio_calcolatore_distanze_v2")
+    geolocator = ArcGIS()
     # 2. Geocodifica indirizzo
     time.sleep(1) # Rispetto del limite di 1 richiesta al secondo
     loc = geolocator.geocode(address)
