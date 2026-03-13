@@ -155,7 +155,7 @@ def activity_cost():
         left join rel_tag_activity rta on rta.activity_id = a.id 
         left join tag tg on rta.tag_id  = tg.id 
         inner join timesheet tm on tm.act_id = a.id 
-        left join people p on p.id = tm.people_id 
+        inner join people p on p.id = tm.people_id 
         where a.start >= %s and a.start <= %s
         union all
         select a.id as id_attivita,a.title as titolo, a.start as inizio, a.end as fine, 
@@ -168,7 +168,7 @@ def activity_cost():
         inner join customer c on c.id = o.customer_id  
         inner join site s on s.id = a.site_id 
         left join rel_tag_activity rta on rta.activity_id = a.id 
-        inner join tag tg on rta.tag_id  = tg.id 
+        left join tag tg on rta.tag_id  = tg.id 
         inner join tool_usage tu on tu.act_id = a.id 
         inner join tool t on tu.tool_id = t.id 
         where a.start >= %s and a.start <= %s and tu.ore_lav <> 0
@@ -183,7 +183,7 @@ def activity_cost():
         inner join customer c on c.id = o.customer_id  
         inner join site s on s.id = a.site_id 
         left join rel_tag_activity rta on rta.activity_id = a.id 
-        inner join tag tg on rta.tag_id  = tg.id 
+        left join tag tg on rta.tag_id  = tg.id 
         inner join tool_usage tu on tu.act_id = a.id 
         inner join tool t on tu.tool_id = t.id 
         where a.start >= %s and a.start <= %s and tu.km <> 0
@@ -198,7 +198,7 @@ def activity_cost():
         inner join customer c on c.id = o.customer_id  
         inner join site s on s.id = a.site_id 
         left join rel_tag_activity rta on rta.activity_id = a.id 
-        inner join tag tg on rta.tag_id  = tg.id 
+        left join tag tg on rta.tag_id  = tg.id 
         inner join material_usage mu on mu.activity_id = a.id 
         where a.start >= %s and a.start <= %s
         order by id_attivita,tipo''',(start,end,start,end,start,end,start,end)

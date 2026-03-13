@@ -384,13 +384,11 @@ def route_calc(date_start,date_end):
     data_returned = []
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    #coordinate di partenza
     cursor.execute('SELECT latitude,longitude from company WHERE id=1')
-    res_co = cursor.fetchone()
-    if not res_co or not res_co['latitude'] or not res_co['longitude']:
-        return jsonify({"status": "error", "message": "Coordinate azienda mancanti"}), 400
-    
-    comp_lat, comp_lon = res_co['latitude'], res_co['longitude']
+    result = cursor.fetchone()
+    #coordinate di partenza
+    lat1 = result['latitude']
+    lon1 = result['longitude']
     #estraggo i mezzi a Km utilizzati nell'intervallo di date
     cursor.execute(
         'SELECT t.date as date, a.id as act_id, CONCAT(c.full_name, " - ", a.title) AS act_desc, '
@@ -409,10 +407,8 @@ def route_calc(date_start,date_end):
         ' where t.date >= %s and t.date <= %s and tt.cons_km = 1', (date_start,date_end))
     
     tools = cursor.fetchall()
-    if not tools:
-        return jsonify([]) # Ritorna lista vuota se non ci sono record
-    
-    if len(tools) > 50:
+    #print(tools)
+    if len(tools) > 25:
         print(f"Troppi mezzi in questo periodo: {len(tools)}")
         return jsonify({
             "status": "error",
@@ -421,52 +417,36 @@ def route_calc(date_start,date_end):
         }), 400
     else:
         print(f"Mezzi in questo periodo: {len(tools)}")
-        # 3. Costruzione chiamata OSRM Table
-        # Il primo punto (index 0) è l'azienda. Gli altri sono i siti.
-        coords_query = f"{comp_lon},{comp_lat}"
-        valid_tools = []
         for tool in tools:
-            #print(tool)
-            tool['date'] = tool['date'].strftime('%Y-%m-%d')
-
-            if tool['latitude'] and tool['longitude']:
-                coords_query += f";{tool['longitude']},{tool['latitude']}"
-                valid_tools.append(tool)
-            else:
-                tool['km'] = 0 # Gestione caso coordinate mancanti
-        # Chiamata a OSRM Table
-        # sources=0 significa: calcola la distanza partendo solo dal primo punto (azienda) verso tutti gli altri
-        url = f"http://router.project-osrm.org/table/v1/driving/{coords_query}?sources=0&annotations=distance"
-    
+            print(tool)
+            tool_date = tool['date']
+            tool['date'] = tool_date.strftime('%Y-%m-%d')
+            # Utilizza le API pubbliche di OSRM
+            try: 
+                lat2 = tool['latitude']
+                lon2 = tool['longitude']
+                if (not lat2) or (not lon2): 
+                    tool['km'] = 0
+                else:
+                    url = f"http://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false"
+                    r = requests.get(url)
+                    data = r.json()
+                    # La distanza restituita è in metri
+                    distanza_metri = data['routes'][0]['distance']
+                    dist_stradale = round(distanza_metri / 1000 * 2) 
+                    tool['km'] = dist_stradale
+            except Exception as e:
+                flash(f"Errore durante l'esecuzione: {e}")
+                tool['km'] = 0
+            data_returned.append(tool)
         try:
-            r = requests.get(url, timeout=30)
-            data = r.json()
-            print(f"URL inviato: {url}") # Copia questo URL nel browser per test
-            print(f"Risposta OSRM: {data.get('code')}")
-            if data.get('code') == 'Ok':
-                # data['distances'][0] contiene le distanze dal punto 0 verso tutti gli altri [0, 1, 2, 3...]
-                distances_row = data['distances'][0]
-                
-                # Assegniamo le distanze (saltiamo l'indice 0 che è azienda->azienda)
-                for idx, tool in enumerate(valid_tools):
-                    dist_metri = distances_row[idx + 1]
-                    if dist_metri is not None:
-                        # Calcolo: metri -> km (*2 per andata/ritorno come nel tuo originale)
-                        tool['km'] = round(dist_metri / 1000 * 2)
-                    else:
-                        tool['km'] = 0
-                        print(f"Attenzione: Punto {idx} non raggiungibile su strada.")
-        
+            risposta_json = jsonify(data_returned)
+            print("JSON creato con successo")
+            return risposta_json
         except Exception as e:
-            print(f"Errore OSRM: {e}")
-            # In caso di errore OSRM, i record avranno km = 0 ma verranno comunque restituiti
-            return jsonify({
-            "status": "error",
-            "message": f"Attenzione: il servizo OSRM che calcola le distanze è andato in errore: {e})." 
-            }), 400
-    
-    return jsonify(tools)
-           
+            print(f"ERRORE FATALE durante la creazione del JSON: {e}")
+            return jsonify({"error": str(e)}), 500
+
 @bp.route("/tu_sel_act/<date>", methods=('POST',))
 @login_required
 def sel_act(date):

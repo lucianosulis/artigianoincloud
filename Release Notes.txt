@@ -1,3 +1,7 @@
+Release 2.13
+Velocizzato il servizio OSRM che calcola le distanze e migliorata la gestione 
+errori in tool_usage.route_calc.
+
 Release 2.12
 Modificato il report costi attività, perché era sbagliata la query.
 
