@@ -21,8 +21,8 @@ from fattureincloud_python_sdk.models.create_client_request import CreateClientR
 from fattureincloud_python_sdk.models.create_client_response import CreateClientResponse
 from fattureincloud_python_sdk.models.issued_document_items_list_item import IssuedDocumentItemsListItem
 from fattureincloud_python_sdk.models.issued_document_payments_list_item import IssuedDocumentPaymentsListItem
-
-from datetime import datetime
+from fattureincloud_python_sdk.models.issued_document_status import IssuedDocumentStatus
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 class Oauth:
@@ -32,7 +32,7 @@ class Oauth:
         current_app.config.from_file("config.json", load=json.load)
         #oauth = OAuth2AuthorizationCodeManager('Aw8Tn3tOvSPXXYHBUOWGD5AXur4iF79p', '27v9eQIt6PRpJZXMOOmH6xRTT9jJUCrbkCWUrV7BpDi03iwelNft4vlrxHG5javw', 'http://localhost:5000/oauth')
         oauth = OAuth2AuthorizationCodeManager(current_app.config["FC_CLIENT_ID"], current_app.config["FC_CLIENT_SECRET"], current_app.config["FC_REDIRECT_URI"])
-        url = oauth.get_authorization_url([Scope.ISSUED_DOCUMENTS_ORDERS_ALL,Scope.ENTITY_CLIENTS_ALL,Scope.ENTITY_SUPPLIERS_READ], 'AveUjKtZ')
+        url = oauth.get_authorization_url([Scope.ISSUED_DOCUMENTS_ORDERS_ALL,Scope.ISSUED_DOCUMENTS_INVOICES_READ,Scope.ISSUED_DOCUMENTS_PROFORMAS_READ,Scope.ENTITY_CLIENTS_ALL,Scope.ENTITY_SUPPLIERS_READ], 'AveUjKtZ')
         #print("url da Oauth: " + url)
         params = request.args
         #print(request.args.to_dict().items())
@@ -61,25 +61,20 @@ class Oauth:
                 customers_api_instance = clients_api.ClientsApi(api_client)
                 documents_api_instance = issued_documents_api.IssuedDocumentsApi(api_client)
 
-                if session["fc_call_type"] == "fc_sync":
+                if session["fc_call_type"] == "fc_sync_customers":
                     #Sincronizzo i clienti
+                    cursor = db.cursor(dictionary=True)
                     customers = customers_api_instance.list_clients(first_company_id,page=1)
                     last_page = customers.last_page
                     i = 0
                     cust_total_insert=0
                     cust_total_update=0
-                    order_total_insert=0
-                    order_total_update=0
-                    order_wo_customer = 0
-
+        
                     while i < last_page:
                         i = i + 1
-                        #print(i)
                         customers = customers_api_instance.list_clients(first_company_id, page = i, fieldset = 'detailed')
                         for customer in customers.data:
-                            #print(customer.address_street)
-                            if customer.id != None:
-                                #print("Diverso da None") 
+                            if customer.id != None: 
                                 cursor.execute(
                                     'SELECT id FROM customer where id=%s',
                                     (customer.id,)
@@ -91,9 +86,9 @@ class Oauth:
                                     print(customer.name)
                                     cust_total_insert = cust_total_insert + 1
                                     cursor.execute(
-                                        'INSERT INTO customer (id, full_name, address, city, zip_code)'
-                                        ' VALUES (%s, %s, %s, %s, %s)',
-                                        (customer.id, customer.name, customer.address_street, customer.address_city, customer.address_postal_code)
+                                        'INSERT INTO customer (id, full_name, address, city, zip_code,updated_at)'
+                                        ' VALUES (%s, %s, %s, %s, %s, %s)',
+                                        (customer.id, customer.name, customer.address_street, customer.address_city, customer.address_postal_code,customer.updated_at)
                                     )
                                     db.commit()
                                     cursor.execute(
@@ -104,28 +99,44 @@ class Oauth:
                                     db.commit()
 
                                 else:
-                                    cust_total_update = cust_total_update + 1
-                                    cursor.execute(
-                                        'UPDATE customer SET full_name=%s, address=%s, city=%s, zip_code=%s'
-                                        ' WHERE id=%s',
-                                        (customer.name, customer.address_street, customer.address_city, customer.address_postal_code, customer.id)
-                                    )
-                                    db.commit()
+                                    #print(customer)
+                                    cursor.execute('select updated_at from customer where id = %s',(customer.id,))
+                                    updated_at = cursor.fetchone()['updated_at']
+                                
+                                    if customer.updated_at != None:
+                                        fc_updated_at = datetime.strptime(customer.updated_at, '%Y-%m-%d %H:%M:%S')
+                                        
+                                        if updated_at == None or fc_updated_at > updated_at: 
+                                            cursor.execute(
+                                                'UPDATE customer SET full_name=%s, address=%s, city=%s, zip_code=%s,updated_at=%s'
+                                                ' WHERE id=%s',
+                                                (customer.name, customer.address_street, customer.address_city, customer.address_postal_code, customer.updated_at,customer.id)
+                                            )
+                                            db.commit()
+                                            cust_total_update = cust_total_update + 1
+                    flash(f"Dati da Fatture in Cloud - Clienti inseriti: {cust_total_insert} - Clienti aggiornati: {cust_total_update}")
+                    
+                elif session["fc_call_type"] == "fc_sync_orders":
                     #Sincronizzo gli ordini
-                    orders = documents_api_instance.list_issued_documents(company_id=first_company_id,type="order",page=1, fieldset = 'detailed')
+                    db = get_db()
+                    cursor = db.cursor(dictionary=True)
+                    filtro = "date >= '2026-01-01' and date <= '2026-12-31'"
+                    orders = documents_api_instance.list_issued_documents(company_id=first_company_id,type="order",page=1, fieldset = 'detailed',q=filtro)
                     last_page = orders.last_page
-                    print("last_page=" + str(last_page))
+                    order_total_insert=0
+                    order_total_update=0
+                    order_wo_customer = 0
+                    msg = ""
+                    msg2 = ""
+                    error = ""
+                    #print("last_page=" + str(last_page))
                     i=0
-
                     #Per uso test
                     #i = last_page - 1
-
                     while i < last_page:
                         i = i + 1
-                        orders = documents_api_instance.list_issued_documents(company_id=first_company_id,type="order",page=i, fieldset = 'detailed')
+                        orders = documents_api_instance.list_issued_documents(company_id=first_company_id,type="order",page=i, fieldset = 'detailed',q=filtro)
                         for order in orders.data:
-                            #if i==1:
-                            #print(order)
                             #Aggiungo lettura codici Tag (categoria prodotto)
                             product_list = order.items_list
                             # Estrae la categoria solo se non è None (o vuota)
@@ -134,12 +145,12 @@ class Oauth:
                             tag_ids = []
                             cursor = db.cursor(dictionary=True)
                             for category in categories: 
-                                print(f"category: {category}")
+                                #print(f"category: {category}")
                                 cursor.execute(
                                     'SELECT id FROM tag where code=%s',
                                     (category,))
                                 result = cursor.fetchone()
-                                print(f"result: {result}")
+                                #print(f"result: {result}")
                                 if result:
                                     tag_id = result['id']
                                 if tag_id:
@@ -161,38 +172,131 @@ class Oauth:
                                 
                                 if record == None:
                                     print("Inserisco nuovo ordine: " + order.visible_subject)
-                                    order_total_insert = order_total_insert + 1
-                                    cursor.execute(
-                                        'INSERT INTO p_order (id, customer_id, description, amount, date, order_type, notes)'
-                                        ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
-                                        (order.id, order.entity.id, order.visible_subject, order.amount_net, str(order.var_date), order_type, order.notes)
-                                    )
-                                    db.commit()
+                                    try:
+                                        cursor.execute(
+                                            'INSERT INTO p_order (id, customer_id, description, amount, date, order_type, notes, updated_at) '
+                                            ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
+                                            (order.id, order.entity.id, order.visible_subject, order.amount_net, str(order.var_date), order_type, order.notes, order.updated_at)
+                                        )
+                                        db.commit()
+                                        order_total_insert = order_total_insert + 1
+                                    except Exception as e:
+                                         error = error + f" - Errore inserimento ordine per {order.entity.name}: {repr(e)} \n"
+                                    
                                 else:
-                                    order_total_update = order_total_update + 1
                                     #print ("Note prese fa Fattureincloud:")
                                     #print(order.notes)
-                                    cursor.execute(
-                                        'UPDATE p_order SET customer_id=%s, description=%s, amount=%s, date=%s, order_type=%s, notes=%s'
-                                        ' WHERE id=%s',
-                                        (order.entity.id, order.visible_subject, order.amount_net, str(order.var_date), order_type, order.notes, order.id)
-                                    )
-                                    db.commit()
-                                cursor.execute(
-                                    'DELETE FROM rel_tag_order '
-                                    ' WHERE p_order_id = %s ',
-                                    (order.id,)
-                                )
-                                for tag_id in tag_ids:
-                                        cursor.execute(
-                                            'INSERT INTO rel_tag_order (p_order_id, tag_id) '
-                                            ' VALUES (%s, %s)',
-                                            (order.id,tag_id)
-                                        )
-                                db.commit()
+                                    cursor.execute('select updated_at from p_order where id = %s',(order.id,))
+                                    updated_at = cursor.fetchone()['updated_at']
+                                    #print(f"AIC updated_at: {updated_at} - FC updated_at {order.updated_at}")
+    
+                                    if order.updated_at != None:
+                                        fc_updated_at = datetime.strptime(order.updated_at, '%Y-%m-%d %H:%M:%S')
+                                        
+                                        if updated_at == None or fc_updated_at > updated_at:
+                                            #print("eseguo update")
+                                            try:
+                                                cursor.execute(
+                                                    'UPDATE p_order SET customer_id=%s, description=%s, amount=%s, date=%s, order_type=%s, notes=%s, updated_at=%s '
+                                                    ' WHERE id=%s',
+                                                    (order.entity.id, order.visible_subject, order.amount_net, str(order.var_date), order_type, order.notes, order.updated_at,order.id)
+                                                )
+                                                db.commit()
+                                                order_total_update = order_total_update + 1
+                                            except Exception as e:
+                                                print(e)
+                                                error = error + f" - Errore aggiornamento ordine per {order.entity.name}: {repr(e)} \n"
+                                            cursor.execute(
+                                                'DELETE FROM rel_tag_order '
+                                                ' WHERE p_order_id = %s ',
+                                                (order.id,)
+                                            )
+                                            for tag_id in tag_ids:
+                                                    cursor.execute(
+                                                        'INSERT INTO rel_tag_order (p_order_id, tag_id) '
+                                                        ' VALUES (%s, %s)',
+                                                        (order.id,tag_id)
+                                                    )
+                                            db.commit()
                             else:
+                                print(order)
                                 order_wo_customer = order_wo_customer + 1
-                    flash("Dati scaricati da Fatture in Cloud - Clienti inseriti: " + str(cust_total_insert) + ", Clienti aggiornati: " + str(cust_total_update) + ", Ordini inseriti: " + str(order_total_insert) + ", Ordini aggiornati: " + str(order_total_update) + ", Ordini non scaricati perché senza anagrafica cliente: " + str(order_wo_customer))                    
+                                msg2 = msg2 + f" - {order.number}{order.numeration} del {order.var_date}"
+                    msg = msg + f"Ordini inseriti: {order_total_insert} - Ordini aggiornati: {order_total_update} - Ordini non scaricati perché senza anagrafica cliente: {order_wo_customer}"       
+                    flash(msg)
+                    if msg2:
+                         flash(msg2)
+                    if error:
+                         flash(error)
+                
+                elif session["fc_call_type"] == "fc_sync_revenues":    
+                    #Inizio scarico fatture e proforma
+                    db = get_db()
+                    cursor = db.cursor(dictionary=True)
+                    filtro = "date >= '2026-01-01' and date <= '2026-12-31'"
+                    '''invoices = documents_api_instance.list_issued_documents(company_id=first_company_id,type="invoice",page=1, fieldset = 'detailed',q=filtro)
+                    last_page = invoices.last_page
+                    total_invoice = 0
+                    total_proforma = 0
+                    i=0
+                    while i < last_page:
+                        i = i + 1
+                        invoices = documents_api_instance.list_issued_documents(company_id=first_company_id,type="invoice",page=i, fieldset = 'detailed',q=filtro)
+                        
+                        for invoice in invoices.data:
+                            print(f"invoice.entity.id: {invoice.entity.id}")
+                            cursor.execute(
+                                'INSERT INTO revenue (order_id,customer_id,comp_start,comp_end,amount_net,amount_vat,amount_gross,type)'
+                                ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
+                                (None,invoice.entity.id,None,None,invoice.amount_net,invoice.amount_vat,invoice.amount_gross, "invoice")
+                                    )
+                            db.commit()
+                            total_invoice = total_invoice + 1'''
+
+                    proformas = documents_api_instance.list_issued_documents(company_id=first_company_id,type="proforma",page=1, fieldset = 'detailed',q=filtro)
+                    last_page = proformas.last_page
+                    new_proforma = 0
+                    updated_proforma = 0
+                    i=0
+                    #proforma_saldate = []
+                    while i < last_page:
+                        i = i + 1
+                        proformas = documents_api_instance.list_issued_documents(company_id=first_company_id,type="proforma",page=i, fieldset = 'detailed',q=filtro)
+                        for doc in proformas.data:
+                            #print(f"doc.number: {doc.number} - {doc.entity.name} - {doc.id}")
+                            count_query = ('SELECT COUNT(*) AS count FROM revenue WHERE doc_id = %s' )
+                            cursor.execute(count_query,(doc.id,))
+                            rowCount = cursor.fetchone()['count']
+                            #print(f"rowCount: {rowCount}")
+                            if rowCount == 0:
+                                cursor.execute(
+                                    'INSERT INTO revenue (order_id,customer_id,comp_start,comp_end,amount_net,amount_vat,amount_gross,type,customer_name,number,date,doc_id,object,updated_at)'
+                                    ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                                    (None,doc.entity.id,None,None,doc.amount_net,doc.amount_vat,doc.amount_gross, "proforma",doc.entity.name,doc.number,doc.var_date,doc.id,doc.visible_subject,doc.updated_at))
+                                new_proforma = new_proforma + 1
+                            else:
+                                cursor.execute('select updated_at from revenue where doc_id = %s',(doc.id,))
+                                updated_at = cursor.fetchone()['updated_at']
+                                fc_updated_at = datetime.strptime(doc.updated_at, '%Y-%m-%d %H:%M:%S')
+                                print(f"updated_at: {updated_at}")
+                                if fc_updated_at > updated_at:
+                                    cursor.execute(
+                                        'UPDATE revenue SET customer_id=%s,amount_net=%s,amount_vat=%s,amount_gross=%s,customer_name=%s,number=%s,date=%s,object=%s,updated_at=%s '
+                                        'WHERE doc_id=%s'
+                                        ,(doc.entity.id,doc.amount_net,doc.amount_vat,doc.amount_gross,doc.entity.name,doc.number,doc.var_date,doc.visible_subject,doc.updated_at,doc.id))
+                                    updated_proforma = updated_proforma + 1
+                        db.commit()
+                        '''# Controlliamo se esiste una lista pagamenti e se almeno il primo pagamento è 'paid'
+                            if doc.payments_list:
+                                p = doc.payments_list[0] 
+                                if p.status == IssuedDocumentStatus.PAID:
+                                     #print(f"proforma {doc.number} saldata")
+                                     proforma_saldate.append(doc)
+                    total_proforma = len(proforma_saldate)
+                    #for proforma in proforma_saldate:
+                    #    total_proforma = total_proforma + 1  '''    
+                    
+                    flash(f"Dati da Fatture in Cloud - Documenti nuovi: {new_proforma} - Documenti aggiornati: {updated_proforma}")                    
                                 
                 elif session["fc_call_type"] == "fc_new_order": 
                     print("Creo nuovo ordine spot con seguente attività")

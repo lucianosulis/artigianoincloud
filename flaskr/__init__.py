@@ -55,10 +55,24 @@ def create_app(test_config=None):
     app.register_blueprint(home.bp)
     app.add_url_rule('/home', endpoint='index')
 
-    @app.route('/fc_sync')
+    @app.route('/fc_sync_customers')
     def fc_call_1():
-       session["fc_call_type"] = "fc_sync"
+       session["fc_call_type"] = "fc_sync_customers"
        print("fc_call_1")
+       print(session["fc_call_type"])
+       return redirect('/oauth')
+    
+    @app.route('/fc_sync_orders')
+    def fc_call_2():
+       session["fc_call_type"] = "fc_sync_orders"
+       print("fc_call_2")
+       print(session["fc_call_type"])
+       return redirect('/oauth')
+    
+    @app.route('/fc_sync_revenues')
+    def fc_call_3():
+       session["fc_call_type"] = "fc_sync_revenues"
+       print("fc_call_3")
        print(session["fc_call_type"])
        return redirect('/oauth')
       

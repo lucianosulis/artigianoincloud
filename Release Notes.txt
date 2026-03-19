@@ -1,3 +1,8 @@
+Release 2.14
+Implementato lo scarico dei ricavi dalle proforma. Separate le funzioni di 
+sincronizzazione clienti, ordine e ricavi. Ottimizzati gli scarichi introducendo il controllo 
+sul campo updated_at (aggiunto nelle tabelle).
+
 Release 2.13
 Velocizzato il servizio OSRM che calcola le distanze e migliorata la gestione 
 errori in tool_usage.route_calc.

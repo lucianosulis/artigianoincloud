@@ -27,7 +27,7 @@ def index():
     if g.role != "ADMIN" and g.role != "SEGRETERIA":
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
-         return redirect(url_for("calendar.show_cal"))
+         return redirect(url_for("home.index"))
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
@@ -48,18 +48,21 @@ def ore_lav_people():
     start = request.form.get('date1')
     end = request.form.get('date2')
     people_ids_list = request.form.getlist('people')
-    people_ids = ",".join(people_ids_list)
+    # 1. Creo una stringa di segnaposto: "%s, %s, %s"
+    placeholders = ', '.join(['%s'] * len(people_ids_list))
+    # 3. Costruisci la tupla dei parametri: (start, end, id1, id2, ...)
+    params = [start, end] + people_ids_list
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    cursor.execute(
-        'select c.full_name as Cliente, o.id as ID_Ordine, o.description as Attività, DATE_FORMAT(o.date,"%d/%m/%y") as Data_ordine, CONCAT(p.surname, " ",p.name) as Operatore, DATE_FORMAT(t.date,"%d/%m/%y") as Data_attività, t.ore_lav as Ore_lavorate ' 
-        'from p_order o ' 
-        'inner join timesheet t on o.id = t.order_id ' 
-        'inner join people p on p.id = t.people_id '
-        'inner join customer c on c.id = o.customer_id '
-        'where  t.date >= %s and t.date <=%s and p.id in (%s) '
-        'order by t.date ',(start,end,people_ids)
-    )
+    query = f'''select CONCAT(p.surname, " ",p.name) as Operatore, DATE_FORMAT(t.date,"%d/%m/%y") as Data_presenza,at.description as tipo,t.ore_lav as Ore_lavorate,c.full_name as Cliente, o.id as ID_Ordine, o.description as Attività, DATE_FORMAT(o.date,"%d/%m/%y") as Data_ordine  
+        from timesheet t
+        inner join people p on p.id = t.people_id
+        inner join act_type at on at.id = t.act_type_id 
+        left join  p_order o on o.id = t.order_id  
+        left join customer c on c.id = o.customer_id 
+        where  t.date >= %s and t.date <=%s and p.id in ({placeholders}) 
+        order by t.date '''
+    cursor.execute(query,params)
     rows=cursor.fetchall()
     
     excel_file = generate_excel_response(rows,sheet_name="Ore lavorate")
@@ -264,10 +267,11 @@ def generate_excel_response(query_results, sheet_name="Report"):
     # Styling opzionale: Intestazione in grassetto
     for cell in ws[1]:
         cell.font = Font(bold=True)
-
     for record in query_results:
-        row_data = [record.get(key) for key in headers]
-        ws.append(row_data) 
+        # Usiamo una list comprehension per velocità
+        ws.append([record.get(h) for h in headers])
+        #row_data = [record.get(key) for key in headers]
+        #ws.append(row_data) 
     #Adatto la larghezza delle colonne al contenuto
     for col in ws.columns:
         max_length = 0
@@ -276,6 +280,15 @@ def generate_excel_response(query_results, sheet_name="Report"):
             if cell.value:
                 max_length = max(max_length, len(str(cell.value)))
         ws.column_dimensions[column].width = max_length + 2
+    #Imposto la larghezza delle colonne
+    '''ws.column_dimensions['A'].width = 25
+    ws.column_dimensions['B'].width = 12
+    ws.column_dimensions['C'].width = 40
+    ws.column_dimensions['D'].width = 15
+    ws.column_dimensions['E'].width = 25
+    ws.column_dimensions['F'].width = 15
+    ws.column_dimensions['G'].width = 15'''
+
     # 5. Salva in un buffer di memoria invece che su disco
     output = io.BytesIO()
     wb.save(output)
