@@ -36,14 +36,36 @@ def index():
     per_page = current_app.config["FL_PER_PAGE"]
     db = get_db() 
     cursor = db.cursor(dictionary=True)
+    #Creazione filtro
+    #current_date = date.today()
+    #current_year = current_date.year
+    current_year = date.today().year
+    active_year = session.get("active_year",current_year)
+    print(f"Activity index active_year: {active_year}")
+    conditions = []
+    params = []
+    conditions.append("year = %s")
+    params.append(f"{active_year}")
+    searchStr = " WHERE " + " AND ".join(conditions)
+    print(f"INIT searchStr: {searchStr}")
+    print(params)
+    #session["act1_search_params"] = params
     
     if request.method == 'GET':
         page = request.args.get('page', 1, type=int)
-        params = session.get("act1_search_params", [])
-        searchStr = session.get("act1_search","")
+        conditions2 = session.get("act1_search_conditions2", [])
+        params2 = session.get("act1_search_params2", [])
         search_date = session.get("act1_search_date","")
         search_customer = session.get("act1_search_customer","")
         search_site = session.get("act1_search_site","")
+        if conditions2:
+            searchStr = searchStr + " AND " + " AND ".join(conditions2)
+            params = params + params2
+
+        #session["act1_search"] = searchStr
+        #session["act1_search_params"] = params 
+        print(f"GET searchStr: {searchStr}")
+        print(params)
     
     if request.method == 'POST': 
         page = 1
@@ -53,25 +75,36 @@ def index():
         session["act1_search_date"] = search_date
         session["act1_search_customer"] = search_customer
         session["act1_search_site"] = search_site
-        # 1. Inizializziamo una lista per le condizioni e una per i parametri
-        conditions = []
-        params = []
+        # 1. Inizializziamo una lista per le condizioni aggiuntive e una per i parametri
+        conditions2 = []
+        params2 = []
         if search_date:
-            conditions.append("start = %s")
-            params.append(f"{search_date}") 
+            conditions2.append("start = %s")
+            params2.append(f"{search_date}") 
         if search_customer:
-            conditions.append("full_name LIKE %s")
-            params.append(f"%{search_customer}%") # Il % lo mettiamo nel dato, non nella query
+            conditions2.append("full_name LIKE %s")
+            params2.append(f"%{search_customer}%") # Il % lo mettiamo nel dato, non nella query
         if search_site:
-            conditions.append("CONCAT(site.city,' - ',site.address) LIKE %s")
-            params.append(f"%{search_site}%") # Il % lo mettiamo nel dato, non nella query
-        # 2. Trasformiamo la lista di condizioni in una stringa WHERE
-        searchStr = ""
-        if conditions:
-            searchStr = " WHERE " + " AND ".join(conditions)
-        session["act1_search"] = searchStr
-        session["act1_search_params"] = params
-        
+            conditions2.append("CONCAT(site.city,' - ',site.address) LIKE %s")
+            params2.append(f"%{search_site}%") # Il % lo mettiamo nel dato, non nella query
+        print("conditions2:")
+        print(conditions2)
+        print("params2:")
+        print(params2)
+        # 2. Trasformiamo la lista di condizioni in una stringa da aggiungere alla clausola WHERE
+        #searchStr = ""
+        if conditions2:
+            searchStr = searchStr + " AND " + " AND ".join(conditions2)
+            params = params + params2
+            print("sono in IF CONDITIONS2")
+            print(searchStr)
+            print(conditions2)
+            print(params)
+        #session["act1_search"] = searchStr
+        session["act1_search_conditions2"] = conditions2
+        session["act1_search_params2"] = params2
+        print(f"POST searchStr: {searchStr}")
+        print(params)
 
     count_query = ('SELECT COUNT(*) AS count FROM '
                 ' (SELECT a.id, title, a.start AS start, a.end AS end, c.full_name AS customer, CONCAT(site.city," - ",site.address) AS site '
@@ -81,6 +114,7 @@ def index():
 			    ' INNER JOIN customer c ON o.customer_id = c.id ' +
                 searchStr + ") AS activities"
                 )
+    print(f"count_query: {count_query}")
     cursor.execute(count_query, params)
     total = cursor.fetchone()['count']
     offset = (page-1) * per_page 
@@ -88,14 +122,22 @@ def index():
     if activity_first_page == 'Y':
             #Si posiziona sull pagina più vicina al giorno di oggi
             today = date.today()
-            count_query = ('SELECT COUNT(*) AS count ' 
-                ' FROM activity WHERE start < %s' )
-            cursor.execute(count_query,(today,))
-            rowCount = cursor.fetchone()
-            number_to_bypass = rowCount['count']   
+            search3Str = searchStr + ' AND start < %s'
+            print(params)
+            params3 = params + [today]
+            print(f"FIRST_PAGE searchStr: {search3Str}")
+            print(params3)
+            print(params)
+            count_query3 = ('SELECT COUNT(*) AS count ' 
+                ' FROM activity ' + search3Str )
+            cursor.execute(count_query3,params3)
+            rowCount3 = cursor.fetchone()
+            number_to_bypass = rowCount3['count']   
             page_num = int((number_to_bypass / per_page)) + 1 
             offset = (int(page_num)-1) * per_page
+            print(f"offset: {offset}")
             page = str(page_num) 
+            print(f"page: {page}")
             session["activity_first_page"] = 'N'
 
     pagination = Pagination(page=page, per_page=per_page, total=total, 
@@ -111,6 +153,8 @@ def index():
         )
     # Aggiungiamo LIMIT e OFFSET alla lista dei parametri esistenti
     final_params = params + [per_page, offset]
+    print(f"final_query: {final_query}")
+    print(final_params)
     cursor.execute(final_query, final_params)
     acts = cursor.fetchall() 
     

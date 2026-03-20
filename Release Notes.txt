@@ -1,3 +1,10 @@
+Release 3.0
+Modificata la base.html per introdurre l'anno. Aggiunta rotta in auth.py.
+Ogni volta che si seleziona un anno diverso, la pagina viene automaticamente ricaricata
+passando il parametro nell'URL e viene salvato in un avariabile di sessione.
+La prima pagina a filtrare i record per anno è activity.index.
+Seguiranno le altre (ovviamente non le anagrafiche).
+
 Release 2.14
 Implementato lo scarico dei ricavi dalle proforma. Separate le funzioni di 
 sincronizzazione clienti, ordine e ricavi. Ottimizzati gli scarichi introducendo il controllo 

@@ -228,6 +228,15 @@ def logout():
     session.clear()
     return redirect(url_for('auth.login'))
 
+@bp.route('/set_year', methods=['POST'])
+def set_year():
+    selected_year = request.form.get('year')
+    print(f"selected_year: {selected_year}")
+    if selected_year:
+        session['active_year'] = int(selected_year)
+        print(f"session['active_year']: {session['active_year']}")
+    return redirect(request.referrer or url_for('home.index'))
+
 def get_user(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
