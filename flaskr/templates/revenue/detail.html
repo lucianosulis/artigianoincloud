@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h4>{% block title %}Dettaglio ricavo{% endblock %}</h4>
+  
+{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    <label for="number">Numero</label>
+    <input name="number" id="number" value="{{ revenue['number'] }}" readonly>
+    <label for="date">Data</label>
+    <input name="date" id="date" type="date" value="{{ revenue['date'] }}" readonly>
+    <label for="customer_name">Cliente</label>
+    <input name="customer_name" id="customer_name" value="{{ revenue['customer_name'] }}" readonly>    
+    <label for="object">Oggetto</label>
+    <input name="object" id="object" value="{{ revenue['object'] }}" readonly>    
+    <label for="amount_net">Imponibile</label>
+    <input name="amount_net" id="amount_net" value="{{ revenue['amount_net'] }}" readonly>    
+    <label for="amount_vat">IVA</label>
+    <input name="amount_vat" id="amount_vat" value="{{ revenue['amount_vat'] }}" readonly>    
+    <label for="amount_gross">Totale</label>
+    <input name="amount_gross" id="amount_gross" value="{{ revenue['amount_gross'] }}" readonly>    
+    <label for="comp_start">Data inizio competenza</label>
+    <input name="comp_start" id="comp_start" type="date" value="{{ request.form['comp_start'] or revenue['comp_start'] }}" readonly>
+    <label for="comp_end">Data fine competenza</label>
+    <input name="comp_end" id="comp_end" type="date" value="{{ request.form['comp_end'] or revenue['comp_end'] }}" readonly>
+    <label for="order_id">Ordine</label>
+    <SELECT name="order_id" id="order_id" disabled>
+        <OPTION value="">Selezionare un ordine</option>
+      {% for order in order_list %}
+        {% if order.id == revenue['order_id'] %}
+          <OPTION value={{order.id}} selected>{{order.date}} - {{order.description}}</option>
+        {% else %}
+          <OPTION value={{order.id}}>{{order.date}} - {{order.description}}</option>
+        {% endif %}
+      {% endfor %} 
+    </SELECT>
+    <br>
+    <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
+    <input name="goback" id="goback" value="{{ redirect_url }}" hidden>
+  </form>
+  <hr>
+  <form action="{{ url_for('revenue.update', id=revenue['id']) }}" method="get">
+    <input class="action" type="submit" value="Modifica">
+  </form>
+  
+  <script>
+    function goBack() {
+        window.location.assign(document.getElementById("goback").value);
+    }
+</script>
+{% endblock %}

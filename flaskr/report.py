@@ -65,7 +65,7 @@ def ore_lav_people():
     cursor.execute(query,params)
     rows=cursor.fetchall()
     
-    excel_file = generate_excel_response(rows,sheet_name="Ore lavorate")
+    excel_file = generate_excel_response(rows,sheet_name="ore_lav_people")
     if not excel_file:
         flash("Nessun dato trovato")
         return redirect(url_for('report.index')) # Torna alla pagina dei report
@@ -94,7 +94,7 @@ def order_activities():
         ' ORDER BY c.full_name ASC, o.date DESC',(order_id,)
     )
     rows=cursor.fetchall()
-    excel_file = generate_excel_response(rows,sheet_name="Attività")
+    excel_file = generate_excel_response(rows,sheet_name="attivita_ordine")
     if not excel_file:
         flash("Nessun dato trovato")
         return redirect(url_for('report.index')) # Torna alla pagina dei report
@@ -128,7 +128,7 @@ def order_teams():
         ,(order_id,)
     )
     rows=cursor.fetchall()
-    excel_file = generate_excel_response(rows,sheet_name="Attività")
+    excel_file = generate_excel_response(rows,sheet_name="operatori_attivita")
     if not excel_file:
         flash("Nessun dato trovato")
         return redirect(url_for('report.index')) # Torna alla pagina dei report
@@ -207,7 +207,7 @@ def activity_cost():
         order by id_attivita,tipo''',(start,end,start,end,start,end,start,end)
     )
     rows=cursor.fetchall()
-    excel_file = generate_excel_response(rows,sheet_name="Attività")
+    excel_file = generate_excel_response(rows,sheet_name="costi_attivita")
     if not excel_file:
         flash("Nessun dato trovato")
         return redirect(url_for('report.index')) # Torna alla pagina dei report
@@ -217,8 +217,35 @@ def activity_cost():
             as_attachment=True,
             download_name="report_costi_attivita.xlsx")
 
-@bp.route('/report/order_revenue', methods=['POST'])
-def order_revenue():
+@bp.route('/report/revenue', methods=['POST'])
+def revenue():
+    # Recupero i parametri dal form della card
+    start = request.form.get('date1')
+    end = request.form.get('date2')
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        select r.number,r.date as date,r.object,r.amount_net,r.comp_start,r.comp_end,r.order_id as order_id, o.description as order_desc,o.date as order_date,o.order_type, o.closed, 
+        o.amount as order_amount,r.customer_id,c.full_name as customer_name
+        from revenue r
+        inner join p_order o on o.id = r.order_id
+        inner join customer c on c.id = r.customer_id 
+        where r.date >= %s and r.date <= %s 
+        order by o.date """,(start,end)
+        )
+    rows=cursor.fetchall()
+    excel_file = generate_excel_response(rows,sheet_name="Ricavi")
+    if not excel_file:
+        flash("Nessun dato trovato")
+        return redirect(url_for('report.index')) # Torna alla pagina dei report
+    return send_file(
+            excel_file,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name="report_ricavi.xlsx")
+
+@bp.route('/report/order', methods=['POST'])
+def order():
     # Recupero i parametri dal form della card
     start = request.form.get('date1')
     end = request.form.get('date2')
@@ -237,7 +264,7 @@ def order_revenue():
         order by o.date """,(start,end)
         )
     rows=cursor.fetchall()
-    excel_file = generate_excel_response(rows,sheet_name="Attività")
+    excel_file = generate_excel_response(rows,sheet_name="Ordini")
     if not excel_file:
         flash("Nessun dato trovato")
         return redirect(url_for('report.index')) # Torna alla pagina dei report
@@ -245,7 +272,7 @@ def order_revenue():
             excel_file,
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
-            download_name="report_ricavi_ordine.xlsx")
+            download_name="report_ordini.xlsx")
 
 
 def generate_excel_response(query_results, sheet_name="Report"):
@@ -254,7 +281,7 @@ def generate_excel_response(query_results, sheet_name="Report"):
     # Creo un nuovo workbook
     wb = Workbook()
     ws = wb.active
-    ws.title = "Attività"
+    ws.title = sheet_name
     ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
     #ws.row_dimensions[1].height = 25
     #ws.row_dimensions[2].height = 25

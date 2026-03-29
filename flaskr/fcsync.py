@@ -270,9 +270,9 @@ class Oauth:
                             #print(f"rowCount: {rowCount}")
                             if rowCount == 0:
                                 cursor.execute(
-                                    'INSERT INTO revenue (order_id,customer_id,comp_start,comp_end,amount_net,amount_vat,amount_gross,type,customer_name,number,date,doc_id,object,updated_at)'
-                                    ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                                    (None,doc.entity.id,None,None,doc.amount_net,doc.amount_vat,doc.amount_gross, "proforma",doc.entity.name,doc.number,doc.var_date,doc.id,doc.visible_subject,doc.updated_at))
+                                    'INSERT INTO revenue (order_id,customer_id,comp_start,comp_end,amount_net,amount_vat,amount_gross,type,customer_name,number,date,doc_id,object,updated_at,year)'
+                                    ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                                    (None,doc.entity.id,None,None,doc.amount_net,doc.amount_vat,doc.amount_gross, "proforma",doc.entity.name,doc.number,doc.var_date,doc.id,doc.visible_subject,doc.updated_at,doc.year))
                                 new_proforma = new_proforma + 1
                             else:
                                 cursor.execute('select updated_at from revenue where doc_id = %s',(doc.id,))

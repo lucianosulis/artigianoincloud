@@ -1,3 +1,6 @@
+Release 3.1
+Aggiunta gestione pagine ricavi e report ricavi.
+
 Release 3.0
 Modificata la base.html per introdurre l'anno. Aggiunta rotta in auth.py.
 Ogni volta che si seleziona un anno diverso, la pagina viene automaticamente ricaricata

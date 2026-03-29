@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Centro Reportistica</h2>
+    <div class="row">
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-info font-weight-bold">Ore lavorate per periodo</h5>
+                    <p class="card-text text-muted small">Con selezione di uno o più operatori.</p>
+                    <div class="mt-auto">
+                        <form action="{{ url_for('report.ore_lav_people') }}" method="POST">
+                        <div class="form-group">
+                            <table>
+                                <tr> 
+                                    <td><label for="date1">Data inizio</label></td>
+                                    <td><input name="date1" id="date1" type="date" value="{{ request.form['date1'] }}" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="date2">Data fine</label></td>
+                                    <td><input name="date2" id="date2" type="date" value="{{ request.form['date2'] }}" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="people">Persone</label></td>
+                                    <td><SELECT id="people" name="people" multiple size="5" required> 
+                                        {% for people in anag_people %}
+                                            <OPTION value={{people.id}}>{{people.name}}</option>
+                                        {% endfor %}
+                                        </SELECT>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                            <button type="submit" class="btn btn-success btn-block mt-3">
+                            <i class="fas fa-file-excel"></i> Scarica Excel
+                        </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-info font-weight-bold">Costi attività</h5>
+                    <p class="card-text text-muted small">Con selezione del periodo.</p>
+                    <div class="mt-auto">
+                        <form action="{{ url_for('report.activity_cost') }}" method="POST">
+                        <div class="form-group">
+                            <table>
+                                <tr> 
+                                    <td><label for="date1">Data inizio</label></td>
+                                    <td><input name="date1" id="date1" type="date" value="{{ request.form['date1'] }}" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="date2">Data fine</label></td>
+                                    <td><input name="date2" id="date2" type="date" value="{{ request.form['date2'] }}" required></td>
+                                </tr>
+                            </table>
+                        </div>
+                            <button type="submit" class="btn btn-success btn-block mt-3">
+                            <i class="fas fa-file-excel"></i> Scarica Excel
+                        </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-info font-weight-bold">Ricavi</h5>
+                    <p class="card-text text-muted small">Con selezione del periodo.</p>
+                    <div class="mt-auto">
+                        <form action="{{ url_for('report.revenue') }}" method="POST">
+                        <div class="form-group">
+                            <table>
+                                <tr> 
+                                    <td><label for="date1">Data inizio</label></td>
+                                    <td><input name="date1" id="date1" type="date" value="{{ request.form['date1'] }}" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="date2">Data fine</label></td>
+                                    <td><input name="date2" id="date2" type="date" value="{{ request.form['date2'] }}" required></td>
+                                </tr>
+                            </table>
+                        </div>
+                            <button type="submit" class="btn btn-success btn-block mt-3">
+                            <i class="fas fa-file-excel"></i> Scarica Excel
+                        </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row"> 
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-info font-weight-bold">Ordini clienti</h5>
+                    <p class="card-text text-muted small">Con selezione del periodo.</p>
+                    <div class="mt-auto">
+                        <form action="{{ url_for('report.order') }}" method="POST">
+                        <div class="form-group">
+                            <table>
+                                <tr> 
+                                    <td><label for="date1">Data inizio</label></td>
+                                    <td><input name="date1" id="date1" type="date" value="{{ request.form['date1'] }}" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="date2">Data fine</label></td>
+                                    <td><input name="date2" id="date2" type="date" value="{{ request.form['date2'] }}" required></td>
+                                </tr>
+                            </table>
+                        </div>
+                            <button type="submit" class="btn btn-success btn-block mt-3">
+                            <i class="fas fa-file-excel"></i> Scarica Excel
+                        </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>      
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-info font-weight-bold">Attività per ordine</h5>
+                    <p class="card-text text-muted small">Esporta i dati delle attività per ordine specifico.</p>
+                    <div class="mt-auto">
+                        <form action="{{ url_for('report.order_activities') }}" method="POST">
+                            <div class="form-group">
+                                <label class="small">Ordine:</label>
+                                <SELECT id="order_id" name="order_id" size="5" required> 
+                                {% for order in orders %}
+                                    <OPTION value={{order.order_id}} title="{{ order.order_desc }}">{{order.order_desc|truncate(35)}}</option>
+                                {% endfor %}
+                                </SELECT>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block mt-3">
+                                <i class="fas fa-file-excel"></i> Scarica Excel
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-info font-weight-bold">Attività con operatori per ordine</h5>
+                    <p class="card-text text-muted small">Operatori impiegati nelle attività di un ordine.</p>
+                    <div class="mt-auto">
+                        <form action="{{ url_for('report.order_teams') }}" method="POST">
+                        <div class="form-group">
+                            <label class="small">Ordine:</label>
+                            <SELECT id="order_id" name="order_id" size="5" required> 
+                            {% for order in orders %}
+                                <OPTION value={{order.order_id}} title="{{ order.order_desc }}">{{order.order_desc|truncate(35)}}</option>
+                            {% endfor %}
+                            </SELECT>
+                        </div>
+                            <button type="submit" class="btn btn-success btn-block mt-3">
+                            <i class="fas fa-file-excel"></i> Scarica Excel
+                        </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
