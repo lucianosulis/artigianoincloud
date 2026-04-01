@@ -117,10 +117,13 @@ class Oauth:
                     flash(f"Dati da Fatture in Cloud - Clienti inseriti: {cust_total_insert} - Clienti aggiornati: {cust_total_update}")
                     
                 elif session["fc_call_type"] == "fc_sync_orders":
-                    #Sincronizzo gli ordini
+                    #Sincronizzo gli ordini 
                     db = get_db()
                     cursor = db.cursor(dictionary=True)
-                    filtro = "date >= '2026-01-01' and date <= '2026-12-31'"
+                    current_year = datetime.today().year 
+                    active_year = session.get("active_year",current_year)
+                    filtro = f"date >= '{active_year}-01-01' and date <= '{active_year}-12-31'"
+                    print(f"Filtro ordini: {filtro}")
                     orders = documents_api_instance.list_issued_documents(company_id=first_company_id,type="order",page=1, fieldset = 'detailed',q=filtro)
                     last_page = orders.last_page
                     order_total_insert=0
@@ -233,7 +236,11 @@ class Oauth:
                     #Inizio scarico fatture e proforma
                     db = get_db()
                     cursor = db.cursor(dictionary=True)
-                    filtro = "date >= '2026-01-01' and date <= '2026-12-31'"
+                    current_year = datetime.today().year 
+                    active_year = session.get("active_year",current_year)
+                    filtro = f"date >= '{active_year}-01-01' and date <= '{active_year}-12-31'"
+                    print(f"Filtro ordini: {filtro}")
+                    #filtro = "date >= '2026-01-01' and date <= '2026-12-31'"
                     '''invoices = documents_api_instance.list_issued_documents(company_id=first_company_id,type="invoice",page=1, fieldset = 'detailed',q=filtro)
                     last_page = invoices.last_page
                     total_invoice = 0
