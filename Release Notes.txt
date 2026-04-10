@@ -1,3 +1,8 @@
+Release 3.3
+Soluzione di alcuni bug nelle pagine dei ricavi.
+Soluzione bug nelle pagine di timesheet update e duplicate (la duplicate provocavav un update
+e la update andava in crash quando si cambiava data senza uscire dal campo.
+
 Release 3.2
 Aggiunto filtro su anno in fcsync.py per scarico ordini e proforma.
 

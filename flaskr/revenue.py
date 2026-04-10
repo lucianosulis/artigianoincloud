@@ -86,7 +86,7 @@ def index():
     pagination = Pagination(page=page, per_page=per_page, total=total, 
                             css_framework='bootstrap4')
 
-    final_query = ('''SELECT r.id, r.number, DATE_FORMAT(r.date,"%d/%m/%y") AS date, r.object, r.amount_net, DATE_FORMAT(r.comp_start,"%d/%m/%y"), DATE_FORMAT(r.comp_end,"%d/%m/%y"), c.full_name AS customer,
+    final_query = ('''SELECT r.id, r.number, DATE_FORMAT(r.date,"%d/%m/%y") AS date, r.object, r.amount_net, DATE_FORMAT(r.comp_start,"%d/%m/%y") AS comp_start, DATE_FORMAT(r.comp_end,"%d/%m/%y") AS comp_end, c.full_name AS customer,
                  o.description AS order_desc, o.order_type AS order_type
                  FROM revenue r
                  LEFT JOIN p_order o ON r.order_id = o.id

@@ -726,6 +726,8 @@ class Oauth:
 
             if session["fc_call_type"] == "fc_new_order_wo_act" or session["fc_call_type"] == "fc_new_order_new_cust" or session["fc_call_type"] == "fc_new_order_duplicate":
                 return (url_for("order.index"))
+            elif session["fc_call_type"] == "fc_sync_revenues":
+                return (url_for("revenue.index")) 
             else:
                 return (url_for("activity.index")) 
         return url

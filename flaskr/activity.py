@@ -104,8 +104,14 @@ def index():
             today = date.today()
             search3Str = searchStr + ' AND start < %s'
             params3 = params + [today]
-            count_query3 = ('SELECT COUNT(*) AS count ' 
-                ' FROM activity ' + search3Str )
+            count_query3 = ('SELECT COUNT(*) AS count FROM '
+                ' (SELECT a.id, title, a.start AS start, a.end AS end, c.full_name AS customer, CONCAT(site.city," - ",site.address) AS site '
+                ' FROM activity a'
+                ' INNER JOIN p_order o ON a.p_order_id = o.id'
+                ' INNER JOIN site ON a.site_id = site.id'
+			    ' INNER JOIN customer c ON o.customer_id = c.id ' +
+                search3Str + ") AS activities"
+                )
             cursor.execute(count_query3,params3)
             rowCount3 = cursor.fetchone()
             number_to_bypass = rowCount3['count']   

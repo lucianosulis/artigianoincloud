@@ -22,6 +22,10 @@
     <input name="amount_vat" id="amount_vat" value="{{ revenue['amount_vat'] }}" readonly>    
     <label for="amount_gross">Totale</label>
     <input name="amount_gross" id="amount_gross" value="{{ revenue['amount_gross'] }}" readonly>    
+    <label for="month_selector">Seleziona Mese/Anno di competenza</label>
+    <input type="month" id="month_selector">
+    <small>Imposta automaticamente inizio e fine mese</small>
+    <br><br>
     <label for="comp_start">Data inizio competenza</label>
     <input name="comp_start" id="comp_start" type="date" value="{{ request.form['comp_start'] or revenue['comp_start'] }}" required>
     <label for="comp_end">Data fine competenza</label>
@@ -51,5 +55,39 @@
     function goBack() {
         window.location.assign(document.getElementById("goback").value);
     }
+    document.addEventListener('DOMContentLoaded', function() {
+        const monthInput = document.getElementById('month_selector');
+        const startInput = document.getElementById('comp_start');
+        const endInput = document.getElementById('comp_end');
+
+        // 1. Imposta il mese attuale come default nel selettore
+        const oggi = new Date();
+        const meseCorrente = oggi.toISOString().substring(0, 7); // Ritorna "YYYY-MM"
+        monthInput.value = meseCorrente;
+
+        // 2. Funzione per aggiornare le date di competenza
+    monthInput.addEventListener('change', function() {
+      if (!this.value) return;
+
+      const [year, month] = this.value.split('-').map(Number);
+      
+      // Primo giorno: semplice stringa, nessun rischio di fuso orario
+      const firstDay = `${year}-${month.toString().padStart(2, '0')}-01`;
+      
+      // Ultimo giorno: usiamo il calcolo locale invece di ISO
+      const lastDayDate = new Date(year, month, 0); 
+      
+      // Estraiamo anno, mese e giorno singolarmente per evitare conversioni UTC
+      const L_year = lastDayDate.getFullYear();
+      const L_month = String(lastDayDate.getMonth() + 1).padStart(2, '0');
+      const L_day = String(lastDayDate.getDate()).padStart(2, '0');
+      
+      const lastDay = `${L_year}-${L_month}-${L_day}`;
+
+      // Aggiorna i campi
+      startInput.value = firstDay;
+      endInput.value = lastDay;
+    });
+  });
 </script>
 {% endblock %}

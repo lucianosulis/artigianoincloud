@@ -312,6 +312,7 @@ def update(id):
     acts = get_actsFiltered(date)
 
     if request.method == 'POST':
+        error = None
         db = get_db()
         cursor = db.cursor(dictionary=True)
         date = request.form['date']
@@ -327,17 +328,18 @@ def update(id):
             act_id = None
             order_id = None
         else:
-            cursor.execute('SELECT p_order_id FROM activity ' 
-                ' WHERE id=%s', (act_id,))
-            result = cursor.fetchone()
-            order_id = result['p_order_id']
-        
-        error = None
-
+            if act_id:
+                cursor.execute('SELECT p_order_id FROM activity ' 
+                    ' WHERE id=%s', (act_id,))
+                result = cursor.fetchone()
+                order_id = result['p_order_id']
+            else:
+                error = "Devi scegliere una attività di questa data."
+                ts_record['act_id'] = None
+                acts = get_actsFiltered(date)
+                
         if (not date) or (not act_type_id) or (not people_id) or (not ore_lav):
             error = 'Compila tutti i campi obbligatori.'
-        #if (act_type_id == "1") and (not act_id):
-        #    error = 'Compila tutti i campi obbligatori.'
 
         if error is not None:
             flash(error)
@@ -361,6 +363,7 @@ def duplicate(id):
     acts = get_actsFiltered(date)
 
     if request.method == 'POST':
+        error = None
         db = get_db()
         cursor = db.cursor(dictionary=True)
         date = request.form['date']
@@ -376,13 +379,16 @@ def duplicate(id):
             act_id = None
             order_id = None
         else:
-            cursor.execute('SELECT p_order_id FROM activity ' 
-                ' WHERE id=%s', (act_id,))
-            result = cursor.fetchone()
-            order_id = result['p_order_id']
-        
-        error = None
-
+            if act_id:
+                cursor.execute('SELECT p_order_id FROM activity ' 
+                    ' WHERE id=%s', (act_id,))
+                result = cursor.fetchone()
+                order_id = result['p_order_id']
+            else:
+                error = "Devi scegliere una attività di questa data."
+                ts_record['act_id'] = None
+                acts = get_actsFiltered(date)
+                
         if (not date) or (not act_type_id) or (not people_id) or (not ore_lav):
             error = 'Compila tutti i campi obbligatori.'
         #if (act_type_id == "1") and (not order_id):
@@ -392,13 +398,13 @@ def duplicate(id):
             flash(error)
         else:
             cursor.execute(
-               'UPDATE timesheet SET date = %s, act_type_id = %s, people_id = %s, order_id = %s, ore_lav = %s, night = %s, act_id = %s'
-                ' WHERE id = %s',
-                (date, act_type_id, people_id, order_id, ore_lav, night, act_id, id)
+                 'INSERT INTO timesheet (date, act_type_id, people_id, order_id, ore_lav, night, act_id)'
+                        ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                        (date, act_type_id, people_id, order_id, ore_lav, night, act_id)
             )
             db.commit()
             return redirect(url_for('timesheet.index'))
-    return render_template('timesheet/update.html', ts_record=ts_record, act_types=act_types, acts=acts, anag_people=anag_people)
+    return render_template('timesheet/duplicate.html', ts_record=ts_record, act_types=act_types, acts=acts, anag_people=anag_people)
 
 @bp.route('/timesheet/<int:id>/delete', methods=('POST',))
 @login_required

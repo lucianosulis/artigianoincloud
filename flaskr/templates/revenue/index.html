@@ -27,13 +27,16 @@
           <td>{{ revenue['number'] }}</td>
           <td>{{ revenue['date'] }}</td>
           <td>{{ revenue['object'] }}</td>
-          <td>{{ revenue['comp_start'] }}<br/>{{ revenue['comp_end'] }}</td>
+          <td>{% if revenue['comp_start'] %} {{ revenue['comp_start'] }} {% endif %}
+            <br/>
+            {% if revenue['comp_end'] %} {{ revenue['comp_end'] }} {% endif %}
+          </td>
           {% if revenue['order_desc'] %}
               <td>{{ revenue['order_desc'] }}</td>
           {% else %}
               <td></td>
           {% endif %}
-          <td>{{ revenue['customer'] }}</td>
+          <td>{% if revenue['customer'] %} {{ revenue['customer'] }}{% endif %}</td>
           <td>
             <a href="{{ url_for('revenue.detail', id=revenue['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
             <br/>
