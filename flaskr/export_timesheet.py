@@ -106,7 +106,7 @@ def index():
             
             db = get_db()
             cursor = db.cursor(dictionary=True)
-            query = 'SELECT id, CONCAT(surname," ",name) AS p_name, type, gg_paga FROM people WHERE cessato = 0'
+            query = 'SELECT id, CONCAT(surname," ",name) AS p_name, type, gg_week_paga FROM people WHERE cessato = 0'
             if report_type == "2": #Report ufficio paghe
                 query = query + ' AND (type = "D" OR type = "P") '  #Solo dipendenti full e a chiamata o part-time
             query = query + ' ORDER BY p_name'
@@ -128,9 +128,7 @@ def index():
                     (people['id'], start_date, end_date)
                 )
                 ts_records = cursor.fetchall()
-                #print("len(ts_records): " + str(len(ts_records)))
-                print("people type: " + people['type'])
-                print("people type: " + people['p_name'])
+        
                 if len(ts_records) >  0:
                     cell = ws['A' + str(i)]
                     cell.value = people['p_name']
@@ -139,22 +137,20 @@ def index():
                     cell.font = font3
                     ws.merge_cells('A' + str(i) + ':A' + str(i+9))
                     
-                    gg_paga = people['gg_paga']
-                    if not gg_paga:
-                        gg_paga = 0
-                    print("gg_paga: " + str(gg_paga))
-                    gg_ced_tot = 0
+                    gg_week_paga = people['gg_week_paga']
+                    if people['type'] == "P":
+                        gg_week_paga_arr = gg_week_paga.split(",")
 
                     for ts_record in ts_records:
                         dayNum = int(ts_record['dayStr'])
-                        print("dayNum: " +  ts_record['dayStr'])
-                        gg_ced_tot = gg_ced_tot + 1
+                        week_day = calendar.weekday(year,month,dayNum)
+                        
                         row = i
                         col = 2 + dayNum
                         ore_arr = ts_record['ore'].split(";")
                         code_arr = ts_record['short_code'].split(";")
                         night_arr = ts_record['night'].split(";")
-                        week_day = calendar.weekday(year,month,dayNum)
+                        
                         if week_day == 4:   #Venerdì
                             ore_STD = 7
                         elif week_day == 5 or week_day == 6:  #Sabato e domenica
@@ -199,10 +195,7 @@ def index():
                             k = k + 1
                         
                         ore_NOLAV = ore_FE + ore_PR + ore_PNR + ore_M + ore_CISOA + ore_CP
-                        print("ore_NOLAV:")
-                        print(ore_NOLAV)
                         ore_STD_NETTE = ore_STD - ore_NOLAV
-                        #ore_STR = ore_LAV - ore_STD_NETTE 
                         ore_DIFF1 = ore_NOTT_TOT - ore_STD_NETTE
                         if ore_DIFF1 >= 0:
                             ore_ORD = 0
@@ -220,12 +213,12 @@ def index():
                                 ore_ORD = ore_ORD_TOT
                                 ore_STR = 0
                              
-                        if people['type'] == "P" and gg_ced_tot > gg_paga and gg_paga > 0:
+                        if people['type'] == "P" and str(week_day) not in  gg_week_paga_arr:
                                 ore_STR = ore_STR + ore_ORD
                                 ore_NOTT_STR = ore_NOTT_STR + ore_NOTT
                                 ore_ORD = 0
                                 ore_NOTT = 0 
-
+                        
                         if report_type == "2":  #Report ufficio paghe
                             ore_STR = 0
                             ore_NOTT_STR = 0

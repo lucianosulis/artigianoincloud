@@ -13,13 +13,21 @@
     <label for="name">Nome</label>
     <input name="name" id="name" type="text" value="{{ request.form['name'] }}">
     <label for="type">Tipo di collaborazione</label>
-    <SELECT id="type">
+    <SELECT id="type" onchange="controllaValore()">
       <OPTION value="" selected>Selezionare il tipo di collaborazione</option>
       {% for people_type in people_types %}
           <OPTION value={{people_type.short_name}}>{{people_type.name}}</option>
       {% endfor %}
     </SELECT>
     <input name="input_type" id="input_type" hidden>
+    <div id="giorni_paga" style="display: none;">
+      <label for="gg_week_paga" style="display: block;">Giorni presenza</label>
+      <SELECT name="gg_week_paga" id="gg_week_paga" multiple size="5">
+        {% for gg in gg_week_numbers %}
+            <OPTION value={{gg}}>{{gg_week_descs[gg]}}</option>
+        {% endfor %}
+      </SELECT>   
+    </div>
     <label for="user_id">Utente</label>
     <SELECT id="user_id">
       <OPTION value="" selected></option>
@@ -68,6 +76,18 @@
   function goBack() {
       window.location.assign(document.getElementById("goback").value);
     }
+
+  function controllaValore() {
+    var select = document.getElementById("type");
+    var div = document.getElementById("giorni_paga");
+    
+    if (select.value === "P") {
+        div.style.display = "block"; // Mostra il tag
+    } else {
+        div.style.display = "none";  // Nascondi il tag
+    }
+  }
+  
   </script>
 
 {% endblock %}

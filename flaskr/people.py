@@ -71,6 +71,8 @@ def index():
 def create():
     userList = get_userList()
     people_types = get_people_type()
+    gg_week_descs = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì' ] 
+    gg_week_numbers = [0,1,2,3,4]
     if request.method == 'POST':
         surname = request.form['surname']
         name = request.form['name']
@@ -80,20 +82,26 @@ def create():
             user_id = None
         else:
             user_id = int(request.form['input_user_id'])
+        gg_week_paga_arr = request.form.getlist('gg_week_paga')
+        if gg_week_paga_arr:
+            gg_week_paga = ",".join(gg_week_paga_arr)
+        else:
+            gg_week_paga = None
         error = None
 
         if (not surname) or (not name) or (not type):
             error = 'Compila tutti i campi obbligatori.'
-
+        if type=="P" and not gg_week_paga:
+            error = 'Per un dipendente a chiamata devi compilare anche i giorni presenza.'
         if error is not None:
             flash(error)
         else:
             db = get_db()
             cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'INSERT INTO people (surname, name, cessato, type, user_id)'
-                ' VALUES (%s, %s, %s, %s, %s)',
-                (surname, name, cessato, type, user_id)
+                'INSERT INTO people (surname, name, cessato, type, user_id, gg_week_paga)'
+                ' VALUES (%s, %s, %s, %s, %s, %s)',
+                (surname, name, cessato, type, user_id, gg_week_paga)
             )
             db.commit()
             cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
@@ -107,7 +115,7 @@ def create():
             db.commit()
             return redirect(url_for('people.index'))
 
-    return render_template('people/create.html', userList=userList, people_types=people_types)
+    return render_template('people/create.html', userList=userList, people_types=people_types, gg_week_numbers=gg_week_numbers, gg_week_descs=gg_week_descs)
 
 @bp.route('/people/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -115,15 +123,32 @@ def update(id):
     people = get_people(id)
     userList = get_userList()
     people_types = get_people_type()
-    
+    if people['type'] == "P":
+        gg_week_paga = people['gg_week_paga']
+        gg_week_paga_arr = gg_week_paga.split(",")
+        gg_week_paga_arr_int = [int(x) for x in gg_week_paga_arr]
+        gg_week_descs = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì' ] 
+        gg_week_numbers = [0,1,2,3,4]
+    else:
+        gg_week_paga = None
+        gg_week_paga_arr = None
+        gg_week_paga_arr_int = None
+        gg_week_descs = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì' ] 
+        gg_week_numbers = [0,1,2,3,4]
+
     if request.method == 'POST':
         surname = request.form['surname']
         name = request.form['name']
         cessato = request.form['cessato']
         type = request.form['input_type']
-        gg_paga = request.form['gg_paga']
-        if not gg_paga:
-            gg_paga = 0
+        #gg_paga = request.form['gg_paga']
+        gg_week_paga_arr = request.form.getlist('gg_week_paga')
+        if gg_week_paga_arr:
+            gg_week_paga = ",".join(gg_week_paga_arr)
+        else:
+            gg_week_paga = None
+        #if not gg_paga:
+        #    gg_paga = 0
        
         if request.form['input_user_id'] == None or request.form['input_user_id'] == "":
             user_id = None
@@ -133,6 +158,8 @@ def update(id):
 
         if (not surname) or (not name) or (not type):
             error = 'Compila tutti i campi obbligatori.'
+        if type=="P" and not gg_week_paga:
+            error = 'Per un dipendente a chiamata devi compilare anche i giorni presenza.'
 
         if error is not None:
             flash(error)
@@ -140,13 +167,14 @@ def update(id):
             db = get_db()
             cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'UPDATE people SET surname = %s, name = %s, cessato = %s, type = %s, user_id = %s, gg_paga = %s'
+                'UPDATE people SET surname = %s, name = %s, cessato = %s, type = %s, user_id = %s, gg_week_paga = %s'
                 ' WHERE id = %s',
-                (surname, name, cessato, type, user_id, gg_paga, id)
+                (surname, name, cessato, type, user_id, gg_week_paga, id)
             )
             db.commit()
+            print(f"gg_week_paga: {gg_week_paga}")
             return redirect(url_for('people.index'))
-    return render_template('people/update.html', people=people, userList=userList, people_types=people_types)
+    return render_template('people/update.html', people=people, gg_week_paga_arr_int=gg_week_paga_arr_int, gg_week_numbers=gg_week_numbers, gg_week_descs=gg_week_descs, userList=userList, people_types=people_types)
 
 @bp.route('/people/<int:id>/delete', methods=('POST',))
 @login_required
@@ -164,13 +192,25 @@ def detail(id):
     people = get_people(id)
     userList = get_userList()
     people_types = get_people_type()
-    return render_template('people/detail.html', people=people, userList=userList, people_types=people_types)
+    if people['type'] == "P":
+        gg_week_paga = people['gg_week_paga']
+        gg_week_paga_arr = gg_week_paga.split(",")
+        gg_week_paga_arr_int = [int(x) for x in gg_week_paga_arr]
+        gg_week_descs = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì' ] 
+        gg_week_numbers = [0,1,2,3,4,5]
+    else:
+        gg_week_paga = None
+        gg_week_paga_arr = None
+        gg_week_paga_arr_int = None
+        gg_week_descs = None 
+        gg_week_numbers = None
+    return render_template('people/detail.html', people=people, gg_week_paga_arr_int=gg_week_paga_arr_int, gg_week_numbers=gg_week_numbers, gg_week_descs=gg_week_descs, userList=userList, people_types=people_types)
 
 def get_people(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT id, surname, name, cessato, type, user_id, gg_paga' 
+        'SELECT id, surname, name, cessato, type, user_id, gg_paga, gg_week_paga' 
         ' FROM people'
         ' WHERE id = %s',
         (id,)

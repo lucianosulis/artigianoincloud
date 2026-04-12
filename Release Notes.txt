@@ -1,6 +1,13 @@
+Release 3.4
+Modificata logica per i giorni paga dei collaboratori a chiamata. Introdotto il nuovo campo 
+gg_week_paga nella tabella people, che contiene i giorni della settimana in cui il 
+dipendente verrà chiamato. Modificata peole.py e tutte le pagine relative.
+Modificata export_timesheet.py con la nuova logica.
+Il campo gg_paga della tabella people rimane, ma non è più usato.
+
 Release 3.3
 Soluzione di alcuni bug nelle pagine dei ricavi.
-Soluzione bug nelle pagine di timesheet update e duplicate (la duplicate provocavav un update
+Soluzione bug nelle pagine di timesheet update e duplicate (la duplicate provocava un update
 e la update andava in crash quando si cambiava data senza uscire dal campo.
 
 Release 3.2

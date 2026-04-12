@@ -21,8 +21,18 @@
       {% endfor %}
     </SELECT>
     <br>
-    <label for="gg_paga">Numero giorni paga</label>
-    <input name="gg_paga" id="gg_paga" type="number" min="1" max="31"value="{{ request.form['gg_paga'] or people['gg_paga'] }}" readonly>
+     {% if people['type'] == 'P' %}
+        <label for="gg_week_paga">Giorni presenza</label>
+        <SELECT name="gg_week_paga" id="gg_week_paga" multiple size="5" disabled>
+          {% for gg in gg_week_numbers %}
+            {% if gg in gg_week_paga_arr_int %}
+              <OPTION value={{gg}} selected>{{gg_week_descs[gg]}}</option>
+            {% else %}
+              <OPTION value={{gg}}>{{gg_week_descs[gg]}}</option>
+            {% endif %}
+          {% endfor %}
+        </SELECT>
+    {% endif %}
     <br>
     <label for="user_id">Utente</label>
     <SELECT id="user_id" disabled>
