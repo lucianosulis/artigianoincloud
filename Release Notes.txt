@@ -1,3 +1,6 @@
+Release 3.4.1
+Corretto bug su activity.py e fcsync.py: nelle nuove attività non veniva inserito l'anno (year).
+
 Release 3.4
 Modificata logica per i giorni paga dei collaboratori a chiamata. Introdotto il nuovo campo 
 gg_week_paga nella tabella people, che contiene i giorni della settimana in cui il 

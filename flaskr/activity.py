@@ -134,6 +134,8 @@ def index():
     # Aggiungiamo LIMIT e OFFSET alla lista dei parametri esistenti
     final_params = params + [per_page, offset]
     cursor.execute(final_query, final_params)
+    #print(f"final_query: {final_query}")
+    #print(f"final_params: {final_params}")
     acts = cursor.fetchall() 
     
     return render_template('activity/index.html', acts=acts,pagination=pagination,search_date=search_date,search_customer=search_customer,search_site=search_site)
@@ -152,6 +154,8 @@ def create():
         title = request.form['title']
         description = request.form['description']
         start = request.form['start']
+        start_obj = datetime.strptime(start, "%Y-%m-%d")
+        year = start_obj.year
         end = request.form['end']
         order_id = request.form['order_id']
         site_id = request.form['input_site_id'] 
@@ -176,9 +180,9 @@ def create():
                 title = row['description']
              #Creo il nuovo record per l'attività
             cursor.execute(
-                'INSERT INTO activity (title, description, start, end, p_order_id, site_id)'
-                ' VALUES (%s, %s, %s, %s, %s, %s)',
-                (title, description, start, end, order_id, site_id)
+                'INSERT INTO activity (title, description, start, end, p_order_id, site_id, year)'
+                ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                (title, description, start, end, order_id, site_id, year)
             )
             db.commit()
 
@@ -210,6 +214,8 @@ def create_from_cal(sel_date):
         title = request.form['title']
         description = request.form['description']
         start = request.form['start']
+        start_obj = datetime.strptime(start, "%Y-%m-%d")
+        year = start_obj.year
         end = request.form['end']
         order_id = request.form['order_id']
         site_id = request.form['input_site_id']
@@ -234,9 +240,9 @@ def create_from_cal(sel_date):
                 title = row['description']
             #Creo il nuovo record per l'attività
             cursor.execute(
-                'INSERT INTO activity (title, description, start, end, p_order_id, site_id)'
-                ' VALUES (%s, %s, %s, %s, %s, %s)',
-                (title, description, start, end, order_id, site_id)
+                'INSERT INTO activity (title, description, start, end, p_order_id, site_id, year)'
+                ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                (title, description, start, end, order_id, site_id, year)
             )
             db.commit()
 
@@ -268,6 +274,8 @@ def create_wo_order():
         title = request.form['title']
         description = request.form['description']
         start = request.form['start']
+        start_obj = datetime.strptime(start, "%Y-%m-%d")
+        year = start_obj.year
         end = request.form['end']
         customer_id = request.form['customer_id']
         site_id = request.form['input_site_id']
@@ -294,6 +302,7 @@ def create_wo_order():
             session["end"] = end
             session["notes"] = ""
             session['selected_tag'] = tag_id
+            session["year"] = year
             return redirect('/oauth')
 
     return render_template('activity/create_wo_order.html', customerList=customerList, anag_tags=anag_tags)
@@ -314,6 +323,8 @@ def create_from_order(id):
         title = request.form['title']
         description = request.form['description']
         start = request.form['start']
+        start_obj = datetime.strptime(start, "%Y-%m-%d")
+        year = start_obj.year
         end = request.form['end']
         order_id = request.form['order_id']
         site_id = request.form['input_site_id']
@@ -339,9 +350,9 @@ def create_from_order(id):
                 title = row['description']
             #Creo il nuovo record per l'attività
             cursor.execute(
-                'INSERT INTO activity (title, description, start, end, p_order_id, site_id)'
-                ' VALUES (%s, %s, %s, %s, %s, %s)',
-                (title, description, start, end, order_id, site_id)
+                'INSERT INTO activity (title, description, start, end, p_order_id, site_id, year)'
+                ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                (title, description, start, end, order_id, site_id, year)
             )
             db.commit()
             cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
@@ -383,6 +394,8 @@ def update(id):
         title = request.form['title']
         description = request.form['description']
         start = request.form['start']
+        start_obj = datetime.strptime(start, "%Y-%m-%d")
+        year = start_obj.year
         end = request.form['end']
         order_id = request.form['order_id']
         site_id = request.form['input_site_id']
@@ -412,9 +425,9 @@ def update(id):
             db = get_db()
             cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'UPDATE activity SET title = %s, description = %s, start = %s, end = %s, p_order_id = %s, site_id = %s'
+                'UPDATE activity SET title = %s, description = %s, start = %s, end = %s, p_order_id = %s, site_id = %s, year = %s '
                 ' WHERE id = %s',
-                (title, description, start, end, order_id, site_id, id)
+                (title, description, start, end, order_id, site_id, year, id)
             )
             db.commit() 
             cursor.execute(
@@ -470,6 +483,8 @@ def duplicate(id):
         title = request.form['title']
         description = request.form['description']
         start = request.form['start']
+        start_obj = datetime.strptime(start, "%Y-%m-%d")
+        year = start_obj.year
         end = request.form['end']
         order_id = request.form['order_id']
         site_id = request.form['input_site_id']
@@ -487,9 +502,9 @@ def duplicate(id):
             db = get_db()
             cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'INSERT INTO activity (title, description, start, end, p_order_id, site_id)'
-                ' VALUES (%s, %s, %s, %s, %s, %s)',
-                (title, description, start, end, order_id, site_id)
+                'INSERT INTO activity (title, description, start, end, p_order_id, site_id, year)'
+                ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                (title, description, start, end, order_id, site_id, year)
             )
             db.commit()
             cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')

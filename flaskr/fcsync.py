@@ -311,6 +311,7 @@ class Oauth:
                     title = session["title"]
                     order_notes = session["notes"]
                     tag_id = session['selected_tag']
+                    year = session["year"]
                     db = get_db()
                     cursor = db.cursor(dictionary=True)
                     cursor.execute(
@@ -393,9 +394,9 @@ class Oauth:
 
                     #Creo il nuovo record per l'attività
                     cursor.execute(
-                        'INSERT INTO activity (title, description, start, end, p_order_id, site_id)'
-                        ' VALUES (%s, %s, %s, %s, %s, %s)',
-                        (title, description, start, end, order_id, site_id)
+                        'INSERT INTO activity (title, description, start, end, p_order_id, site_id, year)'
+                        ' VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                        (title, description, start, end, order_id, site_id, year)
                     )
                     db.commit()
                     cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
