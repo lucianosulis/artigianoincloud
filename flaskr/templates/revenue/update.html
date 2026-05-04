@@ -31,7 +31,7 @@
     <label for="comp_end">Data fine competenza</label>
     <input name="comp_end" id="comp_end" type="date" value="{{ request.form['comp_end'] or revenue['comp_end'] }}" required>
     <label for="order_id">Ordine</label>
-    <SELECT name="order_id" id="order_id" required>
+    <SELECT name="order_id" id="order_id" onchange="updateActs(this.value)" required>
         <OPTION value="" disabled="disabled" selected>Selezionare un ordine</option>
       {% for order in order_list %}
         {% if order.id == revenue['order_id'] %}
@@ -41,6 +41,9 @@
         {% endif %}
       {% endfor %} 
     </SELECT>
+    <br>
+    <h4>Attività svolte</h4>
+    <div id="jsGrid"></div> 
     <br>
     <input type="submit" value="Salva">
     <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Annulla">
@@ -89,5 +92,38 @@
       endInput.value = lastDay;
     });
   });
+
+  function updateActs(order_id) {
+            console.log("order_id: " + order_id)
+            var date = document.getElementById("date").value
+            $.ajax({
+            type: "POST",
+            url: "/revenue/" + order_id + "/acts_order?date=" + date,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result) {
+              acts = result
+              load_grid(acts);  
+            }  
+          });  
+      }
+  function load_grid(acts) {
+    
+    $("#jsGrid").jsGrid({
+        width: "100%",
+        height: "300px",
+        inserting: false,
+        editing: false,
+        sorting: true, 
+        paging: true,
+        data: acts,
+            
+        fields: [
+            { name: "start", title: "Inizio", type: "text", width: "10%", align: "left"},
+            { name: "end", title: "Fine", type: "text", width: "10%", align: "left"},
+            { name: "title", title: "Attività", type: "text", width: "30%", align: "left"},
+        ]
+      });
+  }
 </script>
 {% endblock %}

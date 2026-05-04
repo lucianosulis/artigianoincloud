@@ -70,6 +70,18 @@
       </tr>
       <tr>
         <td>
+          <label for="radio1">Da riconciliare</label>
+          <input name="filterA" id="radio1" type="radio" value="reconcile_only"
+          {% if filterA == 'reconcile_only' %}checked{% endif %}>
+        </td> 
+        <td>
+          <label for="radio2">Tutti</label>
+          <input name="filterA" id="radio2" type="radio" value="all"
+          {% if filterA == 'all' %}checked{% endif %}>
+        </td>
+      </tr>
+      <tr>
+        <td>
         <!--<input type="button" onclick="search()" value="Cerca">-->
         <input type="submit" value="Cerca">
       </td>

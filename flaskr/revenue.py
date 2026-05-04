@@ -8,7 +8,7 @@ from werkzeug.exceptions import abort
 from flaskr.auth import login_required
 from flaskr.db import get_db
 from datetime import date
-from datetime import datetime
+from datetime import datetime, timedelta
 
 bp = Blueprint('revenue', __name__)
 
@@ -35,22 +35,25 @@ def index():
     if request.method == 'GET':
         page = request.args.get('page', 1, type=int)
         conditions2 = session.get("rev_search_conditions2", [])
-        params2 = session.get("rev_search_conditions2_search_params2", [])
+        params2 = session.get("rev_search_params2", [])
         search_date = session.get("rev_search_date","")
         search_customer = session.get("rev_search_customer","")
         search_order = session.get("rev_search_order","")
+        filterA = session.get("rev_filterA","all") 
         if conditions2:
             searchStr = searchStr + " AND " + " AND ".join(conditions2)
             params = params + params2
-    
+        
     if request.method == 'POST': 
         page = 1
         search_date = request.form.get("searchDate","")
         search_customer = request.form.get("searchCustomer","")
         search_order = request.form.get("searchSite","")
+        filterA = request.form.get("filterA","all")
         session["rev_search_date"] = search_date
         session["rev_search_customer"] = search_customer
         session["rev_search_order"] = search_order
+        session["rev_filterA"] = filterA
         # 1. Inizializziamo una lista per le condizioni aggiuntive e una per i parametri
         conditions2 = []
         params2 = []
@@ -63,8 +66,11 @@ def index():
         if search_order:
             conditions2.append("o.description LIKE %s")
             params2.append(f"%{search_order}%") # Il % lo mettiamo nel dato, non nella query
-       
+        if filterA == "reconcile_only":
+            conditions2.append("r.order_id IS NULL")  #Solo ricavi da riconciliare, cioé senza ordine collegato
+            #non serve parametro
         # 2. Trasformiamo la lista di condizioni in una stringa da aggiungere alla clausola WHERE
+        print(conditions2)
         if conditions2:
             searchStr = searchStr + " AND " + " AND ".join(conditions2)
             params = params + params2
@@ -80,6 +86,8 @@ def index():
 			     LEFT JOIN customer c ON r.customer_id = c.id ''' +
                 searchStr + ") AS revenues"
                 )
+    print(count_query)
+    print(params)
     cursor.execute(count_query, params)
     total = cursor.fetchone()['count']
     offset = (page-1) * per_page 
@@ -101,7 +109,7 @@ def index():
     cursor.execute(final_query, final_params)
     revenues = cursor.fetchall() 
     
-    return render_template('revenue/index.html', revenues=revenues,pagination=pagination,search_date=search_date,search_customer=search_customer,search_order=search_order)
+    return render_template('revenue/index.html', revenues=revenues,pagination=pagination,search_date=search_date,search_customer=search_customer,search_order=search_order, filterA=filterA)
 
 @bp.route('/revenue/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -114,7 +122,8 @@ def update(id):
     revenue = get_revenue(id)
     #print(f"revenue id: {id}")
     customer_id = revenue['customer_id']
-    order_list = get_order_list(customer_id)
+    #print(f"customer_id: {customer_id}"
+    order_list = get_order_list(customer_id) 
 
     #order_id = act['p_order_id']
     #order_desc = get_order(id)
@@ -181,6 +190,37 @@ def order_desc(order_id):
     order_desc = row['description']
     result= order_desc
     return (result)
+
+@bp.route('/revenue/<int:id>/acts_order', methods=('POST',))
+@login_required
+def get_acts_order(id):
+    #date_revenue = request.args.get('date')
+    #data_originale = datetime.strptime(date_revenue, '%Y-%m-%d')
+    #date_to = data_originale - timedelta(days=1)
+    date_to = request.args.get('date')
+    print(f"date_to: {date_to}")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        '''SELECT comp_end from revenue 
+        where order_id=%s and comp_end is not null 
+        order by comp_end desc limit 1''', (id,)
+    )
+    result=cursor.fetchone()
+    if result:
+        date_from=result['comp_end']
+    else:
+        date_from='2000-01-01'
+    print(f"date_from: {date_from}")
+    #Per ora non uso date_to perché ci sono proforma emesse prima delle attvità
+    cursor.execute(
+        '''SELECT DATE_FORMAT(a.start,"%d/%m/%Y") as start,DATE_FORMAT(a.end,"%d/%m/%Y") as end,a.title 
+         FROM activity a 
+         INNER JOIN p_order o ON a.p_order_id = o.id
+         WHERE o.id = %s and a.start > %s ''', (id,date_from)
+    )
+    acts=cursor.fetchall()
+    return acts
 
 def get_revenue(id):
     db = get_db()
