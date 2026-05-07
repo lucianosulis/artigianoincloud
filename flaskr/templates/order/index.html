@@ -23,11 +23,11 @@
   <div class="table-striped">
     <table>
       <tr>
-        <th>Cliente</th><th>Descrizione</th><th>Data</th><th>Tipo</th><th></th>
+        <th>Cliente</th><th>Descrizione</th><th>Data</th><th>Tipo</th><th>Ultima <br>attività</th><th></th>
       </tr>
       {% for order in orders %}
       <tr>
-        <td>{{ order['customer_name'] }}</td><td>{{ order['description'] }}</td><td>{{ order['date'] }}</td><td>{{ order['order_type'] }}</td>
+        <td>{{ order['customer_name'] }}</td><td>{{ order['description'] }}</td><td>{{ order['date'] }}</td><td>{{ order['order_type'] }}</td><td>{{ order['start'] | default('', true)}}</td>
         <td>
           <a href="{{ url_for('order.detail', id=order['id']) }}"><img src="static/images/detail.jpg" alt="Dettaglio" style="width:25px;height:25px;"></a>
           <br>

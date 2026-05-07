@@ -1,3 +1,7 @@
+Release 3.6
+Aggiunta alla lista ordini una colonna con la data di inziio dell'utlima attività (se esiste).
+Piccole modifiche in revenue.py e revenue update.
+
 Release 3.5
 Aggiunta funzione di ricerca attività non ancora fatturate in revenue.py e revenue update.
 

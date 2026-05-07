@@ -27,7 +27,7 @@
     <small>Imposta automaticamente inizio e fine mese</small>
     <br><br>
     <label for="comp_start">Data inizio competenza</label>
-    <input name="comp_start" id="comp_start" type="date" value="{{ request.form['comp_start'] or revenue['comp_start'] }}" required>
+    <input name="comp_start" id="comp_start" type="date" value="{{ request.form['comp_start'] or revenue['comp_start'] }}" onchange="set_comp_end()" required>
     <label for="comp_end">Data fine competenza</label>
     <input name="comp_end" id="comp_end" type="date" value="{{ request.form['comp_end'] or revenue['comp_end'] }}" required>
     <label for="order_id">Ordine</label>
@@ -58,6 +58,7 @@
     function goBack() {
         window.location.assign(document.getElementById("goback").value);
     }
+
     document.addEventListener('DOMContentLoaded', function() {
         const monthInput = document.getElementById('month_selector');
         const startInput = document.getElementById('comp_start');
@@ -125,5 +126,13 @@
         ]
       });
   }
+
+  function set_comp_end() {
+      var comp_start = document.getElementById('comp_start').value;
+      var comp_end = document.getElementById('comp_end').value;
+      if (!comp_end) {
+        document.getElementById('comp_end').value = comp_start;
+      }
+    }
 </script>
 {% endblock %}

@@ -25,7 +25,7 @@ def index():
     session["show_calendar"] = 'N' 
     if not "order_filter" in session:
         session["order_filter"] = " WHERE order_type = 'spot' AND closed = 0"
-    print(session["order_filter"])
+    #print(session["order_filter"])
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute("SELECT COUNT(*) AS count FROM p_order s INNER JOIN customer c ON s.customer_id = c.id " + session["order_filter"])
@@ -74,8 +74,17 @@ def index():
                             css_framework='bootstrap4')
     
     cursor.execute(
-        'SELECT o.id, o.description, o.order_type, c.full_name AS customer_name, DATE_FORMAT(o.date,"%d/%m/%y") AS date'
-        ' FROM p_order o INNER JOIN customer c ON o.customer_id = c.id' + session["order_filter"] + 
+        '''SELECT o.id, o.description, o.order_type, c.full_name AS customer_name, DATE_FORMAT(o.date,"%d/%m/%y") AS date, DATE_FORMAT(a.start,"%d/%m/%y") AS start 
+         FROM p_order o 
+         INNER JOIN customer c ON o.customer_id = c.id  
+         LEFT JOIN activity a ON a.id = (
+		    SELECT id 
+		    FROM activity 
+		    WHERE p_order_id = o.id 
+		    ORDER BY start DESC 
+		    LIMIT 1
+		 ) ''' 
+         + session["order_filter"] + 
         ' ORDER BY c.full_name ASC, o.date DESC LIMIT %s OFFSET %s',
         (per_page, offset)
         )

@@ -212,12 +212,11 @@ def get_acts_order(id):
     else:
         date_from='2000-01-01'
     print(f"date_from: {date_from}")
-    #Per ora non uso date_to perché ci sono proforma emesse prima delle attvità
     cursor.execute(
         '''SELECT DATE_FORMAT(a.start,"%d/%m/%Y") as start,DATE_FORMAT(a.end,"%d/%m/%Y") as end,a.title 
          FROM activity a 
          INNER JOIN p_order o ON a.p_order_id = o.id
-         WHERE o.id = %s and a.start > %s ''', (id,date_from)
+         WHERE o.id = %s and a.start > %s and a.end <= %s''', (id,date_from,date_to)
     )
     acts=cursor.fetchall()
     return acts
@@ -334,7 +333,7 @@ def get_order_list(customer_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        '''SELECT id, description, date 
+        '''SELECT id, description, DATE_FORMAT(date,"%d/%m/%Y") AS date 
          FROM p_order 
          WHERE customer_id = %s
          ORDER BY date DESC''',
