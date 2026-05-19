@@ -65,6 +65,28 @@ def ore_lav_people():
     cursor.execute(query,params)
     rows=cursor.fetchall()
     
+# 1. Calcoliamo la somma delle ore per ogni operatore usando un dizionario
+    totali_operatori = {}
+    for r in rows:
+        operatore = r['Operatore']
+        # Gestiamo il caso in cui Ore_lavorate sia None o una stringa, convertendo in float
+        ore = float(r['Ore_lavorate']) if r['Ore_lavorate'] is not None else 0.0
+        totali_operatori[operatore] = totali_operatori.get(operatore, 0.0) + ore
+
+    # 2. Creiamo i dizionari di "riga totale" e li appendiamo alla lista dei risultati
+    for operatore, totale_ore in totali_operatori.items():
+        riga_totale = {
+            'Operatore': f"TOTALE {operatore}",
+            'Data_presenza': '',
+            'tipo': '',
+            'Ore_lavorate': totale_ore,
+            'Cliente': '',
+            'ID_Ordine': '',
+            'Attività': '',
+            'Data_ordine': ''
+        }
+        rows.append(riga_totale)
+
     excel_file = generate_excel_response(rows,sheet_name="ore_lav_people")
     if not excel_file:
         flash("Nessun dato trovato")

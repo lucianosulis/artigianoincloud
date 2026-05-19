@@ -74,34 +74,41 @@ def create():
     gg_week_descs = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì' ] 
     gg_week_numbers = [0,1,2,3,4]
     if request.method == 'POST':
-        surname = request.form['surname']
-        name = request.form['name']
-        cessato = request.form['cessato']
-        type = request.form['input_type']
-        if request.form['input_user_id'] == None or request.form['input_user_id'] == "":
+        surname = request.form.get('surname')
+        name = request.form.get('name')
+        cessato = request.form.get('cessato')
+        overtime = request.form.get('overtime')
+        parttime = request.form.get('parttime',0)
+        type = request.form.get('type')
+        user_id = request.form.get('user_id',None)
+        if not user_id:
             user_id = None
-        else:
-            user_id = int(request.form['input_user_id'])
+        gg_paga = request.form.get('gg_paga',0)
+        if not gg_paga:
+            gg_paga = 0
         gg_week_paga_arr = request.form.getlist('gg_week_paga')
         if gg_week_paga_arr:
             gg_week_paga = ",".join(gg_week_paga_arr)
         else:
             gg_week_paga = None
+
         error = None
 
         if (not surname) or (not name) or (not type):
             error = 'Compila tutti i campi obbligatori.'
         if type=="P" and not gg_week_paga:
-            error = 'Per un dipendente a chiamata devi compilare anche i giorni presenza.'
+            error = 'Per un dipendente a chiamata periodica devi compilare anche i giorni presenza.'
+        if type=="O" and not gg_paga:
+            error = 'Per un dipendente a chiamata occasionale devi compilare anche il numero delle giornate.'
         if error is not None:
             flash(error)
         else:
             db = get_db()
             cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'INSERT INTO people (surname, name, cessato, type, user_id, gg_week_paga)'
-                ' VALUES (%s, %s, %s, %s, %s, %s)',
-                (surname, name, cessato, type, user_id, gg_week_paga)
+                'INSERT INTO people (surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime)'
+                ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                (surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime)
             )
             db.commit()
             cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
@@ -137,23 +144,26 @@ def update(id):
         gg_week_numbers = [0,1,2,3,4]
 
     if request.method == 'POST':
-        surname = request.form['surname']
-        name = request.form['name']
-        cessato = request.form['cessato']
-        type = request.form['input_type']
-        #gg_paga = request.form['gg_paga']
+        surname = request.form.get('surname')
+        name = request.form.get('name')
+        cessato = request.form.get('cessato')
+        overtime = request.form.get('overtime')
+        type = request.form.get('type')
+        user_id = request.form.get('user_id',None)
+        if not user_id:
+            user_id = None
+        gg_paga = request.form.get('gg_paga',0)
+        if not gg_paga:
+            gg_paga = 0
         gg_week_paga_arr = request.form.getlist('gg_week_paga')
         if gg_week_paga_arr:
             gg_week_paga = ",".join(gg_week_paga_arr)
         else:
             gg_week_paga = None
-        #if not gg_paga:
-        #    gg_paga = 0
+        parttime = request.form.get('parttime',0)
+        if not parttime:
+            parttime = 0
        
-        if request.form['input_user_id'] == None or request.form['input_user_id'] == "":
-            user_id = None
-        else:
-            user_id = int(request.form['input_user_id'])
         error = None
 
         if (not surname) or (not name) or (not type):
@@ -167,9 +177,9 @@ def update(id):
             db = get_db()
             cursor = db.cursor(dictionary=True)
             cursor.execute(
-                'UPDATE people SET surname = %s, name = %s, cessato = %s, type = %s, user_id = %s, gg_week_paga = %s'
+                'UPDATE people SET surname = %s, name = %s, cessato = %s, overtime = %s, type = %s, user_id = %s, gg_paga = %s, gg_week_paga = %s, parttime =  %s'
                 ' WHERE id = %s',
-                (surname, name, cessato, type, user_id, gg_week_paga, id)
+                (surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime, id)
             )
             db.commit()
             print(f"gg_week_paga: {gg_week_paga}")
@@ -192,6 +202,7 @@ def detail(id):
     people = get_people(id)
     userList = get_userList()
     people_types = get_people_type()
+    
     if people['type'] == "P":
         gg_week_paga = people['gg_week_paga']
         gg_week_paga_arr = gg_week_paga.split(",")
@@ -210,7 +221,7 @@ def get_people(id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
-        'SELECT id, surname, name, cessato, type, user_id, gg_paga, gg_week_paga' 
+        'SELECT id, surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime ' 
         ' FROM people'
         ' WHERE id = %s',
         (id,)

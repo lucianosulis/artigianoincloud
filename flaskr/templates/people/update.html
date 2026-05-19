@@ -7,13 +7,13 @@
 
 {% block content %}
 
-  <form method="post" onsubmit="afterSubmit()">
+  <form method="post">
     <label for="surname">Cognome</label>
     <input name="surname" id="surname" type=text value="{{ request.form['surname'] or people['surname'] }}">
     <label for="name">Nome</label>
     <input name="name" id="name" type="text" value="{{ request.form['name'] or people['name'] }}">
     <label for="type">Tipo di collaborazione</label>
-    <SELECT id="type" onchange="controllaValore()">
+    <SELECT name="type" id="type" onchange="controllaValore()">
       <OPTION value="" selected>Selezionare il tipo di collaborazione</option>
       {% for people_type in people_types %}
         {% if people_type.short_name == people['type'] %}
@@ -23,8 +23,8 @@
         {% endif %}
       {% endfor %}
     </SELECT> 
-    <input name="input_type" id="input_type" hidden> 
-    <div id="giorni_paga" style="display: none;">
+    <br>
+    <div id="div_gg_week_paga" style="display: none;">
         <label for="gg_week_paga" style="display: block;">Giorni presenza</label>
         <SELECT name="gg_week_paga" id="gg_week_paga" multiple size="5">
             {% for gg in gg_week_numbers %}
@@ -36,9 +36,17 @@
             {% endfor %}
         </SELECT>
     </div>
+    <br>
+    <div id="div_gg_paga" style="display: none;">
+      <label for="gg_paga">Numero giornate</label>
+      <input name="gg_paga" id="gg_paga" type="text" value="{{ request.form['gg_paga'] or people['gg_paga'] }}">
+    </div>
+    <br>
+    <label for="parttime">Numero ore part-time (0 se full-time)</label>
+    <input type="number" name="parttime" id="parttime" min="0" max="7" step="0.1" value="{{ request.form['parttime'] or people['parttime'] }}"/>
 
     <label for="user_id">Utente</label>
-    <SELECT id="user_id">
+    <SELECT name="user_id" id="user_id"> 
       <OPTION value="" selected></option>
       {% for user in userList %}
         {% if user.id == people['user_id'] %}
@@ -48,60 +56,67 @@
         {% endif %}
       {% endfor %}
     </SELECT>
-    <input name="input_user_id" id="input_user_id" hidden>
     <br>
     <table>
       <tr>
         <td>
           <label for="radio1">Collaborazione attiva</label>
-          <input name="cessato" id="radio1" type="radio" value="0" checked>
+          <input name="cessato" id="radio1" type="radio" value="0" 
+                {% if people['cessato']|string == '0' or not people['cessato'] %}checked{% endif %}>
         </td>
         <td>
             <label for="radio2">Collaborazione cessata</label>
-            <input name="cessato" id="radio2" type="radio" value="1">
+            <input name="cessato" id="radio2" type="radio" value="1" 
+                  {% if people['cessato']|string == '1' %}checked{% endif %}>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="radio3">Straordinari No</label>
+          <input name="overtime" id="radio3" type="radio" value="0" 
+                {% if people['overtime']|string == '0' or not people['overtime'] %}checked{% endif %}>
+        </td>
+        <td>
+            <label for="radio4">Straordinari Sì</label>
+            <input name="overtime" id="radio4" type="radio" value="1" 
+                  {% if people['overtime']|string == '1' %}checked{% endif %}>
         </td>
       </tr>
     </table>
-    <input name="cessato" id="cessato" type="text" value="{{people['cessato'] }}" hidden>
-  <table>
-    <tr>
-      <td>
-        <input type="submit" value="Salva">
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
-        <input name="goback" id="goback" value="{{ url_for('people.index') }}" hidden>
-      </td>
-    </tr>
-  </table>
+    <table>
+      <tr>
+        <td>
+          <input type="submit" value="Salva">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input class="action" style="height:30px; width:160px" type="button" onclick="goBack()" value="Indietro">
+          <input name="goback" id="goback" value="{{ url_for('people.index') }}" hidden>
+        </td>
+      </tr>
+    </table>
   </form>
   <form action="{{ url_for('people.delete', id=people['id']) }}" method="post">
     <input class="danger" type="submit" value="Elimina" onclick="return confirm('Sei sicuro di eliminare questo collaboratore?');">
   </form>
   <hr>
   <script> 
-    const cessato = document.getElementById("cessato").value;
-    if (cessato == "0") { radio1.setAttribute("checked", "");  }
-    else { radio2.setAttribute("checked", "");}
-
-    function afterSubmit() {
-          var new_user_id = document.getElementById("user_id").value;
-          document.getElementById("input_user_id").value = new_user_id; 
-          var new_type = document.getElementById("type").value;
-          document.getElementById("input_type").value = new_type;          
-      }
-
     function goBack() {
       window.location.assign(document.getElementById("goback").value);
     }
 
     function controllaValore() {
       var select = document.getElementById("type");
-      var div = document.getElementById("giorni_paga");
-      
+
+      var div = document.getElementById("div_gg_week_paga");
       if (select.value === "P") {
+          div.style.display = "block"; // Mostra il tag
+      } else {
+          div.style.display = "none";  // Nascondi il tag
+      }
+      var div = document.getElementById("div_gg_paga");
+      if (select.value === "O") {
           div.style.display = "block"; // Mostra il tag
       } else {
           div.style.display = "none";  // Nascondi il tag

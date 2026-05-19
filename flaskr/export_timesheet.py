@@ -106,9 +106,9 @@ def index():
             
             db = get_db()
             cursor = db.cursor(dictionary=True)
-            query = 'SELECT id, CONCAT(surname," ",name) AS p_name, type, gg_week_paga FROM people WHERE cessato = 0'
+            query = 'SELECT id, CONCAT(surname," ",name) AS p_name, type, gg_paga, gg_week_paga, overtime, parttime FROM people '
             if report_type == "2": #Report ufficio paghe
-                query = query + ' AND (type = "D" OR type = "P") '  #Solo dipendenti full e a chiamata o part-time
+                query = query + ' WHERE (type = "D" OR type = "P" OR type = "O") '  #Solo dipendenti full e a chiamata
             query = query + ' ORDER BY p_name'
             cursor.execute(query)
             peoples = cursor.fetchall()
@@ -140,11 +140,17 @@ def index():
                     gg_week_paga = people['gg_week_paga']
                     if people['type'] == "P":
                         gg_week_paga_arr = gg_week_paga.split(",")
+                    if people['type'] == "O":
+                        gg_paga = people['gg_paga']
+                    gg_ced_tot = 0
+                    
+                    parttime = people['parttime']
+                    overtime = people['overtime']
 
                     for ts_record in ts_records:
                         dayNum = int(ts_record['dayStr'])
                         week_day = calendar.weekday(year,month,dayNum)
-                        
+                        gg_ced_tot = gg_ced_tot + 1
                         row = i
                         col = 2 + dayNum
                         ore_arr = ts_record['ore'].split(";")
@@ -152,11 +158,17 @@ def index():
                         night_arr = ts_record['night'].split(";")
                         
                         if week_day == 4:   #Venerdì
-                            ore_STD = 7
+                            if parttime > 0:
+                                ore_STD = parttime
+                            else:
+                                ore_STD = 7
                         elif week_day == 5 or week_day == 6:  #Sabato e domenica
                             ore_STD = 0
                         else:               #Altri giorni
-                            ore_STD = 8
+                            if parttime > 0:
+                                ore_STD = parttime
+                            else:
+                                ore_STD = 8
                         #Indipendentemente dal giorno della settimana, se è festivo metto a zero le ore standard
                         if isHoliday(year,month,dayNum):
                             ore_STD = 0
@@ -214,12 +226,18 @@ def index():
                                 ore_STR = 0
                              
                         if people['type'] == "P" and str(week_day) not in  gg_week_paga_arr:
-                                ore_STR = ore_STR + ore_ORD
-                                ore_NOTT_STR = ore_NOTT_STR + ore_NOTT
-                                ore_ORD = 0
-                                ore_NOTT = 0 
+                            ore_STR = ore_STR + ore_ORD
+                            ore_NOTT_STR = ore_NOTT_STR + ore_NOTT
+                            ore_ORD = 0
+                            ore_NOTT = 0 
+
+                        if people['type'] == "O" and gg_ced_tot > gg_paga and gg_paga > 0:
+                            ore_STR = ore_STR + ore_ORD
+                            ore_NOTT_STR = ore_NOTT_STR + ore_NOTT
+                            ore_ORD = 0
+                            ore_NOTT = 0 
                         
-                        if report_type == "2":  #Report ufficio paghe
+                        if report_type == "2" and overtime == 0:  #Report ufficio paghe
                             ore_STR = 0
                             ore_NOTT_STR = 0
                             

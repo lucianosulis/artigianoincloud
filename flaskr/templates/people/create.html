@@ -7,20 +7,20 @@
 
 {% block content %}
 
-  <form method="post" onsubmit="afterSubmit()">
+  <form method="post">
     <label for="surname">Cognome</label>
-    <input name="surname" id="surname" type=text value="{{ request.form['surname'] }}">
+    <input name="surname" id="surname" type=text value="{{ request.form['surname'] }}" required>
     <label for="name">Nome</label>
-    <input name="name" id="name" type="text" value="{{ request.form['name'] }}">
+    <input name="name" id="name" type="text" value="{{ request.form['name'] }}" required>
     <label for="type">Tipo di collaborazione</label>
-    <SELECT id="type" onchange="controllaValore()">
+    <SELECT name="type" id="type" onchange="controllaValore()">
       <OPTION value="" selected>Selezionare il tipo di collaborazione</option>
       {% for people_type in people_types %}
           <OPTION value={{people_type.short_name}}>{{people_type.name}}</option>
       {% endfor %}
     </SELECT>
-    <input name="input_type" id="input_type" hidden>
-    <div id="giorni_paga" style="display: none;">
+    <br>
+    <div id="div_gg_week_paga" style="display: none;">
       <label for="gg_week_paga" style="display: block;">Giorni presenza</label>
       <SELECT name="gg_week_paga" id="gg_week_paga" multiple size="5">
         {% for gg in gg_week_numbers %}
@@ -28,14 +28,21 @@
         {% endfor %}
       </SELECT>   
     </div>
+    <div id="div_gg_paga" style="display: none;">
+      <label for="gg_paga">Numero giornate</label>
+      <input name="gg_paga" id="gg_paga" type="text" value="{{ request.form['gg_paga'] }}">
+    </div>
+    <br>
+    <label for="parttime">Numero ore part-time (0 se full-time)</label>
+    <input type="number" name="parttime" id="parttime" min="0" max="7" step="0.1" value="{{ request.form['parttime'] }}"/>
+    <br>
     <label for="user_id">Utente</label>
-    <SELECT id="user_id">
+    <SELECT name="user_id" id="user_id">
       <OPTION value="" selected></option>
       {% for user in userList %}
           <OPTION value={{user.id}}>{{user.username}}</option>
       {% endfor %}
     </SELECT>
-    <input name="input_user_id" id="input_user_id" hidden>
     <br>
     <table>
       <tr>
@@ -46,6 +53,16 @@
         <td>
             <label for="radio2">Collaborazione cessata</label>
             <input name="cessato" id="radio2" type="radio" value="1">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="radio3">Straordinari No</label>
+          <input name="overtime" id="radio3" type="radio" value="0"  checked> 
+        </td>
+        <td>
+            <label for="radio4">Straordinari Sì</label>
+            <input name="overtime" id="radio4" type="radio" value="1">
         </td>
       </tr>
     </table>
@@ -66,27 +83,26 @@
   </form>
   <hr>
   <script> 
-  function afterSubmit() {
-          var new_user_id = document.getElementById("user_id").value;
-          document.getElementById("input_user_id").value = new_user_id; 
-          var new_type = document.getElementById("type").value;
-          document.getElementById("input_type").value = new_type;      
-    }
-
-  function goBack() {
+    function goBack() {
       window.location.assign(document.getElementById("goback").value);
     }
 
-  function controllaValore() {
-    var select = document.getElementById("type");
-    var div = document.getElementById("giorni_paga");
-    
-    if (select.value === "P") {
-        div.style.display = "block"; // Mostra il tag
-    } else {
-        div.style.display = "none";  // Nascondi il tag
+    function controllaValore() {
+      var select = document.getElementById("type");
+
+      var div = document.getElementById("div_gg_week_paga");
+      if (select.value === "P") {
+          div.style.display = "block"; // Mostra il tag
+      } else {
+          div.style.display = "none";  // Nascondi il tag
+      }
+      var div = document.getElementById("div_gg_paga");
+      if (select.value === "O") {
+          div.style.display = "block"; // Mostra il tag
+      } else {
+          div.style.display = "none";  // Nascondi il tag
+      }
     }
-  }
   
   </script>
 
