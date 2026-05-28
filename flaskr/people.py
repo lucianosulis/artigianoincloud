@@ -86,6 +86,11 @@ def create():
         gg_paga = request.form.get('gg_paga',0)
         if not gg_paga:
             gg_paga = 0
+        if not parttime:
+            parttime = 0.0
+        else:
+            parttime = parttime.replace(',', '.')
+            parttime_val = float(parttime)
         gg_week_paga_arr = request.form.getlist('gg_week_paga')
         if gg_week_paga_arr:
             gg_week_paga = ",".join(gg_week_paga_arr)
@@ -108,7 +113,7 @@ def create():
             cursor.execute(
                 'INSERT INTO people (surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime)'
                 ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                (surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime)
+                (surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime_val)
             )
             db.commit()
             cursor.execute('SELECT LAST_INSERT_ID() AS last_insert')
@@ -155,6 +160,11 @@ def update(id):
         gg_paga = request.form.get('gg_paga',0)
         if not gg_paga:
             gg_paga = 0
+        if not parttime:
+            parttime = 0.0
+        else:
+            parttime = parttime.replace(',', '.')
+            parttime_val = float(parttime)
         gg_week_paga_arr = request.form.getlist('gg_week_paga')
         if gg_week_paga_arr:
             gg_week_paga = ",".join(gg_week_paga_arr)
@@ -179,7 +189,7 @@ def update(id):
             cursor.execute(
                 'UPDATE people SET surname = %s, name = %s, cessato = %s, overtime = %s, type = %s, user_id = %s, gg_paga = %s, gg_week_paga = %s, parttime =  %s'
                 ' WHERE id = %s',
-                (surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime, id)
+                (surname, name, cessato, overtime, type, user_id, gg_paga, gg_week_paga, parttime_val, id)
             )
             db.commit()
             print(f"gg_week_paga: {gg_week_paga}")
