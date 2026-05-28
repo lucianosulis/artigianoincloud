@@ -221,9 +221,14 @@ def create_app(test_config=None):
     app.register_blueprint(report.bp)
     app.add_url_rule('/reports', endpoint='index')
 
-    # register blueprint "api"
+# register blueprint "api"
     from . import api
     app.register_blueprint(api.bp)
+
+# register blueprint "power_off"
+    from . import power_off
+    app.register_blueprint(power_off.bp)
+
 
     return app
 

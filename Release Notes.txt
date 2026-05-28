@@ -1,3 +1,6 @@
+Release 3.8
+Aggiunto pulsante spegnimento server (Utilità).
+
 Release 3.7.1
 Corretto bug su create people (default gg_paga a zero).
 

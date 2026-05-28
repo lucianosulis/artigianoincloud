@@ -1,0 +1,39 @@
+<button id="btn-shutdown" style="background-color: red; color: white; padding: 10px 20px; border: none; cursor: pointer;">
+    Spegni Server
+</button>
+
+<script>
+document.getElementById('btn-shutdown').addEventListener('click', function() {
+    // Doppia conferma per evitare disastri
+    if (confirm("Sei assolutamente sicuro di voler SPEGNERE il server? Non potrai riaccenderlo da remoto tramite questa interfaccia.")) {
+        
+        // Disabilita il pulsante per evitare click multipli
+        this.disabled = true;
+        this.innerText = "Spegnimento in corso...";
+
+        // Chiamata POST a Flask
+        fetch('/power_off', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message + " La connessione verrà interrotta.");
+            } else {
+                alert("Errore: " + data.message);
+                this.disabled = false;
+                this.innerText = "Spegni Server";
+            }
+        })
+        .catch(error => {
+            // È normale che dia un errore di rete (es. net::ERR_CONNECTION_REFUSED) 
+            // se il server si spegne prima di completare la ricezione della risposta JavaScript.
+            console.error('Errore:', error);
+            alert("Richiesta inviata. Il server dovrebbe spegnersi a breve.");
+        });
+    }
+});
+</script>
