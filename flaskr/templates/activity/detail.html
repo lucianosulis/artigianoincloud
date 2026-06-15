@@ -222,9 +222,9 @@
           });
 
 
-    function activity_to_do() {
+    /*function activity_to_do() {
         var act_id = document.getElementById("act_id").value;
-        console.log(act_id);
+        console.log(act_id); 
         $.ajax({
         type: "POST",
         url: "/activity/" + act_id + "/to_do",
@@ -236,7 +236,37 @@
           }
         })
         document.getElementById("done").value = "Attività da eseguire";
-    }
+    }*/
+
+  function activity_to_do() {
+    var act_id = document.getElementById("act_id").value;
+    console.log(act_id); 
+    
+    $.ajax({
+        type: "POST",
+        url: "/activity/" + act_id + "/to_do",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+            console.log("Result:", result);
+            // Questo codice viene eseguito SOLO se lo status HTTP è 2xx
+            document.getElementById("done").value = "Attività da eseguire";
+            alert("Operazione completata con successo!"); 
+        },
+        error: function(xhr, status, error) {
+            console.error("Errore AJAX:", xhr);
+            
+            // Tentiamo di leggere il messaggio di errore inviato da Flask
+            var response = xhr.responseJSON;
+            if (response && response.error) {
+                alert(response.error); // Mostra "Non sei autorizzato a questa funzione."
+            } else {
+                alert("Si è verificato un errore imprevisto.");
+            }
+        }
+    });
+  }
+
     function activity_done() {
       var act_id = document.getElementById("act_id").value;
         console.log(act_id);
@@ -246,11 +276,23 @@
         contentType: "application/json",
         dataType: 'json',
         success: function(result) {
-          console.log("Result:");
-          console.log(result);
-          }
-        })
-        document.getElementById("done").value = "Attività eseguita";
+            console.log("Result:", result);
+            // Questo codice viene eseguito SOLO se lo status HTTP è 2xx
+            document.getElementById("done").value = "Attività eseguita";
+            alert("Operazione completata con successo!"); 
+        },
+        error: function(xhr, status, error) {
+            console.error("Errore AJAX:", xhr);
+            
+            // Tentiamo di leggere il messaggio di errore inviato da Flask
+            var response = xhr.responseJSON;
+            if (response && response.error) {
+                alert(response.error); // Mostra "Non sei autorizzato a questa funzione."
+            } else {
+                alert("Si è verificato un errore imprevisto.");
+            }
+        }
+      })
     }
 
     function goBack() {

@@ -669,12 +669,13 @@ def order_desc(order_id):
     
     return (result)
 
-@bp.route('/activity/<int:id>/to_do', methods=('POST',))
+''' @bp.route('/activity/<int:id>/to_do', methods=('POST',))
 @login_required
 def to_do(id):
     if g.role != "ADMIN":
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
+         print(error)
          return redirect(url_for("activity.index"))
     #current_app.logger.debug("to_do dice: " + str(id))
     db = get_db()
@@ -685,16 +686,35 @@ def to_do(id):
         (id,)
     )
     db.commit()
-    return "to_do"
+    return "to_do" '''
+
+@bp.route('/activity/<int:id>/to_do', methods=('POST',))
+@login_required
+def to_do(id):
+    if g.role != "ADMIN" and g.role != "SEGRETERIA":
+        error = 'Non sei autorizzato a questa funzione.'
+        # Restituiamo un JSON con l'errore e lo status code 403
+        return jsonify({'error': error}), 403
+    
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(
+        'UPDATE activity SET done = False WHERE id = %s',
+        (id,)
+    )
+    db.commit()
+    
+    # Restituiamo una risposta JSON di successo
+    return jsonify({'status': 'success', 'message': 'Attività aggiornata'})
 
 @bp.route('/activity/<int:id>/done', methods=('POST',))
 @login_required
 def done(id):
-    if g.role != "ADMIN":
+    if g.role != "ADMIN" and g.role != "SEGRETERIA":
          error = 'Non sei autorizzato a questa funzione.'
          flash(error)
-         return redirect(url_for("activity.index"))
-    #current_app.logger.debug("done dice: " + str(id))
+         return jsonify({'error': error}), 403
+    
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute(
@@ -703,7 +723,7 @@ def done(id):
         (id,)
     )
     db.commit()
-    return "done"
+    return jsonify({'status': 'success', 'message': 'Attività aggiornata'})
 
 @bp.route("/<int:order_id>/get_order_tags", methods=('POST',))
 @login_required

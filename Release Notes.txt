@@ -1,3 +1,7 @@
+Release 3.8.1
+Corretto bug che non permetteva di visualizzare l'errore di ruolo nei cambi di stato di una 
+attività. Permesso di modifica assegnato anche al ruolo SEGRETERIA.
+
 Release 3.8
 Aggiunto pulsante spegnimento server (Utilità).
 
