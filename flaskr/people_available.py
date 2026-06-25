@@ -303,7 +303,7 @@ def get_anag_people():
     cursor = db.cursor(dictionary=True)
     cursor.execute(
         'SELECT id, CONCAT(surname," ",name) AS name FROM people ' 
-        ' WHERE cessato=0 and (type="C" or type="P") '
+        ' WHERE cessato=0 and (type="C" or type="P" or type="O") '
         ' ORDER BY surname,name ASC'
     )
     anag_people=cursor.fetchall()

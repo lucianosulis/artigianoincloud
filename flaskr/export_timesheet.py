@@ -106,7 +106,7 @@ def index():
             
             db = get_db()
             cursor = db.cursor(dictionary=True)
-            query = 'SELECT id, CONCAT(surname," ",name) AS p_name, type, gg_paga, gg_week_paga, overtime, parttime FROM people '
+            query = 'SELECT id, CONCAT(surname," ",name) AS p_name, type, gg_paga, periodo_gg_paga, overtime, parttime FROM people '
             if report_type == "2": #Report ufficio paghe
                 query = query + ' WHERE (type = "D" OR type = "P" OR type = "O") '  #Solo dipendenti full e a chiamata
             query = query + ' ORDER BY p_name'
@@ -137,20 +137,26 @@ def index():
                     cell.font = font3
                     ws.merge_cells('A' + str(i) + ':A' + str(i+9))
                     
-                    gg_week_paga = people['gg_week_paga']
-                    if people['type'] == "P":
-                        gg_week_paga_arr = gg_week_paga.split(",")
-                    if people['type'] == "O":
-                        gg_paga = people['gg_paga']
+                    periodo_gg_paga = people['periodo_gg_paga']
+                    gg_paga = people['gg_paga']
                     gg_ced_tot = 0
                     
                     parttime = people['parttime']
                     overtime = people['overtime']
 
+                    dayNumPrev = 0
                     for ts_record in ts_records:
                         dayNum = int(ts_record['dayStr'])
                         week_day = calendar.weekday(year,month,dayNum)
+                        if periodo_gg_paga == "W" and (dayNum-dayNumPrev > 7 or week_day == 0):
+                            gg_ced_tot = 0  #azzero il contatore se periodo paga settimanale
+                            print(f"Ho azzerato gg_ced_tot per {people['p_name']} nel giorno {dayNum} week_day {week_day}")
+                        else:
+                            print(f"Non ho azzerato gg_ced_tot per {people['p_name']}")
+                            print(f"dayNum: {dayNum} - periodo_gg_paga: {periodo_gg_paga} - week_day: {week_day}")
                         gg_ced_tot = gg_ced_tot + 1
+                        dayNumPrev = dayNum
+
                         row = i
                         col = 2 + dayNum
                         ore_arr = ts_record['ore'].split(";")
@@ -224,18 +230,13 @@ def index():
                             else:
                                 ore_ORD = ore_ORD_TOT
                                 ore_STR = 0
-                             
-                        if people['type'] == "P" and str(week_day) not in  gg_week_paga_arr:
-                            ore_STR = ore_STR + ore_ORD
-                            ore_NOTT_STR = ore_NOTT_STR + ore_NOTT
-                            ore_ORD = 0
-                            ore_NOTT = 0 
 
-                        if people['type'] == "O" and gg_ced_tot > gg_paga and gg_paga > 0:
+                        if people['type'] in ("P","O") and gg_ced_tot > gg_paga and gg_paga > 0:
                             ore_STR = ore_STR + ore_ORD
                             ore_NOTT_STR = ore_NOTT_STR + ore_NOTT
                             ore_ORD = 0
                             ore_NOTT = 0 
+                            print(f"Superamento limite per {people['p_name']} - gg_paga: {gg_paga} - gg_ced_tot: {gg_ced_tot} - periodo: {periodo_gg_paga}")
                         
                         if report_type == "2" and overtime == 0:  #Report ufficio paghe
                             ore_STR = 0

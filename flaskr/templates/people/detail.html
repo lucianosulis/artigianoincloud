@@ -21,23 +21,31 @@
       {% endfor %}
     </SELECT>
     <br>
-     {% if people['type'] == 'P' %}
-        <label for="gg_week_paga">Giorni presenza</label>
-        <SELECT name="gg_week_paga" id="gg_week_paga" multiple size="5" disabled>
-          {% for gg in gg_week_numbers %}
-            {% if gg in gg_week_paga_arr_int %}
-              <OPTION value={{gg}} selected>{{gg_week_descs[gg]}}</option>
-            {% else %}
-              <OPTION value={{gg}}>{{gg_week_descs[gg]}}</option>
-            {% endif %}
-          {% endfor %}
-        </SELECT>
-    {% endif %}
-    <br>
-    {% if people['type'] == 'O' %}
-        <label for="gg_paga">Numero giornate</label>
-        <input name="gg_paga" id="gg_paga" type="text" value="{{ people['gg_paga'] }}" readonly>
-    {% endif %}
+    {% if people.type in ('P', 'O') %}
+      <label for="gg_week_available">Giorni disponibili</label>
+      {% set available_days = gg_week_available_arr_int | default([], true) %}
+      <select name="gg_week_available" id="gg_week_available" multiple size="5" disabled>
+      {% for gg in gg_week_numbers %}
+        {% if gg in available_days %}
+          <option value="{{gg}}" selected>{{gg_week_descs[gg]}}</option>
+        {% else %}
+          <option value="{{gg}}">{{gg_week_descs[gg]}}</option>
+        {% endif %}
+      {% endfor %}
+      </select> 
+      <label for="gg_paga">Numero giornate</label>
+      <input name="gg_paga" id="gg_paga" type="text" value="{{ people['gg_paga'] }}" readonly>
+      <label for="periodo_gg_paga">Periodo</label>
+      <SELECT name="periodo_gg_paga" id="periodo_gg_paga" disabled>
+        {% if people.periodo_gg_paga == 'M' %}
+          <OPTION value='M' selected>Mese</OPTION>
+          <OPTION value='W'>Settimana</OPTION>
+        {% else %} 
+            <OPTION value='M'>Mese</OPTION>
+            <OPTION value='W' selected>Settimana</OPTION>
+        {% endif %}
+      </SELECT>
+    {% endif %}  
     <br>
     <label for="parttime">Numero ore part-time (0 se full-time)</label>
     <input type="number" name="parttime" id="parttime" value="{{ people['parttime'] }}" readonly/>

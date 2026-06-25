@@ -1,3 +1,8 @@
+Release 3.9
+Ulteriore modifica delle logiche di export_timesheet.py. Introdotto nella tabella people 
+il nuovo campo periodo_gg_paga (W=settimana, M=mese). Rinominato il campo gg_week_available
+(che non ha più a che fare con le paghe ma solo con la disponibilità). 
+
 Release 3.8.1
 Corretto bug che non permetteva di visualizzare l'errore di ruolo nei cambi di stato di una 
 attività. Permesso di modifica assegnato anche al ruolo SEGRETERIA.

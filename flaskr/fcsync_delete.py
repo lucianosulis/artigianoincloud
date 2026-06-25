@@ -22,6 +22,7 @@ from fattureincloud_python_sdk.models.create_client_response import CreateClient
 from fattureincloud_python_sdk.models.issued_document_items_list_item import IssuedDocumentItemsListItem
 from fattureincloud_python_sdk.models.issued_document_payments_list_item import IssuedDocumentPaymentsListItem
 from fattureincloud_python_sdk.models.issued_document_status import IssuedDocumentStatus
+from fattureincloud_python_sdk.rest import ApiException
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -32,7 +33,7 @@ class Oauth:
         current_app.config.from_file("config.json", load=json.load)
         #oauth = OAuth2AuthorizationCodeManager('Aw8Tn3tOvSPXXYHBUOWGD5AXur4iF79p', '27v9eQIt6PRpJZXMOOmH6xRTT9jJUCrbkCWUrV7BpDi03iwelNft4vlrxHG5javw', 'http://localhost:5000/oauth')
         oauth = OAuth2AuthorizationCodeManager(current_app.config["FC_CLIENT_ID"], current_app.config["FC_CLIENT_SECRET"], current_app.config["FC_REDIRECT_URI"])
-        url = oauth.get_authorization_url([Scope.ISSUED_DOCUMENTS_ORDERS_ALL,Scope.ISSUED_DOCUMENTS_INVOICES_READ,Scope.ISSUED_DOCUMENTS_PROFORMAS_READ,Scope.ENTITY_CLIENTS_ALL,Scope.ENTITY_SUPPLIERS_READ], 'AveUjKtZ')
+        url = oauth.get_authorization_url([Scope.ISSUED_DOCUMENTS_ORDERS_ALL,Scope.ISSUED_DOCUMENTS_INVOICES_READ,Scope.ISSUED_DOCUMENTS_PROFORMAS_ALL,Scope.ENTITY_CLIENTS_ALL,Scope.ENTITY_SUPPLIERS_READ], 'AveUjKtZ')
         #print("url da Oauth: " + url)
         params = request.args
         #print(request.args.to_dict().items())
@@ -238,10 +239,10 @@ class Oauth:
                     cursor = db.cursor(dictionary=True)
                     current_year = datetime.today().year 
                     active_year = session.get("active_year",current_year)
-                    filtro = f"date >= '{active_year}-01-01' and date <= '{active_year}-12-31'"
+                    #filtro = f"date >= '{active_year}-01-01' and date <= '{active_year}-12-31'"
+                    filtro = f"date >= '2019-01-01' and date <= '2021-12-31'"
                     print(f"Filtro ordini: {filtro}")
                     #filtro = "date >= '2026-01-01' and date <= '2026-12-31'"
-                    #Il codice seguente era per le fatture ma non è più in uso
                     '''invoices = documents_api_instance.list_issued_documents(company_id=first_company_id,type="invoice",page=1, fieldset = 'detailed',q=filtro)
                     last_page = invoices.last_page
                     total_invoice = 0
@@ -272,11 +273,11 @@ class Oauth:
                         proformas = documents_api_instance.list_issued_documents(company_id=first_company_id,type="proforma",page=i, fieldset = 'detailed',q=filtro)
                         for doc in proformas.data:
                             #print(f"doc.number: {doc.number} - {doc.entity.name} - {doc.id}")
-                            count_query = ('SELECT COUNT(*) AS count FROM revenue WHERE doc_id = %s' )
-                            cursor.execute(count_query,(doc.id,))
-                            rowCount = cursor.fetchone()['count']
+                            #count_query = ('SELECT COUNT(*) AS count FROM revenue WHERE doc_id = %s' )
+                            #cursor.execute(count_query,(doc.id,))
+                            #rowCount = cursor.fetchone()['count']
                             #print(f"rowCount: {rowCount}")
-                            if rowCount == 0:
+                            '''if rowCount == 0:
                                 cursor.execute(
                                     'INSERT INTO revenue (order_id,customer_id,comp_start,comp_end,amount_net,amount_vat,amount_gross,type,customer_name,number,date,doc_id,object,updated_at,year)'
                                     ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
@@ -293,8 +294,16 @@ class Oauth:
                                         'WHERE doc_id=%s'
                                         ,(doc.entity.id,doc.amount_net,doc.amount_vat,doc.amount_gross,doc.entity.name,doc.number,doc.var_date,doc.visible_subject,doc.updated_at,doc.id))
                                     updated_proforma = updated_proforma + 1
-                        db.commit()
-                        #Il codice seguente controllova se la proforma era pagata. Non più in uso.
+                        db.commit()'''
+                            try:
+                                # 3. Esegui la cancellazione del documento
+                                documents_api_instance.delete_issued_document(first_company_id, doc.id)
+                                print(f"Successo: Il documento con ID {doc.id} è stato eliminato correttamente.")
+            
+                            except ApiException as e:
+                                # Gestione degli errori API (es. documento non trovato o token non valido)
+                                print(f"Errore durante la cancellazione del documento: {e}\n")
+                        
                         '''# Controlliamo se esiste una lista pagamenti e se almeno il primo pagamento è 'paid'
                             if doc.payments_list:
                                 p = doc.payments_list[0] 
